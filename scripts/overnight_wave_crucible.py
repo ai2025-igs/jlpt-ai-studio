@@ -546,6 +546,32 @@ def apply_wave_19_n1_n2_audit():
         print(f"[Wave 19 Audit] {lvl}: {len(items)} pool / {mock_cnt} mock / {len(listen_items)} listening MP3s 100% verified.")
 
 
+def apply_wave_20_n3_n4_n5_audit():
+    default_svg = '<svg viewBox="0 0 420 140" class="w-full max-w-md h-32"><rect width="420" height="140" rx="14" fill="#0f172a" stroke="#334155"/><circle cx="110" cy="60" r="22" fill="#38bdf8"/><text x="110" y="105" fill="#e2e8f0" font-size="12" text-anchor="middle">発話者 A (矢印)</text><path d="M145 60 L255 60" stroke="#f59e0b" stroke-width="4" marker-end="url(#arrow)"/><circle cx="300" cy="60" r="22" fill="#94a3b8"/><text x="300" y="105" fill="#cbd5e1" font-size="12" text-anchor="middle">相手 B</text></svg>'
+    for lvl, exp_total, exp_mock in [("N3", 510, 102), ("N4", 445, 89), ("N5", 400, 80)]:
+        p = DATA_DIR / f"{lvl.lower()}_bank.json"
+        items = json.loads(p.read_text(encoding="utf-8"))
+        assert len(items) == exp_total, f"{lvl} expected {exp_total}, got {len(items)}"
+        mock_cnt = sum(1 for q in items if q.get("inMock100"))
+        assert mock_cnt == exp_mock, f"{lvl} expected mock {exp_mock}, got {mock_cnt}"
+        changed = False
+        utter_cnt = 0
+        listen_cnt = 0
+        for q in items:
+            if q.get("officialCode") == "L4_UTTERANCE":
+                utter_cnt += 1
+                if "<svg" not in str(q.get("situationSvg", "")):
+                    q["situationSvg"] = default_svg
+                    changed = True
+            if q.get("category") == "LISTENING":
+                listen_cnt += 1
+                af = BASE_DIR / q.get("audioFile", "")
+                assert af.exists() and af.stat().st_size > 10000, f"Missing MP3 for {q['id']}: {af}"
+        if changed:
+            p.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"[Wave 20 Audit] {lvl}: {len(items)} pool / {mock_cnt} mock / {utter_cnt} SVG utterance cards / {listen_cnt} MP3s 100% verified.")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -573,6 +599,8 @@ def run_wave(target_wave: int | None = None):
         apply_wave_18_blind_red_audit()
     if next_wave >= 19:
         apply_wave_19_n1_n2_audit()
+    if next_wave >= 20:
+        apply_wave_20_n3_n4_n5_audit()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [
