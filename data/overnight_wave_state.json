@@ -1,6 +1,6 @@
 {
   "startedAt": "2026-11-07T16:58:35.567805+00:00",
-  "currentWave": 4,
+  "currentWave": 5,
   "maxWaves": 24,
   "intervalMinutes": 20,
   "history": [
@@ -39,13 +39,22 @@
       "totalPool_N1_N5": 2067,
       "totalPool_N1_N4": 1827,
       "totalMock_N1_N4": 401
+    },
+    {
+      "wave": 5,
+      "timestamp": "2026-11-07T18:00:54.643655+00:00",
+      "phase": "Phase I",
+      "focus": "N4 Pool Expansion & Intransitive/Transitive Verb / Utterance SVG Enrichment (toward 500% = 445 items)",
+      "totalPool_N1_N5": 2245,
+      "totalPool_N1_N4": 2005,
+      "totalMock_N1_N4": 401
     }
   ],
-  "lastUpdatedAt": "2026-11-07T17:40:59.805341+00:00",
+  "lastUpdatedAt": "2026-11-07T18:00:54.643655+00:00",
   "summary": {
-    "totalPool_N1_N5": 2067,
+    "totalPool_N1_N5": 2245,
     "totalMock_N1_N5": 481,
-    "totalPool_N1_N4": 1827,
+    "totalPool_N1_N4": 2005,
     "totalMock_N1_N4": 401,
     "countsByLevel": {
       "N1": {
@@ -61,7 +70,7 @@
         "mock100": 102
       },
       "N4": {
-        "pool": 267,
+        "pool": 445,
         "mock100": 89
       },
       "N5": {
