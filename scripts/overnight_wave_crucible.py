@@ -447,6 +447,34 @@ function startFlaggedDrill() {
         p_app.write_text(atxt + addon, encoding="utf-8")
 
 
+def apply_wave_16_queue_keyword_search():
+    p_app = BASE_DIR / "assets" / "js" / "app.js"
+    atxt = p_app.read_text(encoding="utf-8").replace("\r\n", "\n")
+    if "function filterQueueByKeyword(" not in atxt:
+        target = "function renderQuestionQueue() {"
+        replacement = """let queueSearchKeyword = '';
+function filterQueueByKeyword(val) {
+  queueSearchKeyword = (val || '').trim().toLowerCase();
+  renderQuestionQueue();
+}
+
+function renderQuestionQueue() {"""
+        atxt = atxt.replace(target, replacement, 1)
+        old_map = "  container.innerHTML = questions.map((q) => {"
+        new_map = """  const list = queueSearchKeyword
+    ? questions.filter(q =>
+        (q.id || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.stem || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.subtag || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.coreRule || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.translation || '').toLowerCase().includes(queueSearchKeyword)
+      )
+    : questions;
+  container.innerHTML = list.map((q) => {"""
+        atxt = atxt.replace(old_map, new_map, 1)
+        p_app.write_text(atxt, encoding="utf-8")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -466,6 +494,8 @@ def run_wave(target_wave: int | None = None):
         apply_wave_14_score_report_printer()
     if next_wave >= 15:
         apply_wave_15_flagged_and_blindspot_drill()
+    if next_wave >= 16:
+        apply_wave_16_queue_keyword_search()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [

@@ -1307,12 +1307,27 @@ function updateLocalCoachPrescription(q, record) {
   box.innerHTML = adviceHtml;
 }
 
+let queueSearchKeyword = '';
+function filterQueueByKeyword(val) {
+  queueSearchKeyword = (val || '').trim().toLowerCase();
+  renderQuestionQueue();
+}
+
 function renderQuestionQueue() {
   const container = document.getElementById('questionQueueList');
   if (!container) return;
   const currentQ = getCurrentQuestion();
 
-  container.innerHTML = questions.map((q) => {
+  const list = queueSearchKeyword
+    ? questions.filter(q =>
+        (q.id || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.stem || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.subtag || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.coreRule || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.translation || '').toLowerCase().includes(queueSearchKeyword)
+      )
+    : questions;
+  container.innerHTML = list.map((q) => {
     const rec = historyMap[q.id];
     const isCurrent = currentQ && currentQ.id === q.id;
 

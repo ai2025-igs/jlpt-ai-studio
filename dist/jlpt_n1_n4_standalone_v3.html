@@ -952,14 +952,16 @@ input[type=range]::-webkit-slider-thumb:hover {
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 class="text-base font-bold text-white">📋 FSRS v5 記憶排程與題庫導覽佇列 (點擊題目直接跳轉至 Tab 1 作答)</h2>
-          <p class="text-xs text-slate-400">支援 300% 鍛鍊池 (1,443題) 與 100% 正式模擬考 (481題) 快速檢索</p>
+          <p class="text-xs text-slate-400">支援 500% 鍛鍊池 (2,405題) 與 100% 正式模擬考 (481題) 快速檢索</p>
         </div>
-        <div class="flex items-center gap-1.5">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <input id="queueKeywordInput" type="text" oninput="filterQueueByKeyword(this.value)" placeholder="🔍 搜尋題幹漢字/文法/中文考點..."
+            class="px-3 py-1 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 w-52" />
           <button type="button" onclick="openCloudModal()" class="px-3 py-1 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-bold">
-            ☁️ Google Sheets 題庫同步
+            ☁️ Google Sheets 同步
           </button>
           <button type="button" onclick="openExportModal()" class="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
-            📓 匯出 NotebookLM 筆記
+            📓 匯出 NotebookLM
           </button>
         </div>
       </div>
@@ -4268,12 +4270,27 @@ function updateLocalCoachPrescription(q, record) {
   box.innerHTML = adviceHtml;
 }
 
+let queueSearchKeyword = '';
+function filterQueueByKeyword(val) {
+  queueSearchKeyword = (val || '').trim().toLowerCase();
+  renderQuestionQueue();
+}
+
 function renderQuestionQueue() {
   const container = document.getElementById('questionQueueList');
   if (!container) return;
   const currentQ = getCurrentQuestion();
 
-  container.innerHTML = questions.map((q) => {
+  const list = queueSearchKeyword
+    ? questions.filter(q =>
+        (q.id || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.stem || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.subtag || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.coreRule || '').toLowerCase().includes(queueSearchKeyword) ||
+        (q.translation || '').toLowerCase().includes(queueSearchKeyword)
+      )
+    : questions;
+  container.innerHTML = list.map((q) => {
     const rec = historyMap[q.id];
     const isCurrent = currentQ && currentQ.id === q.id;
 
