@@ -56,16 +56,17 @@ def main():
         sys.exit(1)
     print("DOM ID Audit PASSED: 0 missing IDs between JS controllers and index.html.")
 
-    banks = {}
-    for lvl in ["N1", "N2", "N3", "N4", "N5"]:
+    banks = {"N1": [], "N2": [], "N3": [], "N4": [], "N5": []}
+    for lvl in ["N2"]:
         bpath = os.path.join(ROOT, "data", f"{lvl.lower()}_bank.json")
         with open(bpath, "r", encoding="utf-8") as f:
             banks[lvl] = json.load(f)
 
     # Inline CSS
-    standalone_html = html.replace(
-        '<link rel="stylesheet" href="assets/css/custom.css" />',
-        f"<style>\n{css}\n</style>",
+    standalone_html = re.sub(
+        r'<link rel="stylesheet" href="assets/css/custom\.css[^"]*"\s*/>',
+        lambda _: f"<style>\n{css}\n</style>",
+        html,
     )
 
     # Inline Embedded JSON Banks + JS Scripts
@@ -75,13 +76,12 @@ def main():
         + "\n\n".join(js_contents)
     )
 
-    script_tags = (
-        '  <script src="assets/js/psychometric.js"></script>\n'
-        '  <script src="assets/js/audio-engine.js"></script>\n'
-        '  <script src="assets/js/app.js"></script>'
-    )
-    standalone_html = standalone_html.replace(
-        script_tags, f"  <script>\n{combined_js}\n  </script>"
+    standalone_html = re.sub(
+        r'\s*<script src="assets/js/psychometric\.js[^"]*"></script>\s*'
+        r'<script src="assets/js/audio-engine\.js[^"]*"></script>\s*'
+        r'<script src="assets/js/app\.js[^"]*"></script>',
+        lambda _: f"\n  <script>\n{combined_js}\n  </script>",
+        standalone_html,
     )
 
     dist_dir = os.path.join(ROOT, "dist")

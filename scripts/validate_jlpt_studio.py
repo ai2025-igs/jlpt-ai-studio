@@ -12,11 +12,35 @@ Enforces:
 """
 import argparse
 import json
+import re
+import subprocess
 import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
+JS_DIR = BASE_DIR / "assets" / "js"
+
+
+def validate_js_and_dom_handlers() -> list[str]:
+    errors = []
+    js_files = sorted(JS_DIR.glob("*.js"))
+    all_js_text = ""
+    for jf in js_files:
+        all_js_text += "\n" + jf.read_text(encoding="utf-8")
+        res = subprocess.run(["node", "--check", str(jf)], capture_output=True, text=True)
+        if res.returncode != 0:
+            errors.append(f"[JS SyntaxError] {jf.name}: {res.stderr.strip()}")
+    html_path = BASE_DIR / "index.html"
+    if html_path.exists():
+        html_text = html_path.read_text(encoding="utf-8")
+        defined_funcs = set(re.findall(r"function\s+([A-Za-z0-9_]+)\s*\(", all_js_text))
+        called_funcs = set(re.findall(r'on(?:click|change|input)="([A-Za-z0-9_]+)\(', html_text))
+        missing_funcs = sorted(called_funcs - defined_funcs)
+        if missing_funcs:
+            errors.append(f"[DOM Handler Missing] Undefined JS functions referenced in index.html: {missing_funcs}")
+    print(f"[JS/DOM GATE] Audited {len(js_files)} JS files with `node --check` & DOM handler bindings | Errors: {len(errors)}")
+    return errors
 
 REQUIRED_FIELDS = [
     "id", "level", "section", "category", "officialCode", "officialName",
@@ -117,7 +141,7 @@ def main():
     args = parser.parse_args()
 
     levels = ["N1", "N2", "N3", "N4", "N5"] if args.level.upper() == "ALL" else [x.strip().upper() for x in args.level.split(",")]
-    all_errors = []
+    all_errors = validate_js_and_dom_handlers()
     for lvl in levels:
         min_q = 35 if (lvl == "N2" and args.min_questions <= 24) else args.min_questions
         errs = validate_level(lvl, min_q, args.check_furigana, args.check_audio, args.strict_aqe)

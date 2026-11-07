@@ -25,7 +25,8 @@ const STORAGE_KEY = 'jlpt_ai_studio_v3_progress';
 const BYOK_STORAGE_KEY = 'jlpt_ai_studio_gemini_key';
 
 let allBanks = { N1: [], N2: [], N3: [], N4: [], N5: [] };
-let currentPoolScope = 'POOL_300'; // 'POOL_300' | 'MOCK_100'
+const ENABLED_LEVELS = new Set(['N2']); // Locked to N2 flagship focus until N2 acceptance
+let currentPoolScope = 'POOL_500'; // 'POOL_500' | 'POOL_300' | 'MOCK_100'
 let currentWorkspaceTab = 'TAB_MAIN_GUI';
 const OFFICIAL_HEX = { N1: '#00a383', N2: '#f39c42', N3: '#8c6bb1', N4: '#ef6c67', N5: '#1e78b4' };
 let currentLevel = 'N2';
@@ -109,11 +110,11 @@ async function loadAllQuestionBanks() {
     allBanks = window.EMBEDDED_JLPT_BANKS;
   }
 
-  // Try fetching fresh JSON banks from ./data/n{1..4}_bank.json
-  const levels = ['N1', 'N2', 'N3', 'N4', 'N5'];
+  // Fetch enabled level banks (Currently locked to N2 for maximum speed and focus)
+  const levels = Array.from(ENABLED_LEVELS);
   await Promise.all(levels.map(async (lvl) => {
     try {
-      const res = await fetch(`data/${lvl.toLowerCase()}_bank.json`);
+      const res = await fetch(`data/${lvl.toLowerCase()}_bank.json?v=4.2`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -139,10 +140,16 @@ async function loadAllQuestionBanks() {
 function updateLevelSwitcherCounts() {
   let totalPool = 0;
   ['N1', 'N2', 'N3', 'N4', 'N5'].forEach(lvl => {
+    const btnEl = document.getElementById(`lvlBtn_${lvl}`);
     const cntEl = document.getElementById(`lvlCount_${lvl}`);
+    if (!ENABLED_LEVELS.has(lvl)) {
+      if (btnEl) btnEl.disabled = true;
+      if (cntEl) cntEl.textContent = '待開放';
+      return;
+    }
     const arr = allBanks[lvl] || [];
     totalPool += arr.length;
-    const mockCnt = arr.filter(q => q.inMock100).length || (LEVEL_SPECS[lvl]?.mock100Count || 80);
+    const mockCnt = arr.filter(q => q.inMock100).length || (LEVEL_SPECS[lvl]?.mock100Count || 106);
     if (cntEl && arr.length > 0) {
       cntEl.textContent = `${arr.length}題(模${mockCnt})`;
     }
@@ -153,26 +160,29 @@ function updateLevelSwitcherCounts() {
 
 function getScopedBank(lvl) {
   const raw = allBanks[lvl] || [];
+  const mockCnt = raw.filter(q => q.inMock100).length || (LEVEL_SPECS[lvl]?.mock100Count || 80);
   if (currentPoolScope === 'MOCK_100') {
     const mockItems = raw.filter(q => q.inMock100);
-    return mockItems.length > 0 ? mockItems : raw;
+    return mockItems.length > 0 ? mockItems : raw.slice(0, mockCnt);
+  }
+  if (currentPoolScope === 'POOL_300') {
+    return raw.slice(0, mockCnt * 3);
   }
   return raw;
 }
 
 function setQuestionPoolScope(scope) {
   currentPoolScope = scope;
+  const b500 = document.getElementById('poolBtn500');
   const b300 = document.getElementById('poolBtn300');
   const b100 = document.getElementById('poolBtn100');
   const tagEl = document.getElementById('officialExamPoolTag');
-  if (scope === 'POOL_300') {
-    if (b300) b300.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-sky-500 text-slate-950 transition';
-    if (b100) b100.className = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition';
-    if (tagEl) tagEl.textContent = '300%池';
-  } else {
-    if (b100) b100.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500 text-white transition';
-    if (b300) b300.className = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition';
-    if (tagEl) tagEl.textContent = '100%模考';
+  const inactiveCls = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition';
+  if (b500) b500.className = scope === 'POOL_500' ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition' : inactiveCls;
+  if (b300) b300.className = scope === 'POOL_300' ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-sky-500 text-slate-950 transition' : inactiveCls;
+  if (b100) b100.className = scope === 'MOCK_100' ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500 text-white transition' : inactiveCls;
+  if (tagEl) {
+    tagEl.textContent = scope === 'MOCK_100' ? '100%模考' : (scope === 'POOL_300' ? '300%池' : '500%池');
   }
   questions = [...getScopedBank(currentLevel)];
   populateOfficialSubfilterDropdown();
@@ -181,7 +191,9 @@ function setQuestionPoolScope(scope) {
   renderQuestionQueue();
   showToast(scope === 'MOCK_100'
     ? `⏱️ 已切換至 JLPT ${currentLevel}「100% 正式檢定標準題量」（共 ${questions.length} 題）！`
-    : `🏋️ 已切換至 JLPT ${currentLevel}「300% 擴充實戰鍛鍊池」（共 ${questions.length} 題）！`, 'sky');
+    : scope === 'POOL_300'
+    ? `🏋️ 已切換至 JLPT ${currentLevel}「300% 核心擴充鍛鍊池」（共 ${questions.length} 題）！`
+    : `🔥 已切換至 JLPT ${currentLevel}「500% 旗艦全題庫池」（共 ${questions.length} 題）！`, 'sky');
 }
 
 function switchWorkspaceTab(tabId) {
@@ -211,6 +223,10 @@ function switchWorkspaceTab(tabId) {
 }
 
 function switchLevel(lvl, showNotification = true) {
+  if (!ENABLED_LEVELS.has(lvl)) {
+    showToast(`🔒 目前系統鎖定專注於「JLPT N2」主力測驗衝刺（530題旗艦池 / 318題300%池 / 106題模考），${lvl} 待 N2 驗收後開放！`, 'amber');
+    lvl = 'N2';
+  }
   if (typeof stopListeningDialogue === 'function') stopListeningDialogue();
   currentLevel = lvl;
   const hex = OFFICIAL_HEX[lvl] || '#f39c42';
@@ -218,35 +234,44 @@ function switchLevel(lvl, showNotification = true) {
 
   const rawArr = allBanks[lvl] || [];
   const mockCnt = rawArr.filter(q => q.inMock100).length || (LEVEL_SPECS[lvl]?.mock100Count || 80);
+  const pool500El = document.getElementById('pool500CountText');
   const pool300El = document.getElementById('pool300CountText');
   const mock100El = document.getElementById('mock100CountText');
-  if (pool300El) pool300El.textContent = rawArr.length;
+  if (pool500El) pool500El.textContent = rawArr.length;
+  if (pool300El) pool300El.textContent = mockCnt * 3;
   if (mock100El) mock100El.textContent = mockCnt;
 
   const sbMock = document.getElementById('standbyMock100Val');
   const sbPool300 = document.getElementById('standbyPool300Val');
   const sbPool500 = document.getElementById('standbyPool500Val');
   if (sbMock) sbMock.textContent = `${mockCnt} 題`;
-  if (sbPool300) sbPool300.textContent = `${rawArr.length} 題`;
-  if (sbPool500) sbPool500.textContent = `${mockCnt * 5} 題`;
+  if (sbPool300) sbPool300.textContent = `${mockCnt * 3} 題`;
+  if (sbPool500) sbPool500.textContent = `${rawArr.length} 題`;
 
   questions = [...getScopedBank(lvl)];
   currentFilter = 'ALL';
   currentOfficialSubfilter = 'ALL_SUB';
 
-  // Update 5-Level Switcher Pills UI (Ordered N1 -> N2 -> N3 -> N4 -> N5 with Official JLPT Hex Colors)
+  // Update 5-Level Switcher Pills UI (N2 Active Flagship Focus; N1, N3, N4, N5 Disabled)
   ['N1', 'N2', 'N3', 'N4', 'N5'].forEach(code => {
     const btn = document.getElementById(`lvlBtn_${code}`);
     const cnt = document.getElementById(`lvlCount_${code}`);
     if (!btn) return;
+    if (!ENABLED_LEVELS.has(code)) {
+      btn.disabled = true;
+      btn.className = 'px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-500 border border-slate-800 opacity-45 cursor-not-allowed';
+      btn.style.backgroundColor = '';
+      if (cnt) {
+        cnt.className = 'px-1.5 py-0.5 rounded bg-slate-950 text-slate-500 border border-slate-800 font-mono text-[10px]';
+        cnt.textContent = '待開放';
+      }
+      return;
+    }
     if (code === lvl) {
+      btn.disabled = false;
       btn.className = 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition flex items-center gap-1.5 text-white shadow-lg border-2 border-white';
       btn.style.backgroundColor = OFFICIAL_HEX[code];
       if (cnt) cnt.className = 'px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 border border-white/40 font-mono text-[10px] font-bold';
-    } else {
-      btn.className = 'px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700';
-      btn.style.backgroundColor = '';
-      if (cnt) cnt.className = 'px-1.5 py-0.5 rounded bg-slate-950 text-slate-300 border border-slate-700 font-mono text-[10px]';
     }
   });
 
@@ -263,7 +288,6 @@ function switchLevel(lvl, showNotification = true) {
   // Update Header Brand Badge & Exam Gate Info
   const spec = LEVEL_SPECS[lvl] || LEVEL_SPECS.N2;
   const bp = (typeof OFFICIAL_BLUEPRINT !== 'undefined' && OFFICIAL_BLUEPRINT.levels?.[lvl]) || null;
-  const brandBadge = document.getElementById('headerLevelBadge');
   const brandTitle = document.getElementById('headerLevelTitle');
   const brandSub = document.getElementById('headerLevelDesc');
   if (brandBadge) brandBadge.textContent = lvl;
@@ -505,6 +529,85 @@ function loadCurrentQuestion() {
   startPacingTimer(q.targetSec || catMeta.targetSec || 45);
   syncFlagButtonUI(q.id);
   renderQuestionQueue();
+}
+
+function renderOfficialMondaiNumberBar(currentQ) {
+  const writtenBar = document.getElementById('officialMondaiWrittenBar');
+  const listenBar = document.getElementById('officialMondaiListeningBar');
+  const headerLbl = document.getElementById('officialWrittenHeaderLabel');
+  if (!writtenBar || !listenBar) return;
+
+  if (headerLbl) {
+    headerLbl.textContent = (currentLevel === 'N1' || currentLevel === 'N2')
+      ? '第1節：言語知識（文字・語彙・文法）・読解'
+      : '第1・2節：言語知識（文字・語彙）＋（文法・読解）';
+  }
+
+  const bp = (typeof OFFICIAL_BLUEPRINT !== 'undefined' && OFFICIAL_BLUEPRINT.levels?.[currentLevel]) || null;
+  const mondaiList = bp?.mondaiList || [];
+  const writtenMondai = mondaiList.filter(m => !String(m.code).startsWith('L'));
+  const listenMondai = mondaiList.filter(m => String(m.code).startsWith('L'));
+  const activeHex = OFFICIAL_HEX[currentLevel] || '#f39c42';
+
+  writtenBar.innerHTML = writtenMondai.map((m, idx) => {
+    const isActive = currentQ && currentQ.officialCode === m.code;
+    return `
+      <button type="button" onclick="jumpToMondaiCode('${m.code}')" title="${m.name}"
+        style="${isActive ? `background-color: ${activeHex}; color: #fff; border-color: #fff;` : ''}"
+        class="w-6 h-6 rounded font-mono text-[11px] font-extrabold transition flex items-center justify-center border ${
+          isActive
+            ? 'shadow-md scale-105'
+            : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+        }">
+        ${idx + 1}
+      </button>
+    `;
+  }).join('');
+
+  listenBar.innerHTML = listenMondai.map((m, idx) => {
+    const isActive = currentQ && currentQ.officialCode === m.code;
+    const numLabel = writtenMondai.length + idx + 1;
+    return `
+      <button type="button" onclick="jumpToMondaiCode('${m.code}')" title="${m.name}"
+        style="${isActive ? `background-color: ${activeHex}; color: #fff; border-color: #fff;` : ''}"
+        class="px-1.5 h-6 rounded font-mono text-[11px] font-extrabold transition flex items-center justify-center gap-0.5 border ${
+          isActive
+            ? 'shadow-md scale-105'
+            : 'bg-slate-800 hover:bg-slate-700 text-sky-300 border-slate-700'
+        }">
+        <span>🔊${numLabel}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function jumpToMondaiCode(officialCode) {
+  currentFilter = 'ALL';
+  currentOfficialSubfilter = officialCode;
+  const select = document.getElementById('officialSubtypeSelect');
+  if (select) select.value = officialCode;
+  filterQuestionsList();
+}
+
+function openSvgZoomModal() {
+  const q = getCurrentQuestion();
+  const modal = document.getElementById('svgZoomModal');
+  const content = document.getElementById('svgZoomModalContent');
+  if (!modal || !content || !q?.situationSvg) return;
+  content.innerHTML = q.situationSvg;
+  modal.classList.remove('hidden');
+}
+
+function closeSvgZoomModal() {
+  document.getElementById('svgZoomModal')?.classList.add('hidden');
+}
+
+function openConjugationModal() {
+  document.getElementById('conjugationModal')?.classList.remove('hidden');
+}
+
+function closeConjugationModal() {
+  document.getElementById('conjugationModal')?.classList.add('hidden');
 }
 
 function toggleFlagQuestion() {
@@ -1470,6 +1573,7 @@ function closeBlueprintModal() {
 }
 
 function renderBlueprintModalContent(lvl) {
+  if (!ENABLED_LEVELS.has(lvl)) lvl = 'N2';
   if (typeof OFFICIAL_BLUEPRINT === 'undefined') return;
   const spec = OFFICIAL_BLUEPRINT.levels[lvl] || OFFICIAL_BLUEPRINT.levels.N2;
   const bankArr = allBanks[lvl] || [];
@@ -1477,9 +1581,15 @@ function renderBlueprintModalContent(lvl) {
   ['N1', 'N2', 'N3', 'N4', 'N5'].forEach(code => {
     const b = document.getElementById(`bpTab_${code}`);
     if (b) {
-      b.className = code === lvl
-        ? 'px-3 py-1.5 rounded-xl font-bold text-xs bg-amber-500 text-slate-950'
-        : 'px-3 py-1.5 rounded-xl font-semibold text-xs bg-slate-800 text-slate-300 hover:bg-slate-700';
+      if (!ENABLED_LEVELS.has(code)) {
+        b.disabled = true;
+        b.className = 'px-3 py-1.5 rounded-xl font-semibold text-xs bg-slate-900 text-slate-600 border border-slate-800 opacity-45 cursor-not-allowed';
+      } else {
+        b.disabled = false;
+        b.className = code === lvl
+          ? 'px-3 py-1.5 rounded-xl font-bold text-xs bg-amber-500 text-slate-950'
+          : 'px-3 py-1.5 rounded-xl font-semibold text-xs bg-slate-800 text-slate-300 hover:bg-slate-700';
+      }
     }
   });
 

@@ -219,7 +219,8 @@ async function playListeningDialogue() {
   const preferStaticMp3 = !audioModeSelect || audioModeSelect.value !== 'WEBSPEECH';
 
   let playedStatic = false;
-  if (preferStaticMp3 && q.audioFile && !dialogueAbortFlag) {
+  const hasDedicatedMp3 = Boolean(q.audioFile && q.id && q.audioFile.includes(`${q.id}.mp3`));
+  if (preferStaticMp3 && hasDedicatedMp3 && !dialogueAbortFlag) {
     speakerBadge.textContent = '🎙️ 播放 edge-tts 真人級雙聲道音訊 (Keita & Nanami)...';
     playedStatic = await tryPlayPreRenderedMp3(q.audioFile, totalTurns);
   }

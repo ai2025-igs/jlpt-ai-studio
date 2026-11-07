@@ -29,7 +29,7 @@
   </script>
 
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="assets/css/custom.css" />
+  <link rel="stylesheet" href="assets/css/custom.css?v=4.2" />
 </head>
 
 <body class="min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950 hide-inline-ruby">
@@ -48,39 +48,39 @@
           <div>
             <div class="flex items-center gap-2 flex-wrap">
               <h1 id="headerLevelTitle" class="text-sm sm:text-base font-extrabold tracking-tight text-white">
-                JLPT N2 互動式 AI 刷題與認知診斷系統 v4.0
+                JLPT N2 互動式 AI 刷題與認知診斷系統 v4.2
               </h1>
               <span id="headerSubBadge" class="px-2 py-0.5 text-[10px] font-mono font-semibold rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                1080P 官方樣題 UI × N1–N4 達 2,005題(500%) × 全五級 2,405題(500%)
+                🎯 專注 N2 主力衝刺版 ｜ 1080P 官方樣題 UI × 530題(500%) × 318題(300%) × 106題(100%模考)
               </span>
             </div>
             <p id="headerLevelDesc" class="text-[11px] text-slate-400 hidden xl:block">
-              二節制測驗（總分 ≥90/180，三科皆須 ≥19/60） ｜ 正式模考 106題 / 300%鍛鍊池 318題 / 500%目標 530題
+              二節制測驗（總分 ≥90/180，三科皆須 ≥19/60） ｜ 正式模考 106題 / 300%鍛鍊池 318題 / 500%旗艦池 530題（N1/N3/N4/N5 鎖定待開放）
             </p>
           </div>
         </div>
 
-        <!-- 5-Level Switcher Pills (Ordered Canonically: N1 -> N2 -> N3 -> N4 -> N5 with Official JLPT Colors & Dual Quota Badges) -->
+        <!-- 5-Level Switcher Pills (N2 Active Flagship Focus; N1, N3, N4, N5 Disabled until N2 Acceptance) -->
         <div id="levelSwitcherGroup" class="flex flex-wrap items-center gap-1.5 bg-slate-900/95 p-1 rounded-2xl border border-slate-800 transition-all">
-          <button id="lvlBtn_N1" onclick="switchLevel('N1')" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700">
-            <span>👑 N1</span>
-            <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded bg-slate-950 text-emerald-300 border border-emerald-500/40 font-mono text-[10px] font-bold">520題(模104)</span>
+          <button id="lvlBtn_N1" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N1）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-500 border border-slate-800 opacity-45 cursor-not-allowed">
+            <span>🔒 N1</span>
+            <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-500 border border-slate-800 font-mono text-[10px]">待開放</span>
           </button>
-          <button id="lvlBtn_N2" onclick="switchLevel('N2')" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 text-slate-950 shadow-lg border border-amber-300" style="background-color: #f39c42;">
-            <span>🏆 N2</span>
-            <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 border border-amber-400/50 font-mono text-[10px] font-bold">530題(模106)</span>
+          <button id="lvlBtn_N2" onclick="switchLevel('N2')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition flex items-center gap-1.5 text-white shadow-lg border-2 border-white" style="background-color: #f39c42;">
+            <span>🏆 N2 (主力焦點)</span>
+            <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 border border-white/40 font-mono text-[10px] font-bold">530題(模106)</span>
           </button>
-          <button id="lvlBtn_N3" onclick="switchLevel('N3')" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700">
-            <span>🌉 N3</span>
-            <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded bg-slate-950 text-purple-300 border border-purple-500/40 font-mono text-[10px] font-bold">510題(模102)</span>
+          <button id="lvlBtn_N3" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N3）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-500 border border-slate-800 opacity-45 cursor-not-allowed">
+            <span>🔒 N3</span>
+            <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-500 border border-slate-800 font-mono text-[10px]">待開放</span>
           </button>
-          <button id="lvlBtn_N4" onclick="switchLevel('N4')" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700">
-            <span>🌱 N4</span>
-            <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded bg-slate-950 text-rose-300 border border-rose-500/40 font-mono text-[10px] font-bold">445題(模89)</span>
+          <button id="lvlBtn_N4" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N4）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-500 border border-slate-800 opacity-45 cursor-not-allowed">
+            <span>🔒 N4</span>
+            <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-500 border border-slate-800 font-mono text-[10px]">待開放</span>
           </button>
-          <button id="lvlBtn_N5" onclick="switchLevel('N5')" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700">
-            <span>🐣 N5</span>
-            <span id="lvlCount_N5" class="px-1.5 py-0.5 rounded bg-slate-950 text-sky-300 border border-sky-500/40 font-mono text-[10px] font-bold">400題(模80)</span>
+          <button id="lvlBtn_N5" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N5）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-500 border border-slate-800 opacity-45 cursor-not-allowed">
+            <span>🔒 N5</span>
+            <span id="lvlCount_N5" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-500 border border-slate-800 font-mono text-[10px]">待開放</span>
           </button>
         </div>
 
@@ -134,12 +134,15 @@
 
         <!-- Right Controls: 300% Pool vs 100% Official Mock Toggle + Category Filter + Scaffolding Mode + Furigana -->
         <div class="flex flex-wrap items-center gap-1.5">
-          <!-- 300% Practice Pool vs 100% Official Mock Switcher -->
+          <!-- 500% Flagship Pool vs 300% Practice Pool vs 100% Official Mock Switcher -->
           <div class="flex items-center bg-slate-900 p-0.5 rounded-xl border border-slate-700">
-            <button id="poolBtn300" onclick="setQuestionPoolScope('POOL_300')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-sky-500 text-slate-950 transition" title="日常 300% 擴充鍛鍊池 (N1:312 / N2:318 / N3:306 / N4:267 / N5:240)">
+            <button id="poolBtn500" onclick="setQuestionPoolScope('POOL_500')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition" title="旗艦 500% 全題庫池 (N1:520 / N2:530 / N3:510 / N4:445 / N5:400，N1-N4合計 2,005題 / 全五級 2,405題)">
+              🔥 500% 旗艦池 (<span id="pool500CountText">530</span>題)
+            </button>
+            <button id="poolBtn300" onclick="setQuestionPoolScope('POOL_300')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition" title="日常 300% 擴充鍛鍊池 (N1:312 / N2:318 / N3:306 / N4:267 / N5:240，N1-N4合計 1,203題 / 全五級 1,443題)">
               🏋️ 300% 鍛鍊池 (<span id="pool300CountText">318</span>題)
             </button>
-            <button id="poolBtn100" onclick="setQuestionPoolScope('MOCK_100')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition" title="JEES 官方 100% 正式檢定題量 (N1:104 / N2:106 / N3:102 / N4:89 / N5:80)">
+            <button id="poolBtn100" onclick="setQuestionPoolScope('MOCK_100')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition" title="JEES 官方 100% 正式檢定題量 (N1:104 / N2:106 / N3:102 / N4:89 / N5:80，N1-N4合計 401題 / 全五級 481題)">
               ⏱️ 100% 正式模考 (<span id="mock100CountText">106</span>題)
             </button>
           </div>
@@ -216,7 +219,7 @@
             <!-- Big Level Square Block (Left) -->
             <div id="officialExamLevelBox" class="w-16 sm:w-20 shrink-0 flex flex-col items-center justify-center text-white font-black tracking-tight shadow-inner" style="background-color: #f39c42;">
               <span id="officialExamLevelText" class="text-2xl sm:text-3xl leading-none">N2</span>
-              <span id="officialExamPoolTag" class="text-[9px] font-mono uppercase mt-0.5 px-1 rounded bg-black/25">300%池</span>
+              <span id="officialExamPoolTag" class="text-[9px] font-mono uppercase mt-0.5 px-1 rounded bg-black/25">500%池</span>
             </div>
 
             <!-- Two-Tier Official Mondai Number Selector Table (Center) -->
@@ -1209,8 +1212,8 @@
   <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
 
   <!-- Core Scripts -->
-  <script src="assets/js/psychometric.js"></script>
-  <script src="assets/js/audio-engine.js"></script>
-  <script src="assets/js/app.js"></script>
+  <script src="assets/js/psychometric.js?v=4.2"></script>
+  <script src="assets/js/audio-engine.js?v=4.2"></script>
+  <script src="assets/js/app.js?v=4.2"></script>
 </body>
 </html>
