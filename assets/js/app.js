@@ -553,6 +553,32 @@ function toggleFurigana() {
   syncFuriganaUI();
 }
 
+function highlightDiscourseMarkers() {
+  const q = getCurrentQuestion();
+  const stemEl = document.getElementById('qStemText');
+  if (!q || !stemEl) return;
+  const markers = [
+    'しかし', 'だが', 'けれども', 'ところが', 'それにもかかわらず', '一方で', '他方', 'それに対して',
+    'つまり', 'すなわち', '要するに', '結論として', '実は', 'なぜなら', 'したがって', 'そのため',
+    'のではないだろうか', 'べきだ', 'にほかならない', 'に違いない', 'と考えられる', 'が重要だ'
+  ];
+  let html = q.stem;
+  let hits = 0;
+  markers.forEach(m => {
+    if (html.includes(m)) {
+      hits++;
+      const re = new RegExp(`(${m})`, 'g');
+      html = html.replace(re, '<mark class="px-1 py-0.5 rounded bg-amber-400/30 text-amber-200 border border-amber-400/60 font-extrabold">$1</mark>');
+    }
+  });
+  stemEl.innerHTML = html;
+  if (hits > 0) {
+    showToast(`🖍️ 讀解談話標記：已高亮標示本題 ${hits} 處關鍵轉折/結論/主張信號詞！`, 'sky');
+  } else {
+    triggerSocraticHint();
+  }
+}
+
 function triggerSocraticHint() {
   const q = getCurrentQuestion();
   if (!q) return;

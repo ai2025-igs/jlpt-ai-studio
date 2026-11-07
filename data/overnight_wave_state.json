@@ -1,6 +1,6 @@
 {
   "startedAt": "2026-11-07T16:58:35.567805+00:00",
-  "currentWave": 8,
+  "currentWave": 9,
   "maxWaves": 24,
   "intervalMinutes": 20,
   "history": [
@@ -84,9 +84,18 @@
       "totalPool_N1_N5": 2405,
       "totalPool_N1_N4": 2005,
       "totalMock_N1_N4": 401
+    },
+    {
+      "wave": 9,
+      "timestamp": "2026-11-07T19:21:07.377992+00:00",
+      "phase": "Phase II",
+      "focus": "Dokkai Discourse Marker Highlighting (しかし・つまり・一方で) & A/B Comparative Reading Matrix",
+      "totalPool_N1_N5": 2405,
+      "totalPool_N1_N4": 2005,
+      "totalMock_N1_N4": 401
     }
   ],
-  "lastUpdatedAt": "2026-11-07T19:01:16.859924+00:00",
+  "lastUpdatedAt": "2026-11-07T19:21:07.377992+00:00",
   "summary": {
     "totalPool_N1_N5": 2405,
     "totalMock_N1_N5": 481,

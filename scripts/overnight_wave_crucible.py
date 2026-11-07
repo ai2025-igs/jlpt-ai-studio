@@ -288,6 +288,42 @@ function anchorStarFirstLastSlots() {
             p_app.write_text(atxt.replace(target, replacement), encoding="utf-8")
 
 
+def apply_wave_9_discourse_highlighter():
+    p_app = BASE_DIR / "assets" / "js" / "app.js"
+    atxt = p_app.read_text(encoding="utf-8").replace("\r\n", "\n")
+    if "function highlightDiscourseMarkers()" not in atxt:
+        target = """function triggerSocraticHint() {"""
+        addon = """function highlightDiscourseMarkers() {
+  const q = getCurrentQuestion();
+  const stemEl = document.getElementById('qStemText');
+  if (!q || !stemEl) return;
+  const markers = [
+    'しかし', 'だが', 'けれども', 'ところが', 'それにもかかわらず', '一方で', '他方', 'それに対して',
+    'つまり', 'すなわち', '要するに', '結論として', '実は', 'なぜなら', 'したがって', 'そのため',
+    'のではないだろうか', 'べきだ', 'にほかならない', 'に違いない', 'と考えられる', 'が重要だ'
+  ];
+  let html = q.stem;
+  let hits = 0;
+  markers.forEach(m => {
+    if (html.includes(m)) {
+      hits++;
+      const re = new RegExp(`(${m})`, 'g');
+      html = html.replace(re, '<mark class="px-1 py-0.5 rounded bg-amber-400/30 text-amber-200 border border-amber-400/60 font-extrabold">$1</mark>');
+    }
+  });
+  stemEl.innerHTML = html;
+  if (hits > 0) {
+    showToast(`🖍️ 讀解談話標記：已高亮標示本題 ${hits} 處關鍵轉折/結論/主張信號詞！`, 'sky');
+  } else {
+    triggerSocraticHint();
+  }
+}
+
+function triggerSocraticHint() {"""
+        if target in atxt:
+            p_app.write_text(atxt.replace(target, addon, 1), encoding="utf-8")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -297,6 +333,8 @@ def run_wave(target_wave: int | None = None):
         apply_wave_7_trap_cards()
     if next_wave >= 8:
         apply_wave_8_star_anchor()
+    if next_wave >= 9:
+        apply_wave_9_discourse_highlighter()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [
