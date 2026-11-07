@@ -1,6 +1,6 @@
 {
   "startedAt": "2026-11-07T16:58:35.567805+00:00",
-  "currentWave": 5,
+  "currentWave": 6,
   "maxWaves": 24,
   "intervalMinutes": 20,
   "history": [
@@ -48,11 +48,20 @@
       "totalPool_N1_N5": 2245,
       "totalPool_N1_N4": 2005,
       "totalMock_N1_N4": 401
+    },
+    {
+      "wave": 6,
+      "timestamp": "2026-11-07T18:20:50.870593+00:00",
+      "phase": "Phase I",
+      "focus": "N5 Pool Expansion & Particle/Conjugation Beginner Scaffolding (reaching 500% = 2,405 total items)",
+      "totalPool_N1_N5": 2405,
+      "totalPool_N1_N4": 2005,
+      "totalMock_N1_N4": 401
     }
   ],
-  "lastUpdatedAt": "2026-11-07T18:00:54.643655+00:00",
+  "lastUpdatedAt": "2026-11-07T18:20:50.870593+00:00",
   "summary": {
-    "totalPool_N1_N5": 2245,
+    "totalPool_N1_N5": 2405,
     "totalMock_N1_N5": 481,
     "totalPool_N1_N4": 2005,
     "totalMock_N1_N4": 401,
@@ -74,7 +83,7 @@
         "mock100": 89
       },
       "N5": {
-        "pool": 240,
+        "pool": 400,
         "mock100": 80
       }
     }

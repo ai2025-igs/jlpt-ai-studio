@@ -51,7 +51,7 @@
                 JLPT N2 互動式 AI 刷題與認知診斷系統 v4.0
               </h1>
               <span id="headerSubBadge" class="px-2 py-0.5 text-[10px] font-mono font-semibold rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                1080P 官方樣題 UI × N1–N4 達 2,005題(500%) × 全五級 2,245題
+                1080P 官方樣題 UI × N1–N4 達 2,005題(500%) × 全五級 2,405題(500%)
               </span>
             </div>
             <p id="headerLevelDesc" class="text-[11px] text-slate-400 hidden xl:block">
@@ -64,23 +64,23 @@
         <div id="levelSwitcherGroup" class="flex flex-wrap items-center gap-1.5 bg-slate-900/95 p-1 rounded-2xl border border-slate-800 transition-all">
           <button id="lvlBtn_N1" onclick="switchLevel('N1')" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700">
             <span>👑 N1</span>
-            <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded bg-slate-950 text-emerald-300 border border-emerald-500/40 font-mono text-[10px] font-bold">312題(模104)</span>
+            <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded bg-slate-950 text-emerald-300 border border-emerald-500/40 font-mono text-[10px] font-bold">520題(模104)</span>
           </button>
           <button id="lvlBtn_N2" onclick="switchLevel('N2')" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 text-slate-950 shadow-lg border border-amber-300" style="background-color: #f39c42;">
             <span>🏆 N2</span>
-            <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 border border-amber-400/50 font-mono text-[10px] font-bold">318題(模106)</span>
+            <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 border border-amber-400/50 font-mono text-[10px] font-bold">530題(模106)</span>
           </button>
           <button id="lvlBtn_N3" onclick="switchLevel('N3')" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700">
             <span>🌉 N3</span>
-            <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded bg-slate-950 text-purple-300 border border-purple-500/40 font-mono text-[10px] font-bold">306題(模102)</span>
+            <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded bg-slate-950 text-purple-300 border border-purple-500/40 font-mono text-[10px] font-bold">510題(模102)</span>
           </button>
           <button id="lvlBtn_N4" onclick="switchLevel('N4')" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700">
             <span>🌱 N4</span>
-            <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded bg-slate-950 text-rose-300 border border-rose-500/40 font-mono text-[10px] font-bold">267題(模89)</span>
+            <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded bg-slate-950 text-rose-300 border border-rose-500/40 font-mono text-[10px] font-bold">445題(模89)</span>
           </button>
           <button id="lvlBtn_N5" onclick="switchLevel('N5')" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700">
             <span>🐣 N5</span>
-            <span id="lvlCount_N5" class="px-1.5 py-0.5 rounded bg-slate-950 text-sky-300 border border-sky-500/40 font-mono text-[10px] font-bold">240題(模80)</span>
+            <span id="lvlCount_N5" class="px-1.5 py-0.5 rounded bg-slate-950 text-sky-300 border border-sky-500/40 font-mono text-[10px] font-bold">400題(模80)</span>
           </button>
         </div>
 
@@ -899,6 +899,20 @@
           <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：見(み)つかる / 直(なお)る</span><br/><span class="text-amber-300">他：見(み)つける / 直(なお)す</span></div>
           <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：並(なら)ぶ / 変(か)わる</span><br/><span class="text-amber-300">他：並(なら)べる / 変(か)える</span></div>
           <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：届(とど)く / 残(のこ)る</span><br/><span class="text-amber-300">他：届(とど)ける / 残(のこ)す</span></div>
+        </div>
+      </div>
+
+      <!-- Wave 6 Addition: N5 Core Particle (格助詞・係助詞) 8-Grid Quick Discriminator -->
+      <div class="p-3.5 rounded-xl bg-slate-950 border border-sky-500/30 space-y-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h4 class="text-xs font-extrabold text-sky-300">🐣 N5 / N4 必考「核心助詞（に vs で・は vs が・を）」秒殺判別速查</h4>
+          <span class="text-[10px] font-mono text-slate-400">口訣：靜態存在/歸著點用「に」；動態動作場所/工具原因用「で」；移動經過空間用「を」</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><strong class="text-sky-300 font-mono">に (靜態/歸著/時間點)</strong><br/><span class="text-slate-300">机の上に本がある / 7時に起きる / 電車に乗る</span></div>
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><strong class="text-amber-300 font-mono">で (動作場所/工具/範圍)</strong><br/><span class="text-slate-300">図書館で勉強する / バスで行く / 一人でやる</span></div>
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><strong class="text-emerald-300 font-mono">を (受詞/起點離開/經過)</strong><br/><span class="text-slate-300">ご飯を食べる / バスを降りる / 公園を散歩する</span></div>
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><strong class="text-purple-300 font-mono">は vs が (主題對比 vs 焦點主語)</strong><br/><span class="text-slate-300">私は学生です / 雨が降っている / 誰が来ましたか</span></div>
         </div>
       </div>
       <div class="flex justify-end">
