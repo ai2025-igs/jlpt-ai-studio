@@ -255,6 +255,39 @@ def apply_wave_7_trap_cards():
         p_app.write_text(atxt.replace(old_fn, new_fn), encoding="utf-8")
 
 
+def apply_wave_8_star_anchor():
+    p_app = BASE_DIR / "assets" / "js" / "app.js"
+    atxt = p_app.read_text(encoding="utf-8").replace("\r\n", "\n")
+    if "function anchorStarFirstLastSlots()" not in atxt:
+        target = """function resetStarSlots() {
+  if (isSubmitted) return;
+  starSlots = [null, null, null, null];
+  selectedOptionIndex = null;
+  const q = getCurrentQuestion();
+  renderStarReconstructor(q);
+  renderOptionCards(q);
+}"""
+        replacement = target + """
+
+function anchorStarFirstLastSlots() {
+  if (isSubmitted) return;
+  if (pedagogicalMode === 'EXAM') {
+    showToast('⚔️ 考場實戰模式中已鎖定首尾語塊錨定輔助！', 'rose');
+    return;
+  }
+  const q = getCurrentQuestion();
+  if (!q || !Array.isArray(q.correctSequence) || q.correctSequence.length !== 4) return;
+  socraticHintUsed = true;
+  starSlots = [q.correctSequence[0], null, null, q.correctSequence[3]];
+  selectedOptionIndex = null;
+  renderStarReconstructor(q);
+  renderOptionCards(q);
+  showToast('🔗 逆向接續鷹架：已為您鎖定「第1格(前接詞)」與「第4格(後接述語)」，請比較剩餘2個語塊填入第2格與 ★ 第3格！', 'emerald');
+}"""
+        if target in atxt:
+            p_app.write_text(atxt.replace(target, replacement), encoding="utf-8")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -262,6 +295,8 @@ def run_wave(target_wave: int | None = None):
 
     if next_wave >= 7:
         apply_wave_7_trap_cards()
+    if next_wave >= 8:
+        apply_wave_8_star_anchor()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [

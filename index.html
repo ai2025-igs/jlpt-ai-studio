@@ -427,13 +427,18 @@
 
           <!-- Interactive Star (★) Reconstructor Sandbox -->
           <div id="starReconstructorBox" class="hidden p-3.5 rounded-xl bg-slate-900/85 border border-amber-500/40 space-y-2.5">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2">
               <span class="text-xs font-bold text-amber-300">
                 🧩 星號重組 (★) 互動語塊沙盒：點擊下方語塊排入 4 格，自動鎖定第 3 格 (★) 為答案
               </span>
-              <button type="button" onclick="resetStarSlots()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700">
-                清空重排
-              </button>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="anchorStarFirstLastSlots()" class="px-2.5 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-[11px] font-bold text-emerald-300 border border-emerald-500/40 transition" title="逆向接續法：先鎖定第1格(前接)與第4格(句尾述語)，專注推論第2、3(★)格！">
+                  🔗 鎖定首尾錨點 (第1&4格)
+                </button>
+                <button type="button" onclick="resetStarSlots()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700">
+                  清空重排
+                </button>
+              </div>
             </div>
             <div id="starSlotsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
             <div id="starTokensBar" class="flex flex-wrap gap-1.5 pt-1"></div>

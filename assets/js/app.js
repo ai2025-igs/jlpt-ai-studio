@@ -714,6 +714,22 @@ function resetStarSlots() {
   renderOptionCards(q);
 }
 
+function anchorStarFirstLastSlots() {
+  if (isSubmitted) return;
+  if (pedagogicalMode === 'EXAM') {
+    showToast('⚔️ 考場實戰模式中已鎖定首尾語塊錨定輔助！', 'rose');
+    return;
+  }
+  const q = getCurrentQuestion();
+  if (!q || !Array.isArray(q.correctSequence) || q.correctSequence.length !== 4) return;
+  socraticHintUsed = true;
+  starSlots = [q.correctSequence[0], null, null, q.correctSequence[3]];
+  selectedOptionIndex = null;
+  renderStarReconstructor(q);
+  renderOptionCards(q);
+  showToast('🔗 逆向接續鷹架：已為您鎖定「第1格(前接詞)」與「第4格(後接述語)」，請比較剩餘2個語塊填入第2格與 ★ 第3格！', 'emerald');
+}
+
 /*************************************************************************
  * POKA-YOKE PACING TIMER & SRL CONFIDENCE CALIBRATION
  *************************************************************************/
