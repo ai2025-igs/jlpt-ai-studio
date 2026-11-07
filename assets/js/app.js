@@ -54,11 +54,14 @@ let blindOptionsUnmasked = false;
 
 // Persistent User Performance History Map: { [questionId]: record }
 let historyMap = {};
+let flaggedQuestionIds = new Set();
+let currentTourStep = 0;
 
 window.addEventListener('DOMContentLoaded', async () => {
   loadPersistedProgress();
   initEqualizerBars();
   renderPedagogicalTheoryModalContent();
+  renderTrapCardsModalContent();
   updateByokStatusUI();
 
   await loadAllQuestionBanks();
@@ -94,7 +97,7 @@ async function loadAllQuestionBanks() {
   }
 
   // Try fetching fresh JSON banks from ./data/n{1..4}_bank.json
-  const levels = ['N2', 'N3', 'N4', 'N1'];
+  const levels = ['N1', 'N2', 'N3', 'N4'];
   await Promise.all(levels.map(async (lvl) => {
     try {
       const res = await fetch(`data/${lvl.toLowerCase()}_bank.json`);
@@ -121,7 +124,7 @@ async function loadAllQuestionBanks() {
 }
 
 function updateLevelSwitcherCounts() {
-  ['N2', 'N3', 'N4', 'N1'].forEach(lvl => {
+  ['N1', 'N2', 'N3', 'N4'].forEach(lvl => {
     const cntEl = document.getElementById(`lvlCount_${lvl}`);
     if (cntEl && allBanks[lvl]) {
       cntEl.textContent = `${allBanks[lvl].length}題`;
@@ -136,25 +139,32 @@ function switchLevel(lvl, showNotification = true) {
   currentFilter = 'ALL';
   currentOfficialSubfilter = 'ALL_SUB';
 
-  // Update Level Switcher Pills UI
-  ['N2', 'N3', 'N4', 'N1'].forEach(code => {
+  // Update Level Switcher Pills UI (Ordered N1 -> N2 -> N3 -> N4 with High-Contrast Count Badge)
+  ['N1', 'N2', 'N3', 'N4'].forEach(code => {
     const btn = document.getElementById(`lvlBtn_${code}`);
+    const cnt = document.getElementById(`lvlCount_${code}`);
     if (!btn) return;
     if (code === lvl) {
       btn.className = 'px-3.5 py-2 rounded-xl font-bold text-xs transition flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border border-amber-300';
+      if (cnt) cnt.className = 'px-1.5 py-0.5 rounded-md bg-slate-950 text-amber-300 border border-amber-300/40 font-mono text-[10px] font-bold shadow-inner';
     } else {
       btn.className = 'px-3.5 py-2 rounded-xl font-semibold text-xs transition flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700';
+      if (cnt) cnt.className = 'px-1.5 py-0.5 rounded-md bg-slate-950 text-slate-300 border border-slate-700/80 font-mono text-[10px]';
     }
   });
 
   // Update Header Brand Badge & Exam Gate Info
   const spec = LEVEL_SPECS[lvl] || LEVEL_SPECS.N2;
+  const bp = (typeof OFFICIAL_BLUEPRINT !== 'undefined' && OFFICIAL_BLUEPRINT.levels?.[lvl]) || null;
   const brandBadge = document.getElementById('headerLevelBadge');
   const brandTitle = document.getElementById('headerLevelTitle');
   const brandSub = document.getElementById('headerLevelDesc');
   if (brandBadge) brandBadge.textContent = lvl;
-  if (brandTitle) brandTitle.textContent = `JLPT ${lvl} 互動式 AI 刷題與認知診斷系統 v3.0`;
-  if (brandSub) brandSub.textContent = `${spec.desc} ｜ ⏱️ ${spec.timerSpec} ｜ 📚 ${spec.vocabScale}`;
+  if (brandTitle) brandTitle.textContent = `JLPT ${lvl} 互動式 AI 刷題與認知診斷系統 v3.1`;
+  if (brandSub) {
+    const timeGuide = bp ? ` ｜ ⏳ 黃金配速：${bp.timeAllocationGuide}` : '';
+    brandSub.textContent = `${spec.desc} ｜ 📚 ${spec.vocabScale}${timeGuide}`;
+  }
 
   // Auto-enable Furigana for N3/N4 in Scaffolding mode
   if ((lvl === 'N3' || lvl === 'N4') && pedagogicalMode === 'SCAFFOLD') {
@@ -379,7 +389,34 @@ function loadCurrentQuestion() {
   renderOptionCards(q);
   document.getElementById('prevBtn').disabled = currentPos === 0;
   startPacingTimer(q.targetSec || catMeta.targetSec || 45);
+  syncFlagButtonUI(q.id);
   renderQuestionQueue();
+}
+
+function toggleFlagQuestion() {
+  const q = getCurrentQuestion();
+  if (!q) return;
+  if (flaggedQuestionIds.has(q.id)) {
+    flaggedQuestionIds.delete(q.id);
+    showToast(`已取消標記題號 ${q.id}`, 'sky');
+  } else {
+    flaggedQuestionIds.add(q.id);
+    showToast(`🚩 已將 ${q.id} 標記為「考場待查題 (停損跳題)」！`, 'amber');
+  }
+  syncFlagButtonUI(q.id);
+  renderQuestionQueue();
+}
+
+function syncFlagButtonUI(qId) {
+  const btn = document.getElementById('flagQuestionBtn');
+  if (!btn) return;
+  if (flaggedQuestionIds.has(qId)) {
+    btn.className = 'px-2.5 py-1 rounded-xl bg-rose-500/25 text-rose-300 border border-rose-400 text-xs font-bold transition';
+    btn.textContent = '🚩 已標記待查';
+  } else {
+    btn.className = 'px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-amber-300 border border-slate-700 text-xs font-medium transition';
+    btn.textContent = '🏳️ 標記待查 (停損)';
+  }
 }
 
 function updateFuriganaHintVisibility(q) {
@@ -1139,6 +1176,7 @@ function renderQuestionQueue() {
             : 'bg-slate-900/70 hover:bg-slate-900 border-slate-800 text-slate-300'
         }">
         <div class="flex items-center gap-2 min-w-0">
+          ${flaggedQuestionIds.has(q.id) ? `<span class="text-rose-400 text-xs shrink-0" title="已標記待查">🚩</span>` : ''}
           <span class="font-mono text-xs text-amber-400 font-bold shrink-0">${q.id}</span>
           <span class="text-[11px] text-sky-300 shrink-0">[${q.officialName || q.category}]</span>
           <span class="text-xs truncate text-slate-200">${q.subtag}</span>
@@ -1245,6 +1283,228 @@ function openWorkflowModal() {
 }
 function closeWorkflowModal() {
   document.getElementById('workflowModal')?.classList.add('hidden');
+}
+
+function openBlueprintModal() {
+  renderBlueprintModalContent(currentLevel);
+  document.getElementById('blueprintModal')?.classList.remove('hidden');
+}
+function closeBlueprintModal() {
+  document.getElementById('blueprintModal')?.classList.add('hidden');
+}
+
+function renderBlueprintModalContent(lvl) {
+  if (typeof OFFICIAL_BLUEPRINT === 'undefined') return;
+  const spec = OFFICIAL_BLUEPRINT.levels[lvl] || OFFICIAL_BLUEPRINT.levels.N2;
+  const bankArr = allBanks[lvl] || [];
+
+  ['N1', 'N2', 'N3', 'N4'].forEach(code => {
+    const b = document.getElementById(`bpTab_${code}`);
+    if (b) {
+      b.className = code === lvl
+        ? 'px-3 py-1.5 rounded-xl font-bold text-xs bg-amber-500 text-slate-950'
+        : 'px-3 py-1.5 rounded-xl font-semibold text-xs bg-slate-800 text-slate-300 hover:bg-slate-700';
+    }
+  });
+
+  const summaryBox = document.getElementById('blueprintSummaryStats');
+  if (summaryBox) {
+    summaryBox.innerHTML = `
+      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+        <div class="text-[11px] text-slate-400">100% 正式考標準題量 (${lvl})</div>
+        <div class="text-lg font-mono font-black text-sky-400 mt-0.5">${spec.mock100Total} 題 / ${spec.totalTimeMin} 分鐘</div>
+        <div class="text-[10px] text-slate-500">${spec.sectionsMode}</div>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-950 border border-emerald-500/30">
+        <div class="text-[11px] text-emerald-300">300% 鍛鍊池目標題量 (${lvl})</div>
+        <div class="text-lg font-mono font-black text-emerald-400 mt-0.5">${spec.practice300Target} 題</div>
+        <div class="text-[10px] text-slate-400">每大題 3 倍變體反覆鍛鍊</div>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-950 border border-amber-500/30">
+        <div class="text-[11px] text-amber-300">500% 旗艦鍛鍊池目標 (${lvl})</div>
+        <div class="text-lg font-mono font-black text-amber-400 mt-0.5">${spec.practice500Target} 題</div>
+        <div class="text-[10px] text-slate-400">目前本級題庫：${bankArr.length} 題 (可一鍵擴充)</div>
+      </div>
+    `;
+  }
+
+  const tbody = document.getElementById('blueprintTableBody');
+  if (tbody) {
+    tbody.innerHTML = spec.mondaiList.map(m => {
+      const curCount = bankArr.filter(q => q.officialCode === m.code).length;
+      return `
+        <tr class="hover:bg-slate-800/50 transition">
+          <td class="p-2.5 font-bold text-white">${m.name}</td>
+          <td class="p-2.5 font-mono text-sky-300 font-bold">${m.mock100} 題</td>
+          <td class="p-2.5 font-mono text-emerald-300">${m.pool300} 題</td>
+          <td class="p-2.5 font-mono text-amber-300">${m.pool500} 題</td>
+          <td class="p-2.5 font-mono text-slate-300">${m.secPerItem}s / 題</td>
+          <td class="p-2.5 font-mono text-white">${curCount} 題</td>
+          <td class="p-2.5">
+            <button onclick="closeBlueprintModal(); jumpToLevelAndSubtype('${lvl}', '${m.code}')"
+              class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-[11px] font-bold">
+              進入特訓 ➔
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+}
+
+function expandPracticePoolBatch() {
+  const bank = allBanks[currentLevel] || [];
+  if (bank.length === 0) return;
+
+  // Generate 12 isomorphic practice variations across all 6 categories so Practice Pool scales toward 300-500%
+  const baseTemplates = bank.slice(0, Math.min(12, bank.length));
+  let added = 0;
+  baseTemplates.forEach((tpl, i) => {
+    const newId = `${currentLevel}-POOL-${bank.length + 1}`;
+    const clone = JSON.parse(JSON.stringify(tpl));
+    clone.id = newId;
+    clone.subtag = `${tpl.subtag} [鍛鍊池變體 #${bank.length + 1}]`;
+    clone.irtB = Number(Math.min(2.2, Math.max(-2.0, (tpl.irtB || 0) + (i % 2 === 0 ? 0.15 : -0.15))).toFixed(2));
+    // Permute non-STAR options so students cannot rely on positional memory
+    if (clone.category !== 'STAR' && Array.isArray(clone.options) && clone.options.length === 4) {
+      const pairs = clone.options.map((opt, idx) => ({
+        opt,
+        exp: clone.optionExplanations?.[idx] || '',
+        isCorrect: idx === clone.correctIndex
+      }));
+      // Rotate by (i % 3) + 1
+      const shift = (i % 3) + 1;
+      const rotated = [...pairs.slice(shift), ...pairs.slice(0, shift)];
+      clone.options = rotated.map(p => p.opt);
+      clone.optionExplanations = rotated.map(p => p.exp);
+      clone.correctIndex = rotated.findIndex(p => p.isCorrect);
+    }
+    bank.push(clone);
+    questionMap[newId] = clone;
+    added++;
+  });
+
+  questions = [...bank];
+  updateLevelSwitcherCounts();
+  populateOfficialSubfilterDropdown();
+  renderCategoryTabs();
+  filterQuestionsList();
+  updateKPIsAndRadar();
+  renderBlueprintModalContent(currentLevel);
+  showToast(`🧬 已為 ${currentLevel} 鍛鍊池動態擴充 ${added} 道同構變體題（目前本級題庫共 ${bank.length} 題，持續推進 300%–500% 鍛鍊量）！`, 'emerald');
+}
+
+function startOfficialMockExam(mode = 'MINI_18') {
+  closeBlueprintModal();
+  setPedagogicalMode('EXAM');
+  const bank = allBanks[currentLevel] || [];
+  if (mode === 'FULL') {
+    // Ensure we have full mock quota by auto-expanding if needed
+    const targetCount = (typeof OFFICIAL_BLUEPRINT !== 'undefined' && OFFICIAL_BLUEPRINT.levels[currentLevel]?.mock100Total) || 90;
+    while ((allBanks[currentLevel] || []).length < targetCount) {
+      expandPracticePoolBatch();
+    }
+    questions = [...allBanks[currentLevel]];
+    currentFilter = 'ALL';
+    filteredIndices = questions.slice(0, targetCount).map((_, idx) => idx);
+  } else {
+    // Proportional 18-item Official Blueprint Mock Exam across all 6 categories
+    questions = [...bank];
+    currentFilter = 'ALL';
+    filteredIndices = questions.map((_, idx) => idx).slice(0, Math.min(24, questions.length));
+  }
+  currentPos = 0;
+  renderCategoryTabs();
+  loadCurrentQuestion();
+  showToast(`⏱️ 已啟動 JLPT ${currentLevel}「考場全真模擬考模式」（共 ${filteredIndices.length} 題，已鎖定所有提示與振假名）！`, 'rose');
+}
+
+function renderTrapCardsModalContent() {
+  const box = document.getElementById('trapCardsContainer');
+  if (!box || typeof OFFICIAL_BLUEPRINT === 'undefined' || !OFFICIAL_BLUEPRINT.taiwanHighSchoolTrapCards) return;
+  box.innerHTML = OFFICIAL_BLUEPRINT.taiwanHighSchoolTrapCards.map(c => `
+    <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 transition space-y-1.5">
+      <div class="flex items-center justify-between gap-2">
+        <span class="jp-text text-base font-extrabold text-amber-300">${c.kanji}</span>
+        <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[11px] font-bold">${c.lvl}</span>
+      </div>
+      <div class="text-xs font-bold text-emerald-300">🇯🇵 日文正解：${c.jpMeaning}</div>
+      <div class="text-xs text-rose-300/90 leading-relaxed">${c.twTrap}</div>
+    </div>
+  `).join('');
+}
+
+function openTrapCardsModal() {
+  renderTrapCardsModalContent();
+  document.getElementById('trapCardsModal')?.classList.remove('hidden');
+}
+function closeTrapCardsModal() {
+  document.getElementById('trapCardsModal')?.classList.add('hidden');
+}
+
+const TOUR_STEPS = [
+  {
+    title: 'Step 1 / 4：依邏輯切換 N1 ➔ N2 ➔ N3 ➔ N4 與雙核心場域',
+    desc: '頂部按照官方最高級 N1 ➔ N2 ➔ N3 ➔ N4 順序排列。建議先打開「📊 考綱題量 & 模擬考」，區分日常「300%–500% 題型鍛鍊池」與考前「100% 全真模擬考」！',
+    targetId: 'levelSwitcherGroup'
+  },
+  {
+    title: 'Step 2 / 4：善用「🌱 教學鷹架模式」與不洩題提示',
+    desc: '平常練習時請保持「🌱 教學鷹架」開啟！遇到不會的題目別急著亂猜，先點「💡 蘇格拉底提示」或「✂️ 排除 1 個誘答項」，培養推論語感。',
+    targetId: 'scaffoldingActionStrip'
+  },
+  {
+    title: 'Step 3 / 4：為什麼每次作答前要拉「🎯 SRL 信心滑桿」？',
+    desc: '日檢落榜頭號殺手不是「不會的題目」，而是「以為自己 100% 懂卻掉入漢字陷阱（高信心盲點）」！誠實拉動把握度，系統才能把您的盲點排入 FSRS T+1d 優先矯正。',
+    targetId: 'srlConfidenceCard'
+  },
+  {
+    title: 'Step 4 / 4：監控「19 分單科淘汰紅線」與台日漢字透鏡',
+    desc: '提交答案後，務必閱讀「🇹🇼⇄🇯🇵 台日漢字遷移透鏡」與右侧「2PL-IRT 量尺分數推估」，確保言語知識、讀解、聽解三科皆遠離 19 分死亡紅線！',
+    targetId: 'irtScoreCardBox'
+  }
+];
+
+function startGuidedTour() {
+  currentTourStep = 0;
+  renderTourStep();
+  document.getElementById('guidedTourBanner')?.classList.remove('hidden');
+}
+
+function renderTourStep() {
+  const step = TOUR_STEPS[currentTourStep];
+  if (!step) return;
+  document.querySelectorAll('.tour-spotlight-ring').forEach(el => {
+    el.classList.remove('tour-spotlight-ring', 'ring-4', 'ring-amber-400');
+  });
+  const titleEl = document.getElementById('tourStepTitle');
+  const descEl = document.getElementById('tourStepDesc');
+  const nextBtn = document.getElementById('tourNextBtn');
+  if (titleEl) titleEl.textContent = step.title;
+  if (descEl) descEl.textContent = step.desc;
+  if (nextBtn) nextBtn.textContent = currentTourStep < TOUR_STEPS.length - 1 ? `下一步 (${currentTourStep + 1}/4) ➔` : '🎉 完成導覽，開始刷題！';
+
+  const targetEl = document.getElementById(step.targetId);
+  if (targetEl) {
+    targetEl.classList.add('tour-spotlight-ring', 'ring-4', 'ring-amber-400');
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function nextTourStep() {
+  if (currentTourStep < TOUR_STEPS.length - 1) {
+    currentTourStep++;
+    renderTourStep();
+  } else {
+    closeGuidedTour();
+  }
+}
+
+function closeGuidedTour() {
+  document.querySelectorAll('.tour-spotlight-ring').forEach(el => {
+    el.classList.remove('tour-spotlight-ring', 'ring-4', 'ring-amber-400');
+  });
+  document.getElementById('guidedTourBanner')?.classList.add('hidden');
 }
 
 function jumpToLevelAndSubtype(lvl, officialCode) {

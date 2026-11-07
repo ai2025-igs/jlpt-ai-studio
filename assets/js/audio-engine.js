@@ -60,7 +60,8 @@ function setListeningSpeed(spd) {
   const map = {
     0.85: 'spdBtn085',
     1.0: 'spdBtn100',
-    1.15: 'spdBtn115'
+    1.15: 'spdBtn115',
+    1.25: 'spdBtn125'
   };
   Object.entries(map).forEach(([k, btnId]) => {
     const el = document.getElementById(btnId);

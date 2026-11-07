@@ -60,59 +60,74 @@
           </div>
         </div>
 
-        <!-- 4-Level Switcher Pills (N2 Flagship First -> N3 -> N4 -> N1) -->
-        <div class="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+        <!-- 4-Level Switcher Pills (Ordered Canonically: N1 -> N2 -> N3 -> N4 with High-Contrast Count Badge) -->
+        <div id="levelSwitcherGroup" class="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 transition-all">
+          <button id="lvlBtn_N1" onclick="switchLevel('N1')" class="px-3.5 py-2 rounded-xl font-semibold text-xs transition flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700">
+            <span>👑 N1 最高殿堂</span>
+            <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded-md bg-slate-950 text-slate-300 border border-slate-700/80 font-mono text-[10px]">24題</span>
+          </button>
           <button id="lvlBtn_N2" onclick="switchLevel('N2')" class="px-3.5 py-2 rounded-xl font-bold text-xs transition flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border border-amber-300">
             <span>🏆 N2 進階主力</span>
-            <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded-md bg-slate-950/20 font-mono text-[10px]">60題</span>
+            <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded-md bg-slate-950 text-amber-300 border border-amber-300/40 font-mono text-[10px] font-bold shadow-inner">60題</span>
           </button>
           <button id="lvlBtn_N3" onclick="switchLevel('N3')" class="px-3.5 py-2 rounded-xl font-semibold text-xs transition flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700">
             <span>🌉 N3 中級橋樑</span>
-            <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded-md bg-slate-900 font-mono text-[10px]">24題</span>
+            <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded-md bg-slate-950 text-slate-300 border border-slate-700/80 font-mono text-[10px]">24題</span>
           </button>
           <button id="lvlBtn_N4" onclick="switchLevel('N4')" class="px-3.5 py-2 rounded-xl font-semibold text-xs transition flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700">
             <span>🌱 N4 基礎進階</span>
-            <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded-md bg-slate-900 font-mono text-[10px]">24題</span>
-          </button>
-          <button id="lvlBtn_N1" onclick="switchLevel('N1')" class="px-3.5 py-2 rounded-xl font-semibold text-xs transition flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700">
-            <span>👑 N1 最高殿堂</span>
-            <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded-md bg-slate-900 font-mono text-[10px]">24題</span>
+            <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded-md bg-slate-950 text-slate-300 border border-slate-700/80 font-mono text-[10px]">24題</span>
           </button>
         </div>
 
         <!-- Global Action Toolbar -->
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <!-- Interactive 4-Step Spotlight Tour -->
+          <button onclick="startGuidedTour()" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-extrabold border border-emerald-400/50 transition flex items-center gap-1">
+            <span>🧭 30秒新手導覽</span>
+          </button>
+
+          <!-- Official Exam Quota (100% Mock vs 300-500% Practice Pool) Button -->
+          <button onclick="openBlueprintModal()" class="px-3 py-1.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-xs font-bold border border-indigo-400/50 transition flex items-center gap-1">
+            <span>📊 考綱題量 & 模擬考</span>
+          </button>
+
           <!-- Workflow & Exam Types Matrix Button -->
-          <button onclick="openWorkflowModal()" class="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 text-xs font-bold border border-sky-500/40 transition flex items-center gap-1.5">
-            <span>🗺️ 通關工作流 & 全題型矩陣</span>
+          <button onclick="openWorkflowModal()" class="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 text-xs font-bold border border-sky-500/40 transition flex items-center gap-1">
+            <span>🗺️ 通關工作流 & 題型矩陣</span>
+          </button>
+
+          <!-- Taiwanese Student L1 Kanji Trap Cards & Pitch Accent -->
+          <button onclick="openTrapCardsModal()" class="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-xs font-bold border border-rose-500/40 transition flex items-center gap-1">
+            <span>🃏 漢字假朋友 & 音調閃卡</span>
           </button>
 
           <!-- 8 Pedagogical Theories Button -->
-          <button onclick="openPedagogyModal()" class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold border border-amber-500/40 transition flex items-center gap-1.5">
-            <span>🧠 8大教學法引擎</span>
+          <button onclick="openPedagogyModal()" class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold border border-amber-500/40 transition flex items-center gap-1">
+            <span>🧠 8大教學法</span>
           </button>
 
           <!-- Weakness Drill Button -->
           <button onclick="startWeaknessDrill()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
-            <span>🔄 錯題與脆弱重練</span>
+            <span>🔄 錯題重練</span>
             <span id="weaknessCountBadge" class="px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 font-mono text-[11px]">0</span>
           </button>
 
           <!-- AI Dynamic Item Generator -->
           <button id="aiGenerateBtn" onclick="generateAIQuestions()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center gap-1.5">
             <span id="aiGenSpinner" class="hidden w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
-            <span id="aiGenBtnText">✨ AI 弱點動態出題</span>
+            <span id="aiGenBtnText">✨ AI 動態出題</span>
           </button>
 
           <!-- BYOK Key Vault -->
           <button onclick="openByokModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition flex items-center gap-1.5" title="設定個人 Gemini API Key (sessionStorage)">
             <span id="byokStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
-            <span>🔑 BYOK 金鑰</span>
+            <span>🔑 BYOK</span>
           </button>
 
           <!-- NotebookLM Export -->
           <button onclick="openExportModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition flex items-center gap-1">
-            <span>📓 匯出 NotebookLM</span>
+            <span>📓 NotebookLM</span>
           </button>
         </div>
       </div>
@@ -150,6 +165,27 @@
     </div>
   </header>
 
+  <!-- ================= INTERACTIVE 4-STEP SPOTLIGHT GUIDED TOUR BANNER ================= -->
+  <div id="guidedTourBanner" class="hidden max-w-[1600px] w-full mx-auto px-4 pt-4">
+    <div class="bg-gradient-to-r from-emerald-950/90 via-slate-900 to-amber-950/80 border-2 border-amber-400 rounded-2xl p-4 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+      <div class="space-y-1 flex-1 min-w-[260px]">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-mono text-xs font-black">🧭 互動式新手導覽</span>
+          <h3 id="tourStepTitle" class="text-sm sm:text-base font-extrabold text-amber-300">Step 1 / 4</h3>
+        </div>
+        <p id="tourStepDesc" class="text-xs sm:text-sm text-slate-200 leading-relaxed"></p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button type="button" onclick="closeGuidedTour()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700">
+          略過導覽
+        </button>
+        <button type="button" id="tourNextBtn" onclick="nextTourStep()" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs shadow-lg">
+          下一步 ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MAIN BENTO WORKSPACE (12 COLUMNS) ================= -->
   <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 py-5 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
@@ -184,11 +220,17 @@
             </span>
           </div>
 
-          <!-- Pacing Timer Pill -->
-          <div class="flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900 border border-slate-700">
-            <span id="timerDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-xs text-slate-400">配速計時:</span>
-            <span id="timerText" class="font-mono text-xs font-bold text-emerald-400">00s / 30s</span>
+          <!-- Pacing Timer Pill + Stop-Loss Flag Button -->
+          <div class="flex items-center gap-2">
+            <button type="button" id="flagQuestionBtn" onclick="toggleFlagQuestion()"
+              class="px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-amber-300 border border-slate-700 text-xs font-medium transition" title="考場停損跳題標記：超過配速時先標記待查，避免單題卡關影響讀解時間">
+              🏳️ 標記待查 (停損)
+            </button>
+            <div class="flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900 border border-slate-700">
+              <span id="timerDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-xs text-slate-400">配速計時:</span>
+              <span id="timerText" class="font-mono text-xs font-bold text-emerald-400">00s / 30s</span>
+            </div>
           </div>
         </div>
 
@@ -239,6 +281,7 @@
                 <button type="button" onclick="setListeningSpeed(0.85)" id="spdBtn085" class="px-2 py-0.5 rounded-lg text-[11px] font-mono text-slate-400 hover:text-white transition">0.85x</button>
                 <button type="button" onclick="setListeningSpeed(1.0)" id="spdBtn100" class="px-2 py-0.5 rounded-lg text-[11px] font-mono bg-sky-500 text-slate-950 font-bold transition">1.0x</button>
                 <button type="button" onclick="setListeningSpeed(1.15)" id="spdBtn115" class="px-2 py-0.5 rounded-lg text-[11px] font-mono text-slate-400 hover:text-white transition">1.15x</button>
+                <button type="button" onclick="setListeningSpeed(1.25)" id="spdBtn125" class="px-2 py-0.5 rounded-lg text-[11px] font-mono text-amber-400 hover:text-white transition" title="1.25x 超速聽力免疫訓練">1.25x⚡</button>
               </div>
             </div>
           </div>
@@ -358,7 +401,7 @@
         <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
 
         <!-- SRL Confidence Calibration Slider + Submit Bar -->
-        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/80 space-y-3">
+        <div id="srlConfidenceCard" class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/80 space-y-3 transition-all">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <label for="confidenceSlider" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
               <span>🎯 SRL 信心度校準 (Zimmerman 自我調節學習)：</span>
@@ -492,7 +535,7 @@
     <aside class="lg:col-span-5 space-y-5">
 
       <!-- Card 3: 2PL-IRT Scaled Score Estimator & Sectional Veto Redline Defense -->
-      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3">
+      <div id="irtScoreCardBox" class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3 transition-all">
         <div class="flex items-center justify-between">
           <div>
             <h2 id="irtHeaderTitle" class="text-sm font-bold text-white flex items-center gap-2">
@@ -684,143 +727,143 @@
         </div>
       </div>
 
-      <!-- Interactive All Exam Question Types Matrix -->
+      <!-- Interactive All Exam Question Types Matrix (Ordered N1 -> N2 -> N3 -> N4) -->
       <div class="space-y-2">
-        <div class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider">📑 第二部分：JLPT N1–N4 官方全題型覆蓋與跨級別差異矩陣（點擊按鈕直接進入該題型）</div>
+        <div class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider">📑 第二部分：JLPT N1 ➔ N2 ➔ N3 ➔ N4 官方全題型覆蓋與跨級別差異矩陣（點擊按鈕直接進入該題型）</div>
         <div class="overflow-x-auto rounded-xl border border-slate-800">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
               <tr class="bg-slate-950 text-slate-300 border-b border-slate-800">
                 <th class="p-2.5 font-bold">測驗領域 / 官方題型</th>
-                <th class="p-2.5 font-bold text-amber-400">🏆 N2 進階 (105m+50m, ≥90分)</th>
-                <th class="p-2.5 font-bold text-sky-400">🌉 N3 中級 (30m+70m+40m, ≥95分)</th>
-                <th class="p-2.5 font-bold text-emerald-400">🌱 N4 基礎 (25m+55m+35m, ≥90分)</th>
-                <th class="p-2.5 font-bold text-rose-400">👑 N1 最高級 (110m+55m, ≥100分)</th>
+                <th class="p-2.5 font-bold text-rose-400">👑 N1 最高級 (110m+55m, ≥100分, 104題)</th>
+                <th class="p-2.5 font-bold text-amber-400">🏆 N2 進階 (105m+50m, ≥90分, 106題)</th>
+                <th class="p-2.5 font-bold text-sky-400">🌉 N3 中級 (30m+70m+40m, ≥95分, 102題)</th>
+                <th class="p-2.5 font-bold text-emerald-400">🌱 N4 基礎 (25m+55m+35m, ≥90分, 89題)</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800 bg-slate-900/60">
               <tr>
                 <td class="p-2.5 font-bold text-white">文字・語彙：漢字讀音 & 表記</td>
-                <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N2','M1_KANJI_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題1 漢字読み</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','M2_ORTHOGRAPHY')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題2 表記</button>
-                </td>
-                <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N3','M1_KANJI_READ')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題1 漢字読み</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','M2_ORTHOGRAPHY')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題2 表記</button>
-                </td>
-                <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N4','M1_KANJI_READ')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題1 漢字読み</button>
-                  <button onclick="jumpToLevelAndSubtype('N4','M2_ORTHOGRAPHY')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題2 表記</button>
-                </td>
                 <td class="p-2.5">
-                  <button onclick="jumpToLevelAndSubtype('N1','M1_KANJI_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題1 漢字読み</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','M1_KANJI_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題1 漢字読み(6題)</button>
                   <span class="text-[11px] text-slate-500 ml-1">(N1無表記題)</span>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N2','M1_KANJI_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題1 漢字読み(5題)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','M2_ORTHOGRAPHY')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題2 表記(5題)</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N3','M1_KANJI_READ')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題1 漢字読み(8題)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','M2_ORTHOGRAPHY')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題2 表記(6題)</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N4','M1_KANJI_READ')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題1 漢字読み(7題)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','M2_ORTHOGRAPHY')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題2 表記(5題)</button>
                 </td>
               </tr>
               <tr>
                 <td class="p-2.5 font-bold text-white">文字・語彙：語形成・文脈・類義・用法</td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N1','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題2 文脈(7)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題3 類義(6)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','M6_USAGE')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題4 用法(6)</button>
+                </td>
                 <td class="p-2.5 flex flex-wrap gap-1">
-                  <button onclick="jumpToLevelAndSubtype('N2','M3_WORD_FORM')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold">問題3 語形成(N2專屬)</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題4 文脈</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題5 類義</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','M6_USAGE')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題6 用法</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','M3_WORD_FORM')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold">問題3 語形成(5, N2專屬)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題4 文脈(7)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題5 類義(5)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','M6_USAGE')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題6 用法(5)</button>
                 </td>
                 <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N3','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題3 文脈</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題4 類義</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','M6_USAGE')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題5 用法</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題3 文脈(11)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題4 類義(5)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','M6_USAGE')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題5 用法(5)</button>
                 </td>
                 <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N4','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題3 文脈</button>
-                  <button onclick="jumpToLevelAndSubtype('N4','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題4 類義</button>
-                  <button onclick="jumpToLevelAndSubtype('N4','M6_USAGE')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題5 用法</button>
-                </td>
-                <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N1','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題2 文脈</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題3 類義</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','M6_USAGE')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題4 用法</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題3 文脈(8)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題4 類義(4)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','M6_USAGE')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題5 用法(4)</button>
                 </td>
               </tr>
               <tr>
                 <td class="p-2.5 font-bold text-white">文法構文：句子文法・★星號重組・文章文法</td>
                 <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N2','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題7 文法形式</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題8 ★重組</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題9 文章文法</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題5 文法(10)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題6 ★重組(5)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題7 文章文法(5)</button>
                 </td>
                 <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N3','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題1 文法</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題2 ★重組</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題3 文章文法</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題7 文法(12)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題8 ★重組(5)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題9 文章文法(5)</button>
                 </td>
                 <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N4','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題1 文法</button>
-                  <button onclick="jumpToLevelAndSubtype('N4','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題2 ★重組</button>
-                  <button onclick="jumpToLevelAndSubtype('N4','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題3 文章文法</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題1 文法(13)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題2 ★重組(5)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題3 文章文法(5)</button>
                 </td>
                 <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N1','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題5 文法</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題6 ★重組</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題7 文章文法</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題1 文法(13)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題2 ★重組(5)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題3 文章文法(5)</button>
                 </td>
               </tr>
               <tr>
                 <td class="p-2.5 font-bold text-white">讀解全題型：短篇・中篇・A/B統合・長篇・情報検索</td>
                 <td class="p-2.5 flex flex-wrap gap-1">
-                  <button onclick="jumpToLevelAndSubtype('N2','R1_SHORT_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">短篇</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','R2_MID_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">中篇</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','R3_INTEGRATED_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold">A/B統合比較</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','R4_LONG_OPINION')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">長篇主張</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">情報検索</button>
-                </td>
-                <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N3','R1_SHORT_READ')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">短篇</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','R2_MID_READ')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">中篇</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','R4_LONG_OPINION')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">長篇</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">情報検索</button>
-                </td>
-                <td class="p-2.5 space-x-1">
-                  <button onclick="jumpToLevelAndSubtype('N4','R1_SHORT_READ')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">短篇</button>
-                  <button onclick="jumpToLevelAndSubtype('N4','R2_MID_READ')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">中篇</button>
-                  <button onclick="jumpToLevelAndSubtype('N4','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">情報検索</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','R1_SHORT_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">短篇(4)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','R2_MID_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">中篇(9)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','R3_INTEGRATED_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold">A/B統合比較(4)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','R4_LONG_OPINION')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">長篇(7)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">情報検索(2)</button>
                 </td>
                 <td class="p-2.5 flex flex-wrap gap-1">
-                  <button onclick="jumpToLevelAndSubtype('N1','R1_SHORT_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">短篇</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','R2_MID_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">中篇</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','R3_INTEGRATED_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold">A/B統合比較</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','R4_LONG_OPINION')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">長篇</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">情報検索</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','R1_SHORT_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">短篇(5)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','R2_MID_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">中篇(9)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','R3_INTEGRATED_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold">A/B統合比較(2)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','R4_LONG_OPINION')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">長篇主張(3)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">情報検索(2)</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N3','R1_SHORT_READ')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">短篇(4)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','R2_MID_READ')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">中篇(6)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','R4_LONG_OPINION')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">長篇(4)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">情報検索(2)</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N4','R1_SHORT_READ')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">短篇(4)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','R2_MID_READ')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">中篇(4)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">情報検索(2)</button>
                 </td>
               </tr>
               <tr>
                 <td class="p-2.5 font-bold text-sky-300">🎧 聽解全題型：課題・重點・概要・看圖發話・即時・統合</td>
                 <td class="p-2.5 flex flex-wrap gap-1">
-                  <button onclick="jumpToLevelAndSubtype('N2','L1_TASK')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">課題</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','L2_POINT')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">ポイント</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','L3_SUMMARY')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">概要(盲聽)</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">即時応答</button>
-                  <button onclick="jumpToLevelAndSubtype('N2','L6_INTEGRATED_LISTEN')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold">問題5 統合理解</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','L1_TASK')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">課題(6)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','L2_POINT')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">ポイント(7)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','L3_SUMMARY')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">概要(6)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">即時応答(11)</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','L6_INTEGRATED_LISTEN')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold">問題5 統合理解(3)</button>
                 </td>
                 <td class="p-2.5 flex flex-wrap gap-1">
-                  <button onclick="jumpToLevelAndSubtype('N3','L1_TASK')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">課題</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','L2_POINT')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">ポイント</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','L3_SUMMARY')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">概要</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','L4_UTTERANCE')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-bold">問題4 発話表現(SVG)</button>
-                  <button onclick="jumpToLevelAndSubtype('N3','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">即時応答</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','L1_TASK')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">課題(5)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','L2_POINT')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">ポイント(6)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','L3_SUMMARY')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">概要(5)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">即時応答(12)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','L6_INTEGRATED_LISTEN')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold">問題5 統合理解(3)</button>
                 </td>
                 <td class="p-2.5 flex flex-wrap gap-1">
-                  <button onclick="jumpToLevelAndSubtype('N4','L1_TASK')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">課題</button>
-                  <button onclick="jumpToLevelAndSubtype('N4','L2_POINT')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">ポイント</button>
-                  <button onclick="jumpToLevelAndSubtype('N4','L4_UTTERANCE')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold">問題3 発話表現(SVG)</button>
-                  <button onclick="jumpToLevelAndSubtype('N4','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">即時応答</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','L1_TASK')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">課題(6)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','L2_POINT')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">ポイント(6)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','L3_SUMMARY')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">概要(3)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','L4_UTTERANCE')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-bold">問題4 発話表現(4, SVG)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">即時応答(9)</button>
                 </td>
                 <td class="p-2.5 flex flex-wrap gap-1">
-                  <button onclick="jumpToLevelAndSubtype('N1','L1_TASK')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">課題</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','L2_POINT')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">ポイント</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','L3_SUMMARY')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">概要</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">即時応答</button>
-                  <button onclick="jumpToLevelAndSubtype('N1','L6_INTEGRATED_LISTEN')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold">問題5 統合理解(3人討論)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','L1_TASK')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">課題(8)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','L2_POINT')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">ポイント(7)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','L4_UTTERANCE')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold">問題3 発話表現(5, SVG)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">即時応答(8)</button>
                 </td>
               </tr>
             </tbody>
@@ -832,6 +875,76 @@
         <button onclick="closeWorkflowModal()" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs">
           開始實戰刷題
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 1B: OFFICIAL EXAM QUOTA (100% MOCK VS 300-500% POOL) & MOCK GENERATOR ================= -->
+  <div id="blueprintModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-5xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-base sm:text-lg font-extrabold text-white">📊 JLPT N1 ➔ N4 官方考綱正式題量 (100% 模擬考) vs. 300%–500% 鍛鍊題庫池中心</h3>
+          <p class="text-xs text-slate-400">區分「日常 300%–500% 題型鍛鍊池」與「考前 100% 全真模擬考」，避免練習記憶污染正式模考信度</p>
+        </div>
+        <button onclick="closeBlueprintModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <!-- Level Switcher Tabs inside Blueprint Modal (N1 -> N2 -> N3 -> N4) -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-1.5">
+          <button id="bpTab_N1" onclick="renderBlueprintModalContent('N1')" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-800 text-slate-300">👑 N1 (104題)</button>
+          <button id="bpTab_N2" onclick="renderBlueprintModalContent('N2')" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-amber-500 text-slate-950">🏆 N2 (106題)</button>
+          <button id="bpTab_N3" onclick="renderBlueprintModalContent('N3')" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-800 text-slate-300">🌉 N3 (102題)</button>
+          <button id="bpTab_N4" onclick="renderBlueprintModalContent('N4')" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-800 text-slate-300">🌱 N4 (89題)</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="expandPracticePoolBatch()" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow-lg">
+            🧬 一鍵擴充本級鍛鍊池 (+12題變體 ➔ 邁向 300-500%)
+          </button>
+          <button onclick="startOfficialMockExam('MINI_18')" class="px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs shadow-lg">
+            ⚡ 啟動精簡模擬考 (24題)
+          </button>
+          <button onclick="startOfficialMockExam('FULL')" class="px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-extrabold text-xs shadow-lg">
+            ⏱️ 啟動 100% 官方全真題量模擬考
+          </button>
+        </div>
+      </div>
+
+      <div id="blueprintSummaryStats" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-80">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="sticky top-0 bg-slate-950 text-slate-300 border-b border-slate-800">
+            <tr>
+              <th class="p-2.5 font-bold">官方大題 (Mondai)</th>
+              <th class="p-2.5 font-bold text-sky-400">100% 模擬考題數</th>
+              <th class="p-2.5 font-bold text-emerald-400">300% 鍛鍊池目標</th>
+              <th class="p-2.5 font-bold text-amber-400">500% 鍛鍊池目標</th>
+              <th class="p-2.5 font-bold">建議每題配速</th>
+              <th class="p-2.5 font-bold">目前題庫數</th>
+              <th class="p-2.5 font-bold">專項入口</th>
+            </tr>
+          </thead>
+          <tbody id="blueprintTableBody" class="divide-y divide-slate-800 bg-slate-900/70"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 1C: TAIWANESE HIGH SCHOOL KANJI TRAP CARDS & PITCH ACCENT ================= -->
+  <div id="trapCardsModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-base sm:text-lg font-extrabold text-white">🃏 台灣高中生必背「台日同形異義假朋友 (False Friends) & 東大式高低音調 [Pitch Accent]」閃卡庫</h3>
+          <p class="text-xs text-slate-400">專治母語負遷移與聽力清濁音/高低音調混淆（數字 [0]=平板型、[1]=頭高型、[2]=中高/尾高型）</p>
+        </div>
+        <button onclick="closeTrapCardsModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <div id="trapCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      <div class="flex justify-end">
+        <button onclick="closeTrapCardsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">關閉閃卡庫</button>
       </div>
     </div>
   </div>
