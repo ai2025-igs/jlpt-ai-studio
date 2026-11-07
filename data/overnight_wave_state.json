@@ -1,6 +1,6 @@
 {
   "startedAt": "2026-11-07T16:58:35.567805+00:00",
-  "currentWave": 10,
+  "currentWave": 11,
   "maxWaves": 24,
   "intervalMinutes": 20,
   "history": [
@@ -102,9 +102,18 @@
       "totalPool_N1_N5": 2405,
       "totalPool_N1_N4": 2005,
       "totalMock_N1_N4": 401
+    },
+    {
+      "wave": 11,
+      "timestamp": "2026-11-07T20:00:50.725352+00:00",
+      "phase": "Phase II",
+      "focus": "N5-N3 Verb Conjugation (て形・ない形・可能・受身・使役) & Particle Quick-Reference Upgrade",
+      "totalPool_N1_N5": 2405,
+      "totalPool_N1_N4": 2005,
+      "totalMock_N1_N4": 401
     }
   ],
-  "lastUpdatedAt": "2026-11-07T19:40:57.684951+00:00",
+  "lastUpdatedAt": "2026-11-07T20:00:50.725352+00:00",
   "summary": {
     "totalPool_N1_N5": 2405,
     "totalMock_N1_N5": 481,
