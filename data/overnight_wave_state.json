@@ -1,6 +1,6 @@
 {
   "startedAt": "2026-11-07T16:58:35.567805+00:00",
-  "currentWave": 1,
+  "currentWave": 2,
   "maxWaves": 24,
   "intervalMinutes": 20,
   "history": [
@@ -12,17 +12,26 @@
       "totalPool_N1_N5": 1443,
       "totalPool_N1_N4": 1203,
       "totalMock_N1_N4": 401
+    },
+    {
+      "wave": 2,
+      "timestamp": "2026-11-07T17:00:27.298740+00:00",
+      "phase": "Phase I",
+      "focus": "N1 Pool Expansion & Academic Reading/Classical Grammar Enrichment ( toward 500% = 520 items)",
+      "totalPool_N1_N5": 1651,
+      "totalPool_N1_N4": 1411,
+      "totalMock_N1_N4": 401
     }
   ],
-  "lastUpdatedAt": "2026-11-07T16:58:35.843451+00:00",
+  "lastUpdatedAt": "2026-11-07T17:00:27.298740+00:00",
   "summary": {
-    "totalPool_N1_N5": 1443,
+    "totalPool_N1_N5": 1651,
     "totalMock_N1_N5": 481,
-    "totalPool_N1_N4": 1203,
+    "totalPool_N1_N4": 1411,
     "totalMock_N1_N4": 401,
     "countsByLevel": {
       "N1": {
-        "pool": 312,
+        "pool": 520,
         "mock100": 104
       },
       "N2": {
