@@ -2108,3 +2108,20 @@ function printScoreReportCard() {
     </div><script>window.onload=()=>window.print();</script></body></html>`);
   win.document.close();
 }
+
+
+function startFlaggedDrill() {
+  const flaggedIndices = questions
+    .map((q, idx) => ({ q, idx }))
+    .filter(item => flaggedQuestionIds.has(item.q.id))
+    .map(item => item.idx);
+  if (flaggedIndices.length === 0) {
+    showToast('目前尚無標記待查 (🚩) 的題目，可按鍵盤 F 或點擊題頭標記！', 'amber');
+    return;
+  }
+  switchWorkspaceTab('TAB_MAIN_GUI');
+  filteredIndices = flaggedIndices;
+  currentPos = 0;
+  loadCurrentQuestion();
+  showToast(`🚩 已啟動「標記待查專項複習」（共 ${flaggedIndices.length} 題）！`, 'amber');
+}

@@ -422,6 +422,31 @@ function printScoreReportCard() {
         p_app.write_text(atxt + addon, encoding="utf-8")
 
 
+def apply_wave_15_flagged_and_blindspot_drill():
+    p_app = BASE_DIR / "assets" / "js" / "app.js"
+    atxt = p_app.read_text(encoding="utf-8").replace("\r\n", "\n")
+    if "function startFlaggedDrill()" not in atxt:
+        addon = """
+
+function startFlaggedDrill() {
+  const flaggedIndices = questions
+    .map((q, idx) => ({ q, idx }))
+    .filter(item => flaggedQuestionIds.has(item.q.id))
+    .map(item => item.idx);
+  if (flaggedIndices.length === 0) {
+    showToast('目前尚無標記待查 (🚩) 的題目，可按鍵盤 F 或點擊題頭標記！', 'amber');
+    return;
+  }
+  switchWorkspaceTab('TAB_MAIN_GUI');
+  filteredIndices = flaggedIndices;
+  currentPos = 0;
+  loadCurrentQuestion();
+  showToast(`🚩 已啟動「標記待查專項複習」（共 ${flaggedIndices.length} 題）！`, 'amber');
+}
+"""
+        p_app.write_text(atxt + addon, encoding="utf-8")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -439,6 +464,8 @@ def run_wave(target_wave: int | None = None):
         apply_wave_13_hotkeys()
     if next_wave >= 14:
         apply_wave_14_score_report_printer()
+    if next_wave >= 15:
+        apply_wave_15_flagged_and_blindspot_drill()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [

@@ -330,9 +330,13 @@ input[type=range]::-webkit-slider-thumb:hover {
             <span id="furiganaStatusText" class="font-mono text-emerald-400 font-bold">OFF</span>
           </button>
 
-          <button onclick="startWeaknessDrill()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-200 border border-slate-700 transition flex items-center gap-1">
+          <button onclick="startWeaknessDrill()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-200 border border-slate-700 transition flex items-center gap-1" title="優先抽取高信心盲點題與錯題">
             <span>🔄 錯題</span>
             <span id="weaknessCountBadge" class="px-1.5 rounded-full bg-rose-500/20 text-rose-300 font-mono text-[10px]">0</span>
+          </button>
+
+          <button onclick="startFlaggedDrill()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-amber-300 border border-slate-700 transition flex items-center gap-1" title="專刷已標記待查 (🚩) 的題目">
+            <span>🚩 待查</span>
           </button>
         </div>
       </div>
@@ -5064,6 +5068,23 @@ function printScoreReportCard() {
     <p style="margin-top:18px;font-size:12px;color:#475569;">註：本成績單由 JLPT N1–N5 互動式 AI 刷題與認知診斷系統 v4.0 (2PL-IRT + FSRS v5) 自動生成。</p>
     </div><script>window.onload=()=>window.print();</script></body></html>`);
   win.document.close();
+}
+
+
+function startFlaggedDrill() {
+  const flaggedIndices = questions
+    .map((q, idx) => ({ q, idx }))
+    .filter(item => flaggedQuestionIds.has(item.q.id))
+    .map(item => item.idx);
+  if (flaggedIndices.length === 0) {
+    showToast('目前尚無標記待查 (🚩) 的題目，可按鍵盤 F 或點擊題頭標記！', 'amber');
+    return;
+  }
+  switchWorkspaceTab('TAB_MAIN_GUI');
+  filteredIndices = flaggedIndices;
+  currentPos = 0;
+  loadCurrentQuestion();
+  showToast(`🚩 已啟動「標記待查專項複習」（共 ${flaggedIndices.length} 題）！`, 'amber');
 }
 
   </script>
