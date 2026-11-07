@@ -354,25 +354,25 @@
                 <span id="choukaiConsoleTitle" class="text-[11px] font-mono text-emerald-100">🎧 雙聲道考場模擬</span>
               </div>
               <div class="p-2.5 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-                <div id="kotaeStep1" class="kotaekata-step p-2 rounded-lg bg-slate-900/90 border border-emerald-500/40 text-center">
-                  <div class="font-mono font-bold text-emerald-300">STEP ①</div>
+                <div id="kotaeStep1" onclick="triggerKotaekataStep(1)" class="kotaekata-step cursor-pointer hover:border-emerald-400 p-2 rounded-lg bg-slate-900/90 border border-emerald-500/40 text-center transition" title="點擊單獨重播：情境與問題導讀">
+                  <div class="font-mono font-bold text-emerald-300">STEP ① 🔊</div>
                   <div class="jp-text font-bold text-white">説明と質問を聞く</div>
-                  <div class="text-[10px] text-slate-400">先聽情境與問題焦點</div>
+                  <div class="text-[10px] text-slate-400">點此重聽情境與問題</div>
                 </div>
-                <div id="kotaeStep2" class="kotaekata-step p-2 rounded-lg bg-slate-900/90 border border-slate-700 text-center">
-                  <div class="font-mono font-bold text-sky-300">STEP ②</div>
+                <div id="kotaeStep2" onclick="triggerKotaekataStep(2)" class="kotaekata-step cursor-pointer hover:border-sky-400 p-2 rounded-lg bg-slate-900/90 border border-slate-700 text-center transition" title="點擊單獨重播：關鍵轉折句 (でも・実は)">
+                  <div class="font-mono font-bold text-sky-300">STEP ② ⚡</div>
                   <div class="jp-text font-bold text-white">話を聞く</div>
-                  <div class="text-[10px] text-slate-400">捕捉 でも・実は 轉折</div>
+                  <div class="text-[10px] text-slate-400">點此精聽關鍵轉折句</div>
                 </div>
-                <div id="kotaeStep3" class="kotaekata-step p-2 rounded-lg bg-slate-900/90 border border-slate-700 text-center">
-                  <div class="font-mono font-bold text-amber-300">STEP ③</div>
+                <div id="kotaeStep3" onclick="triggerKotaekataStep(3)" class="kotaekata-step cursor-pointer hover:border-amber-400 p-2 rounded-lg bg-slate-900/90 border border-slate-700 text-center transition" title="點擊單獨重播：最終提問句">
+                  <div class="font-mono font-bold text-amber-300">STEP ③ ❓</div>
                   <div class="jp-text font-bold text-white">もう一度質問を聞く</div>
-                  <div class="text-[10px] text-slate-400">確認最終提問主語</div>
+                  <div class="text-[10px] text-slate-400">點此重聽最終提問</div>
                 </div>
-                <div id="kotaeStep4" class="kotaekata-step p-2 rounded-lg bg-slate-900/90 border border-slate-700 text-center">
-                  <div class="font-mono font-bold text-rose-300">STEP ④</div>
+                <div id="kotaeStep4" onclick="triggerKotaekataStep(4)" class="kotaekata-step cursor-pointer hover:border-rose-400 p-2 rounded-lg bg-slate-900/90 border border-slate-700 text-center transition" title="點擊解鎖盲聽選項並聚焦作答區">
+                  <div class="font-mono font-bold text-rose-300">STEP ④ 🎯</div>
                   <div class="jp-text font-bold text-white">答えを選ぶ</div>
-                  <div class="text-[10px] text-slate-400">鎖定膠囊選項 1~4</div>
+                  <div class="text-[10px] text-slate-400">點此解鎖選項作答</div>
                 </div>
               </div>
             </div>

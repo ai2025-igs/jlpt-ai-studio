@@ -313,3 +313,22 @@ async function replayDialogueTurn(turnIdx) {
   await speakSingleUtterance(turn.jp, turn.role);
   resetChoukaiPlayerUI();
 }
+
+async function triggerKotaekataStep(stepNum) {
+  const q = typeof getCurrentQuestion === 'function' ? getCurrentQuestion() : null;
+  if (!q || !Array.isArray(q.dialogue) || q.dialogue.length === 0) return;
+  setActiveKotaekataStep(stepNum);
+  if (stepNum === 1) {
+    await replayDialogueTurn(0);
+  } else if (stepNum === 2) {
+    const keyIdx = q.dialogue.findIndex(t => t.isKeySignal);
+    const targetIdx = keyIdx !== -1 ? keyIdx : Math.min(1, q.dialogue.length - 1);
+    if (typeof peekListeningTranscript === 'function') peekListeningTranscript();
+    await replayDialogueTurn(targetIdx);
+  } else if (stepNum === 3) {
+    await replayDialogueTurn(q.dialogue.length - 1);
+  } else if (stepNum === 4) {
+    if (typeof unmaskBlindOptions === 'function') unmaskBlindOptions();
+    document.getElementById('optionsContainer')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
