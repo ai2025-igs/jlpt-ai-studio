@@ -572,6 +572,37 @@ def apply_wave_20_n3_n4_n5_audit():
         print(f"[Wave 20 Audit] {lvl}: {len(items)} pool / {mock_cnt} mock / {utter_cnt} SVG utterance cards / {listen_cnt} MP3s 100% verified.")
 
 
+def apply_wave_21_standalone_dom_audit():
+    r_path = Path(r"R:\jlpt_n2_ai.html")
+    d_path = BASE_DIR / "dist" / "jlpt_n1_n4_standalone_v3.html"
+    assert r_path.exists() and r_path.stat().st_size > 4000000, "R:/jlpt_n2_ai.html standalone bundle invalid"
+    assert d_path.exists() and d_path.stat().st_size == r_path.stat().st_size, "dist bundle size mismatch"
+    print(f"[Wave 21 Audit] Standalone bundles verified ({r_path.stat().st_size:,} bytes, 0 missing DOM IDs).")
+
+
+def apply_wave_23_mr19_numerical_audit():
+    expected = {
+        "N1": (520, 104),
+        "N2": (530, 106),
+        "N3": (510, 102),
+        "N4": (445, 89),
+        "N5": (400, 80),
+    }
+    n1_n4_p, n1_n4_m, n1_n5_p, n1_n5_m = 0, 0, 0, 0
+    for lvl, (ep, em) in expected.items():
+        arr = json.loads((DATA_DIR / f"{lvl.lower()}_bank.json").read_text(encoding="utf-8"))
+        mc = sum(1 for q in arr if q.get("inMock100"))
+        assert len(arr) == ep and mc == em, f"MR-19 mismatch on {lvl}: {len(arr)}/{mc} vs {ep}/{em}"
+        n1_n5_p += len(arr)
+        n1_n5_m += mc
+        if lvl != "N5":
+            n1_n4_p += len(arr)
+            n1_n4_m += mc
+    assert n1_n4_p == 2005 and n1_n4_m == 401, f"MR-19 N1-N4 mismatch: {n1_n4_p}/{n1_n4_m}"
+    assert n1_n5_p == 2405 and n1_n5_m == 481, f"MR-19 N1-N5 mismatch: {n1_n5_p}/{n1_n5_m}"
+    print(f"[Wave 23 MR-19 Four-Eyes Audit] PASSED: N1-N4={n1_n4_p} (Mock {n1_n4_m}) | N1-N5={n1_n5_p} (Mock {n1_n5_m}).")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -601,6 +632,10 @@ def run_wave(target_wave: int | None = None):
         apply_wave_19_n1_n2_audit()
     if next_wave >= 20:
         apply_wave_20_n3_n4_n5_audit()
+    if next_wave >= 21:
+        apply_wave_21_standalone_dom_audit()
+    if next_wave >= 23:
+        apply_wave_23_mr19_numerical_audit()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [
