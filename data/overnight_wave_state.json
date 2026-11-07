@@ -1,6 +1,6 @@
 {
   "startedAt": "2026-11-07T16:58:35.567805+00:00",
-  "currentWave": 6,
+  "currentWave": 7,
   "maxWaves": 24,
   "intervalMinutes": 20,
   "history": [
@@ -57,9 +57,18 @@
       "totalPool_N1_N5": 2405,
       "totalPool_N1_N4": 2005,
       "totalMock_N1_N4": 401
+    },
+    {
+      "wave": 7,
+      "timestamp": "2026-11-07T18:42:03.170005+00:00",
+      "phase": "Phase II",
+      "focus": "Taiwanese High School L1 False Friends & Tokyo Pitch Accent [0][1][2] Deck Expansion",
+      "totalPool_N1_N5": 2405,
+      "totalPool_N1_N4": 2005,
+      "totalMock_N1_N4": 401
     }
   ],
-  "lastUpdatedAt": "2026-11-07T18:20:50.870593+00:00",
+  "lastUpdatedAt": "2026-11-07T18:42:03.170005+00:00",
   "summary": {
     "totalPool_N1_N5": 2405,
     "totalMock_N1_N5": 481,
