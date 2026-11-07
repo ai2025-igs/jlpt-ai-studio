@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JLPT N1–N4 互動式 AI 刷題與認知診斷系統 v3.0 | 高中生證照通關旗艦站</title>
+  <meta name="description" content="專為台灣高中生打造的 JLPT 日文檢定 N1、N2、N3、N4 全題型 AI 刷題與認知診斷平台。結合 8 大教育心理學理論、2PL-IRT 量尺推估、FSRS v5 間隔重複、Zimmerman 信心校準與雙聲道考場盲聽。" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', '"Noto Sans JP"', 'sans-serif'],
+            jp: ['"Noto Sans JP"', '"Noto Sans TC"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="assets/css/custom.css" />
+</head>
+
+<body class="min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950 hide-inline-ruby">
+
+  <!-- ================= STICKY HEADER & MULTI-LEVEL COMMAND BAR ================= -->
+  <header class="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
+    <div class="max-w-[1600px] mx-auto px-4 py-3 space-y-2.5">
+
+      <!-- Row 1: Brand Title + N2/N3/N4/N1 Level Switcher + Top Action Buttons -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <!-- Brand Identity -->
+        <div class="flex items-center gap-3">
+          <div id="headerLevelBadge" class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-sky-500 flex items-center justify-center text-slate-950 font-mono font-black text-lg shadow-lg shadow-amber-500/20">
+            N2
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 id="headerLevelTitle" class="text-base sm:text-lg font-extrabold tracking-tight text-white">
+                JLPT N2 互動式 AI 刷題與認知診斷系統 v3.0
+              </h1>
+              <span class="px-2 py-0.5 text-[11px] font-mono font-semibold rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                N1–N4 全題型 × 8大教學法 × 雙聲道盲聽
+              </span>
+            </div>
+            <p id="headerLevelDesc" class="text-xs text-slate-400 hidden md:block">
+              二節制測驗（總分 ≥90/180，言語知識・讀解・聽解三科皆須 ≥19/60） ｜ ⏱️ 筆試 105m ｜ 聽解 50m ｜ 📚 ~1,000 漢字 / ~6,000 詞
+            </p>
+          </div>
+        </div>
+
+        <!-- 4-Level Switcher Pills (N2 Flagship First -> N3 -> N4 -> N1) -->
+        <div class="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+          <button id="lvlBtn_N2" onclick="switchLevel('N2')" class="px-3.5 py-2 rounded-xl font-bold text-xs transition flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border border-amber-300">
+            <span>🏆 N2 進階主力</span>
+            <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded-md bg-slate-950/20 font-mono text-[10px]">60題</span>
+          </button>
+          <button id="lvlBtn_N3" onclick="switchLevel('N3')" class="px-3.5 py-2 rounded-xl font-semibold text-xs transition flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700">
+            <span>🌉 N3 中級橋樑</span>
+            <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded-md bg-slate-900 font-mono text-[10px]">24題</span>
+          </button>
+          <button id="lvlBtn_N4" onclick="switchLevel('N4')" class="px-3.5 py-2 rounded-xl font-semibold text-xs transition flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700">
+            <span>🌱 N4 基礎進階</span>
+            <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded-md bg-slate-900 font-mono text-[10px]">24題</span>
+          </button>
+          <button id="lvlBtn_N1" onclick="switchLevel('N1')" class="px-3.5 py-2 rounded-xl font-semibold text-xs transition flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700">
+            <span>👑 N1 最高殿堂</span>
+            <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded-md bg-slate-900 font-mono text-[10px]">24題</span>
+          </button>
+        </div>
+
+        <!-- Global Action Toolbar -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Workflow & Exam Types Matrix Button -->
+          <button onclick="openWorkflowModal()" class="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 text-xs font-bold border border-sky-500/40 transition flex items-center gap-1.5">
+            <span>🗺️ 通關工作流 & 全題型矩陣</span>
+          </button>
+
+          <!-- 8 Pedagogical Theories Button -->
+          <button onclick="openPedagogyModal()" class="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold border border-amber-500/40 transition flex items-center gap-1.5">
+            <span>🧠 8大教學法引擎</span>
+          </button>
+
+          <!-- Weakness Drill Button -->
+          <button onclick="startWeaknessDrill()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+            <span>🔄 錯題與脆弱重練</span>
+            <span id="weaknessCountBadge" class="px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 font-mono text-[11px]">0</span>
+          </button>
+
+          <!-- AI Dynamic Item Generator -->
+          <button id="aiGenerateBtn" onclick="generateAIQuestions()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center gap-1.5">
+            <span id="aiGenSpinner" class="hidden w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+            <span id="aiGenBtnText">✨ AI 弱點動態出題</span>
+          </button>
+
+          <!-- BYOK Key Vault -->
+          <button onclick="openByokModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition flex items-center gap-1.5" title="設定個人 Gemini API Key (sessionStorage)">
+            <span id="byokStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span>🔑 BYOK 金鑰</span>
+          </button>
+
+          <!-- NotebookLM Export -->
+          <button onclick="openExportModal()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition flex items-center gap-1">
+            <span>📓 匯出 NotebookLM</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Row 2: Pedagogical Mode Switcher + Category Tabs + Official Sub-Type Filter -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800/80">
+        <!-- Category Filter Tabs -->
+        <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto pb-1"></div>
+
+        <!-- Right Controls: Official Subtype Dropdown + Scaffolding Mode + Furigana Toggle -->
+        <div class="flex flex-wrap items-center gap-2">
+          <select id="officialSubtypeSelect" onchange="applyOfficialSubfilter(this.value)"
+            class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 font-medium focus:outline-none focus:border-amber-400">
+            <option value="ALL_SUB">📑 官方細分大題：全部題型</option>
+          </select>
+
+          <!-- Sweller Scaffolding Mode vs Exam Mode -->
+          <div class="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-700">
+            <button id="modeBtnScaffold" onclick="setPedagogicalMode('SCAFFOLD')" class="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 transition flex items-center gap-1">
+              <span>🌱 教學鷹架</span>
+            </button>
+            <button id="modeBtnExam" onclick="setPedagogicalMode('EXAM')" class="px-3 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1">
+              <span>⚔️ 考場實戰</span>
+            </button>
+          </div>
+
+          <!-- Furigana Toggle -->
+          <button id="furiganaToggleBtn" onclick="toggleFurigana()" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+            <span>あ 振假名:</span>
+            <span id="furiganaStatusText" class="font-mono text-emerald-400 font-bold">OFF</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN BENTO WORKSPACE (12 COLUMNS) ================= -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 py-5 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- ================= LEFT COLUMN (7 COLS): INTERACTIVE EXAM & CHOUKAI CONSOLE ================= -->
+    <section class="lg:col-span-7 space-y-5">
+
+      <!-- Card 1: Question Arena -->
+      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-5 relative overflow-hidden">
+
+        <!-- Top Progress Bar (Pacing Poka-Yoke) -->
+        <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+          <div id="timerProgressBar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <!-- Question Metadata Row -->
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="qCategoryBadge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              言語知識
+            </span>
+            <span id="qSubtagBadge" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-900 text-slate-300 border border-slate-700">
+              考點分類
+            </span>
+            <span id="qBloomBadge" class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-sky-500/15 text-sky-300 border border-sky-500/30">
+              L2 理解
+            </span>
+            <span id="qIrtBadge" class="px-2 py-1 rounded-lg text-[11px] font-mono bg-slate-900 text-slate-400 border border-slate-800">
+              IRT b=0.0
+            </span>
+            <span id="qProgressText" class="text-xs font-mono text-slate-400">
+              題號 #1 / 60
+            </span>
+          </div>
+
+          <!-- Pacing Timer Pill -->
+          <div class="flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900 border border-slate-700">
+            <span id="timerDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-xs text-slate-400">配速計時:</span>
+            <span id="timerText" class="font-mono text-xs font-bold text-emerald-400">00s / 30s</span>
+          </div>
+        </div>
+
+        <!-- Sweller & Socratic Scaffolding Strip (Visible in Scaffolding Mode) -->
+        <div id="scaffoldingActionStrip" class="flex flex-wrap items-center justify-between gap-2 bg-emerald-950/25 border border-emerald-500/30 rounded-xl px-3.5 py-2">
+          <div class="flex items-center gap-2 text-xs text-emerald-300 font-medium">
+            <span>🌱 <strong>認知鷹架輔助列</strong>（Sweller 漸進減負 & 蘇格拉底詰問）：</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="triggerSocraticHint()" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition">
+              💡 蘇格拉底提示 (不洩題)
+            </button>
+            <button type="button" onclick="eliminateOneDistractor()" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition">
+              ✂️ 排除 1 個誘答項 (50/50)
+            </button>
+          </div>
+        </div>
+
+        <!-- Socratic Hint Banner (Revealed on Click) -->
+        <div id="socraticHintBanner" class="hidden p-3.5 rounded-xl bg-amber-500/15 border border-amber-400/50 text-amber-200 text-xs leading-relaxed">
+          <div class="font-bold text-amber-300 mb-0.5">🏛️ 蘇格拉底產婆引導提示 (Socratic Scaffolding)：</div>
+          <div id="socraticHintText"></div>
+        </div>
+
+        <!-- ================= LISTENING (CHOUKAI) DUAL-VOICE AUDIO CONSOLE ================= -->
+        <div id="listeningConsoleBox" class="hidden bg-slate-900/95 border-2 border-sky-500/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-inner">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <span id="choukaiStatusDot" class="w-3 h-3 rounded-full bg-sky-400 animate-pulse"></span>
+              <div>
+                <h3 id="choukaiConsoleTitle" class="text-sm font-bold text-sky-300 flex items-center gap-2">
+                  🎧 JLPT 雙聲道考場音源合成器 (Choukai Console)
+                </h3>
+                <p class="text-[11px] text-slate-400">
+                  內建 <code class="text-amber-300">edge-tts</code> 真人級男女雙聲道 (Keita & Nanami) ＋ 考場提示鐘聲 (880Hz→698Hz)
+                </p>
+              </div>
+            </div>
+
+            <!-- Speed & Engine Controls -->
+            <div class="flex flex-wrap items-center gap-1.5">
+              <select id="audioEngineModeSelect" class="px-2 py-1 rounded-lg bg-slate-950 border border-slate-800 text-[11px] font-mono text-sky-300">
+                <option value="STATIC_FIRST">🎙️ Neural MP3 優先 (edge-tts)</option>
+                <option value="WEBSPEECH">🔊 瀏覽器雙聲道合成 (WebSpeech)</option>
+              </select>
+              <div class="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-xl border border-slate-800">
+                <span class="text-[11px] font-mono text-slate-400 mr-1">語速:</span>
+                <button type="button" onclick="setListeningSpeed(0.85)" id="spdBtn085" class="px-2 py-0.5 rounded-lg text-[11px] font-mono text-slate-400 hover:text-white transition">0.85x</button>
+                <button type="button" onclick="setListeningSpeed(1.0)" id="spdBtn100" class="px-2 py-0.5 rounded-lg text-[11px] font-mono bg-sky-500 text-slate-950 font-bold transition">1.0x</button>
+                <button type="button" onclick="setListeningSpeed(1.15)" id="spdBtn115" class="px-2 py-0.5 rounded-lg text-[11px] font-mono text-slate-400 hover:text-white transition">1.15x</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Animated 24-Bar Equalizer & Active Speaker Status -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <button type="button" id="playChoukaiBtn" onclick="playListeningDialogue()"
+                class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-sky-400 hover:from-sky-400 hover:to-sky-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-sky-500/20 transition flex items-center gap-2">
+                <span id="playChoukaiIcon">▶</span>
+                <span id="playChoukaiText">播放考場對話 (含鐘聲)</span>
+              </button>
+              <button type="button" onclick="stopListeningDialogue()"
+                class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition">
+                ⏹ 停止
+              </button>
+            </div>
+
+            <!-- Equalizer Bars -->
+            <div id="eqVisualizer" class="flex items-end gap-1 h-8 px-2"></div>
+
+            <!-- Turn Counter & Role Indicator -->
+            <div class="text-right">
+              <div id="activeSpeakerBadge" class="text-xs font-mono font-bold text-amber-300">
+                待機中 (點擊左側播放)
+              </div>
+              <div id="turnCounterText" class="text-[11px] font-mono text-slate-400">
+                語音段: 0 / 0
+              </div>
+            </div>
+          </div>
+
+          <!-- Blind-Listening Poka-Yoke Shield -->
+          <div id="blindShieldBox" class="p-3.5 rounded-xl bg-slate-950/70 border border-dashed border-slate-700 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 text-xs text-slate-300">
+              <span>🙈 <strong>考場盲聽防呆遮罩 (Poka-Yoke)</strong>：正式檢定無對話文字，請先憑聽覺捕捉關鍵轉折詞！</span>
+            </div>
+            <button type="button" id="peekScriptBtn" onclick="peekListeningTranscript()"
+              class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-xs font-semibold transition">
+              👁️ 聽不懂？偷看對話逐字稿 (上限 50% 信心度)
+            </button>
+          </div>
+
+          <!-- Multi-Turn Interactive Dialogue Script -->
+          <div id="dialogueTranscriptBox" class="hidden space-y-2 max-h-64 overflow-y-auto pr-1"></div>
+
+          <!-- Optional Local MP3 File Loader -->
+          <div class="pt-2 border-t border-slate-800/80">
+            <button type="button" onclick="toggleMp3Drawer()" class="text-[11px] font-mono text-slate-400 hover:text-sky-300 flex items-center gap-1.5 transition">
+              <span>📂 掛載外部歷屆真題 MP3 / WAV 音檔 (選用)</span>
+              <span id="mp3DrawerArrow">▼</span>
+            </button>
+            <div id="mp3DrawerContent" class="hidden mt-2.5 p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <input type="file" id="localMp3Input" accept="audio/*" onchange="loadLocalMp3File(event)"
+                  class="text-xs text-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/20 file:text-sky-300 hover:file:bg-sky-500/30" />
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="seekLocalMp3(-5)" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200">⏪ -5s</button>
+                  <button type="button" onclick="seekLocalMp3(5)" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200">+5s ⏩</button>
+                </div>
+              </div>
+              <audio id="localMp3Player" controls class="w-full h-9 rounded-lg"></audio>
+              <p id="localMp3FileName" class="text-[11px] font-mono text-slate-400">尚未載入外部音檔（預設使用內建 edge-tts 真人雙聲道音源）</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Standard Written Question TTS Bar -->
+        <div id="standardTtsBar" class="flex flex-wrap items-center justify-between gap-2 bg-slate-900/70 px-3.5 py-2 rounded-xl border border-slate-800">
+          <p id="qInstruction" class="text-xs font-medium text-slate-300 jp-text">
+            問題：次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。
+          </p>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="speakQuestion(1.0)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-sky-300 border border-slate-700 transition flex items-center gap-1">
+              <span>🔊 朗讀題幹 (1.0x)</span>
+            </button>
+            <button type="button" onclick="speakQuestion(0.8)" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300 border border-slate-700 transition">
+              🐢 0.8x
+            </button>
+          </div>
+        </div>
+
+        <!-- Situational SVG Card (For N3/N4 Utterance Expressions L4_UTTERANCE) -->
+        <div id="situationSvgBox" class="hidden p-3 rounded-2xl bg-slate-950/90 border border-sky-500/30 flex items-center justify-center"></div>
+
+        <!-- Question Stem Display -->
+        <div class="p-4 sm:p-5 rounded-xl bg-slate-900/90 border border-slate-700/90 space-y-3">
+          <div id="qStemText" class="jp-text text-lg sm:text-xl font-bold leading-relaxed text-white tracking-wide">
+            題目載入中...
+          </div>
+          <div id="qHintBox" class="hidden pt-2 border-t border-slate-800 text-xs font-mono text-amber-300"></div>
+        </div>
+
+        <!-- Interactive Star (★) Reconstructor Sandbox -->
+        <div id="starReconstructorBox" class="hidden p-4 rounded-xl bg-slate-900/80 border border-amber-500/40 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+              <span>🧩 星號重組 (★) 互動語塊沙盒：點擊下方選項依序排入 4 個格位，系統將自動鎖定第 3 格 (★) 為您的答案</span>
+            </span>
+            <button type="button" onclick="resetStarSlots()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700">
+              清空重排
+            </button>
+          </div>
+          <div id="starSlotsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+          <div id="starTokensBar" class="flex flex-wrap gap-2 pt-1"></div>
+        </div>
+
+        <!-- Problem 3 / Quick Response Blind Options Mask Notice -->
+        <div id="blindOptionsNotice" class="hidden p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 items-center justify-between gap-2">
+          <span>🔒 <strong>考場無印字盲聽模式</strong>：正式試卷上本大題無印出選項，請聽完音訊後作答（或點擊右側提前顯示選項）。</span>
+          <button type="button" onclick="unmaskBlindOptions()" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold shrink-0">
+            顯示選項文字
+          </button>
+        </div>
+
+        <!-- 4 Option Buttons -->
+        <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+
+        <!-- SRL Confidence Calibration Slider + Submit Bar -->
+        <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/80 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label for="confidenceSlider" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+              <span>🎯 SRL 信心度校準 (Zimmerman 自我調節學習)：</span>
+              <span class="text-slate-400 font-normal">作答前評估把握程度，精準揪出「高信心盲點」</span>
+            </label>
+            <span id="confidenceValBadge" class="px-2.5 py-0.5 rounded-md bg-sky-500/20 border border-sky-500/40 font-mono text-sm font-bold text-sky-300">
+              75% 頗有把握
+            </span>
+          </div>
+
+          <input id="confidenceSlider" type="range" min="25" max="100" step="5" value="75"
+            oninput="updateConfidenceUI(this.value)" class="w-full" />
+
+          <div class="flex justify-between text-[11px] font-mono text-slate-400">
+            <button type="button" onclick="updateConfidenceUI(25)" class="hover:text-rose-400 transition">25% 純猜測/直覺</button>
+            <button type="button" onclick="updateConfidenceUI(50)" class="hover:text-amber-400 transition">50% 二選一猶豫</button>
+            <button type="button" onclick="updateConfidenceUI(75)" class="hover:text-sky-400 transition">75% 頗有把握</button>
+            <button type="button" onclick="updateConfidenceUI(100)" class="hover:text-emerald-400 transition">100% 絕對篤定</button>
+          </div>
+        </div>
+
+        <!-- Navigation & Submit Action Row -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <button type="button" id="prevBtn" onclick="prevQuestion()"
+            class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-700 text-xs sm:text-sm font-semibold text-slate-300 border border-slate-700 transition disabled:opacity-40">
+            ⬅ 上一題
+          </button>
+
+          <div class="flex items-center gap-2.5">
+            <button type="button" id="submitBtn" onclick="submitCurrentAnswer()"
+              class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition">
+              ✔ 提交診斷並解鎖詳解 (Enter)
+            </button>
+            <button type="button" id="nextBtn" onclick="nextQuestion()"
+              class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-sky-500/20 transition">
+              下一題 ➡
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ================= CARD 2: POST-ANSWER DIAGNOSTIC, L1 TRANSFER & AI TUTOR ================= -->
+      <div id="diagnosticPanel" class="hidden bg-slate-800/95 border-2 border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-5">
+
+        <!-- Result Header & FSRS v5 Schedule -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-700">
+          <div class="flex items-center gap-3">
+            <div id="resultIconBox" class="w-11 h-11 rounded-xl flex items-center justify-center text-xl font-bold">✓</div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 id="resultTitleText" class="text-base sm:text-lg font-bold text-white">診斷結果</h2>
+                <span id="srlQuadrantBadge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold"></span>
+              </div>
+              <p id="fsrsScheduleText" class="text-xs text-slate-300 mt-0.5 font-mono"></p>
+            </div>
+          </div>
+          <button type="button" onclick="speakQuestion(0.95)" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-700 text-xs font-medium text-sky-300 border border-slate-700 transition">
+            🔊 再次跟讀完整日文句 (Shadowing)
+          </button>
+        </div>
+
+        <!-- Translation & Core Rule -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-700/80 space-y-1.5">
+            <div class="text-xs font-mono font-semibold text-sky-400">🇹🇼 繁體中文精準翻譯</div>
+            <p id="diagTranslation" class="text-sm text-slate-100 leading-relaxed font-medium"></p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-amber-500/30 space-y-1.5">
+            <div class="text-xs font-mono font-semibold text-amber-400">⚡ 核心文法・語彙・聽解轉折規則</div>
+            <p id="diagCoreRule" class="text-sm text-slate-100 leading-relaxed font-medium"></p>
+          </div>
+        </div>
+
+        <!-- Odlin L1 Kanji Transfer Lens & Worked-Example Syntactic Chain -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-indigo-950/30 border border-indigo-500/40 space-y-1.5">
+            <div class="text-xs font-mono font-bold text-indigo-300">🇹🇼⇄🇯🇵 台灣高中生漢字母語正負遷移透鏡 (Odlin L1 Transfer)</div>
+            <p id="diagL1Transfer" class="text-xs sm:text-sm text-slate-200 leading-relaxed"></p>
+          </div>
+          <div id="diagGrammarChainCard" class="p-4 rounded-xl bg-emerald-950/25 border border-emerald-500/40 space-y-1.5">
+            <div class="text-xs font-mono font-bold text-emerald-300">🔗 工作範例與語塊接續鏈圖解 (Worked Example Chunking)</div>
+            <p id="diagGrammarChain" class="text-xs sm:text-sm font-mono text-emerald-100 leading-relaxed"></p>
+          </div>
+        </div>
+
+        <!-- 4-Option Distractor Breakdown -->
+        <div class="space-y-2.5">
+          <div class="text-xs font-mono font-semibold text-slate-300 uppercase tracking-wider">
+            🔍 四個選項誘答陷阱全拆解 (Distractor Forensics)
+          </div>
+          <div id="distractorList" class="grid grid-cols-1 gap-2.5"></div>
+        </div>
+
+        <!-- Interactive Gemini AI Tutor Box -->
+        <div class="p-4 rounded-xl bg-slate-900 border border-sky-500/30 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-xs font-bold">Gemini AI 專屬日檢家教</span>
+              <span class="text-xs text-slate-400">對本題語氣、接續或台灣人常犯漢字陷阱有疑問？立即點擊追問：</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="askAITutorQuick('請用台灣高中生最好懂的方式，比較這題四個選項的語感差異與記憶口訣！')"
+                class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-sky-300 border border-slate-700 transition">
+                💡 比較四選項語感與口訣
+              </button>
+              <button type="button" onclick="askAITutorQuick('請用這題的正解語法或單字，再幫我造 2 個日本高中校園或動漫常見的實用短句（附中譯）。')"
+                class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-amber-300 border border-slate-700 transition">
+                ✍️ 延伸校園實用例句
+              </button>
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <input id="aiTutorInput" type="text" placeholder="輸入您的問題，例如：為什麼這裡不能選選項 2？跟中文意思差在哪裡？"
+              class="flex-1 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs sm:text-sm text-white focus:outline-none focus:border-sky-400" />
+            <button type="button" id="aiTutorBtn" onclick="askAITutorCustom()"
+              class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs sm:text-sm transition shrink-0">
+              發問 AI 家教
+            </button>
+          </div>
+
+          <div id="aiTutorResponseBox" class="hidden p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-wrap"></div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================= RIGHT COLUMN (5 COLS): 6D RADAR, IRT SCORE & FSRS QUEUE ================= -->
+    <aside class="lg:col-span-5 space-y-5">
+
+      <!-- Card 3: 2PL-IRT Scaled Score Estimator & Sectional Veto Redline Defense -->
+      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 id="irtHeaderTitle" class="text-sm font-bold text-white flex items-center gap-2">
+              <span>🎯 JLPT N2 量尺分數推估與過關機率</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">
+              基於 2PL-IRT 能力參數 $\hat{\theta}$ 與官方單科淘汰門檻動態預警
+            </p>
+          </div>
+          <span id="irtPassBadge" class="px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-300 font-mono text-xs font-bold">
+            待累積作答數據
+          </span>
+        </div>
+
+        <!-- Sectional Veto Redline Alert Banner -->
+        <div id="irtVetoAlertBox" class="hidden p-2.5 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-200 text-xs font-bold"></div>
+
+        <div class="grid grid-cols-3 gap-2.5 text-center">
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+            <div id="irtTotalLabel" class="text-[11px] text-slate-400">預估總分 (合格 ≥90)</div>
+            <div id="irtTotalScore" class="font-mono text-lg font-extrabold text-amber-400 mt-0.5">-- / 180</div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+            <div id="irtWrittenLabel" class="text-[11px] text-slate-400">言語知識+讀解 (各 ≥19)</div>
+            <div id="irtWrittenScore" class="font-mono text-base font-bold text-slate-200 mt-0.5">-- / 120</div>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-900 border border-sky-500/30">
+            <div class="text-[11px] text-sky-300">🎧 聽解量尺 (門檻 ≥19)</div>
+            <div id="irtListeningScore" class="font-mono text-base font-bold text-sky-400 mt-0.5">-- / 60</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: 4 KPI Metrics -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3.5 shadow-lg">
+          <div class="text-[11px] text-slate-400 font-medium">本級已測進度</div>
+          <div id="kpiAnswered" class="text-lg font-mono font-extrabold text-white mt-1">0 / 60</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">涵蓋 6 大維度</div>
+        </div>
+
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3.5 shadow-lg">
+          <div class="text-[11px] text-slate-400 font-medium">客觀正確率</div>
+          <div id="kpiAccuracy" class="text-lg font-mono font-extrabold text-emerald-400 mt-1">--%</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">目標安全線 ≥ 70%</div>
+        </div>
+
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3.5 shadow-lg">
+          <div class="text-[11px] text-slate-400 font-medium">信心校準差</div>
+          <div id="kpiCalibrationGap" class="text-lg font-mono font-extrabold text-sky-400 mt-1">--%</div>
+          <div id="kpiCalibrationLabel" class="text-[10px] text-slate-400 mt-0.5">主觀信心 - 正確率</div>
+        </div>
+
+        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-3.5 shadow-lg">
+          <div class="text-[11px] text-slate-400 font-medium">高信心盲點</div>
+          <div id="kpiBlindspots" class="text-lg font-mono font-extrabold text-rose-400 mt-1">0 題</div>
+          <div class="text-[10px] text-rose-300/80 mt-0.5">FSRS T+1d 優先佇列</div>
+        </div>
+      </div>
+
+      <!-- Card 5: 6D Hexagon SVG Radar Chart -->
+      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span>🕸️ 六維度聽讀能力雷達圖 (6D Cognitive Radar)</span>
+            </h2>
+            <p class="text-xs text-slate-400">
+              實線為「實際正確率」，虛線為「主觀信心度」
+            </p>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="downloadProgressBackup()" class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-700 text-[11px] text-emerald-300 border border-slate-700 transition" title="下載學習進度備份 JSON">
+              💾 備份
+            </button>
+            <label class="cursor-pointer px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-700 text-[11px] text-sky-300 border border-slate-700 transition" title="還原學習進度 JSON">
+              📂 還原
+              <input type="file" accept=".json" onchange="uploadProgressBackup(event)" class="hidden" />
+            </label>
+            <button type="button" onclick="resetAllProgress()" class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-700 text-[11px] text-slate-400 border border-slate-700 transition">
+              重置本級
+            </button>
+          </div>
+        </div>
+
+        <!-- SVG Radar Container -->
+        <div class="flex justify-center items-center bg-slate-900/90 rounded-xl p-3 border border-slate-800">
+          <svg id="radarSvg" viewBox="0 0 340 270" class="w-full max-w-[330px] h-auto overflow-visible"></svg>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center justify-center gap-5 text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded-sm bg-sky-400/50 border border-sky-400 inline-block"></span>
+            <span class="text-slate-300">實際正確率 (Accuracy)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded-sm bg-amber-400/30 border border-amber-400 border-dashed inline-block"></span>
+            <span class="text-slate-300">主觀信心度 (Confidence)</span>
+          </div>
+        </div>
+
+        <!-- Per-Dimension Mini Accuracy Pills -->
+        <div id="dimensionStatsGrid" class="grid grid-cols-3 gap-2 text-center"></div>
+      </div>
+
+      <!-- Card 6: AI Diagnostic Coach Prescription -->
+      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-1.5">
+              <span>🩺 AI 弱點處方箋與衝刺建議</span>
+            </h2>
+            <p class="text-xs text-slate-400">結合 SRL 盲點象限、台日漢字遷移與聽解轉折信號</p>
+          </div>
+          <button type="button" id="aiCoachBtn" onclick="generateAICoachReport()"
+            class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold transition shrink-0">
+            ✨ 生成深度診斷
+          </button>
+        </div>
+
+        <div id="aiCoachContent" class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 leading-relaxed space-y-1.5">
+          <p>👋 歡迎來到 <strong>JLPT N1–N4 互動式 AI 刷題與認知診斷系統 v3.0</strong>！</p>
+          <p>• 預設載入 <strong>N2 進階主力艦 (60題全題型)</strong>，您可隨時於頂部切換 <strong>N3、N4、N1</strong>。</p>
+          <p>• 點擊頂部 <strong>「🗺️ 通關工作流 & 全題型矩陣」</strong> 可一覽各級別考綱結構並一鍵跳轉任意大題！</p>
+        </div>
+      </div>
+
+      <!-- Card 7: FSRS v5 Spaced Repetition Queue -->
+      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white">📋 FSRS v5 記憶排程與題庫導覽佇列</h2>
+            <p class="text-xs text-slate-400">點擊任一題號可直接跳轉練習</p>
+          </div>
+          <button type="button" onclick="openCloudModal()" class="text-[11px] font-mono text-sky-400 hover:underline">
+            ☁️ Google Sheets 題庫同步
+          </button>
+        </div>
+
+        <div id="questionQueueList" class="max-h-60 overflow-y-auto space-y-1.5 pr-1"></div>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- ================= MODAL 1: WORKFLOW & ALL EXAM QUESTION TYPES MATRIX ================= -->
+  <div id="workflowModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-5xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+            <span>🗺️ 台灣高中生 JLPT N4 ➔ N1 證照通關工作流 & 官方全題型互動矩陣</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">點擊下方表格內任一題型按鈕，即可直接切換級別並鎖定該官方大題進行實戰特訓</p>
+        </div>
+        <button onclick="closeWorkflowModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <!-- 5-Stage Pass Workflow -->
+      <div class="space-y-2">
+        <div class="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider">⚡ 第一部分：高中生五階證照通關標準工作流 (5-Stage Mastery Workflow)</div>
+        <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 text-xs">
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+            <div class="font-mono font-bold text-amber-400">Stage 1 ｜ 落點診斷</div>
+            <div class="font-bold text-white">跨題型交錯快篩</div>
+            <p class="text-slate-400 text-[11px]">先在「⚡ 跨題型交錯實戰」作答 6~10 題，由 2PL-IRT 計算初始能力值 $\hat{\theta}$ 與六維度雷達落點。</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-1">
+            <div class="font-mono font-bold text-emerald-400">Stage 2 ｜ 鷹架解構</div>
+            <div class="font-bold text-white">開啟「🌱 教學鷹架」</div>
+            <p class="text-slate-400 text-[11px]">善用分級振假名、蘇格拉底提示與「🇹🇼⇄🇯🇵 台日漢字遷移透鏡」，破除中文母語負遷移。</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-sky-500/30 space-y-1">
+            <div class="font-mono font-bold text-sky-400">Stage 3 ｜ 雙碼盲聽</div>
+            <div class="font-bold text-white">雙聲道與情境 SVG</div>
+            <p class="text-slate-400 text-[11px]">利用 edge-tts 男女雙聲道與盲聽遮罩，特訓 N3/N4 看圖發話表現與 N1/N2 長篇統合理解。</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-rose-500/30 space-y-1">
+            <div class="font-mono font-bold text-rose-400">Stage 4 ｜ 盲點攔截</div>
+            <div class="font-bold text-white">SRL 信心度校準</div>
+            <p class="text-slate-400 text-[11px]">誠實滑動把握度滑桿，將「高信心卻答錯」的致命盲點鎖定至 FSRS T+1d 優先佇列並守住 19 分底線。</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-indigo-500/30 space-y-1">
+            <div class="font-mono font-bold text-indigo-400">Stage 5 ｜ 實戰驗收</div>
+            <div class="font-bold text-white">切換「⚔️ 考場實戰」</div>
+            <p class="text-slate-400 text-[11px]">關閉所有提示與振假名，在配速計時下完成全真模擬，並一鍵匯出 Markdown 至 NotebookLM。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive All Exam Question Types Matrix -->
+      <div class="space-y-2">
+        <div class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider">📑 第二部分：JLPT N1–N4 官方全題型覆蓋與跨級別差異矩陣（點擊按鈕直接進入該題型）</div>
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-950 text-slate-300 border-b border-slate-800">
+                <th class="p-2.5 font-bold">測驗領域 / 官方題型</th>
+                <th class="p-2.5 font-bold text-amber-400">🏆 N2 進階 (105m+50m, ≥90分)</th>
+                <th class="p-2.5 font-bold text-sky-400">🌉 N3 中級 (30m+70m+40m, ≥95分)</th>
+                <th class="p-2.5 font-bold text-emerald-400">🌱 N4 基礎 (25m+55m+35m, ≥90分)</th>
+                <th class="p-2.5 font-bold text-rose-400">👑 N1 最高級 (110m+55m, ≥100分)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 bg-slate-900/60">
+              <tr>
+                <td class="p-2.5 font-bold text-white">文字・語彙：漢字讀音 & 表記</td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N2','M1_KANJI_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題1 漢字読み</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','M2_ORTHOGRAPHY')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題2 表記</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N3','M1_KANJI_READ')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題1 漢字読み</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','M2_ORTHOGRAPHY')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題2 表記</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N4','M1_KANJI_READ')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題1 漢字読み</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','M2_ORTHOGRAPHY')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題2 表記</button>
+                </td>
+                <td class="p-2.5">
+                  <button onclick="jumpToLevelAndSubtype('N1','M1_KANJI_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題1 漢字読み</button>
+                  <span class="text-[11px] text-slate-500 ml-1">(N1無表記題)</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="p-2.5 font-bold text-white">文字・語彙：語形成・文脈・類義・用法</td>
+                <td class="p-2.5 flex flex-wrap gap-1">
+                  <button onclick="jumpToLevelAndSubtype('N2','M3_WORD_FORM')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold">問題3 語形成(N2專屬)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題4 文脈</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題5 類義</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','M6_USAGE')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題6 用法</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N3','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題3 文脈</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題4 類義</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','M6_USAGE')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題5 用法</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N4','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題3 文脈</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題4 類義</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','M6_USAGE')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題5 用法</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N1','M4_CONTEXT_VOCAB')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題2 文脈</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','M5_PARAPHRASE')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題3 類義</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','M6_USAGE')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題4 用法</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="p-2.5 font-bold text-white">文法構文：句子文法・★星號重組・文章文法</td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N2','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題7 文法形式</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題8 ★重組</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">問題9 文章文法</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N3','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題1 文法</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題2 ★重組</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">問題3 文章文法</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N4','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題1 文法</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題2 ★重組</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">問題3 文章文法</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N1','G1_GRAMMAR_FORM')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題5 文法</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','G2_STAR_SYNTAX')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題6 ★重組</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','G3_TEXT_GRAMMAR')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">問題7 文章文法</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="p-2.5 font-bold text-white">讀解全題型：短篇・中篇・A/B統合・長篇・情報検索</td>
+                <td class="p-2.5 flex flex-wrap gap-1">
+                  <button onclick="jumpToLevelAndSubtype('N2','R1_SHORT_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">短篇</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','R2_MID_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">中篇</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','R3_INTEGRATED_READ')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold">A/B統合比較</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','R4_LONG_OPINION')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">長篇主張</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">情報検索</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N3','R1_SHORT_READ')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">短篇</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','R2_MID_READ')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">中篇</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','R4_LONG_OPINION')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">長篇</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">情報検索</button>
+                </td>
+                <td class="p-2.5 space-x-1">
+                  <button onclick="jumpToLevelAndSubtype('N4','R1_SHORT_READ')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">短篇</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','R2_MID_READ')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">中篇</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">情報検索</button>
+                </td>
+                <td class="p-2.5 flex flex-wrap gap-1">
+                  <button onclick="jumpToLevelAndSubtype('N1','R1_SHORT_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">短篇</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','R2_MID_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">中篇</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','R3_INTEGRATED_READ')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold">A/B統合比較</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','R4_LONG_OPINION')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">長篇</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','R5_INFO_RETRIEVAL')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">情報検索</button>
+                </td>
+              </tr>
+              <tr>
+                <td class="p-2.5 font-bold text-sky-300">🎧 聽解全題型：課題・重點・概要・看圖發話・即時・統合</td>
+                <td class="p-2.5 flex flex-wrap gap-1">
+                  <button onclick="jumpToLevelAndSubtype('N2','L1_TASK')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">課題</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','L2_POINT')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">ポイント</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','L3_SUMMARY')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">概要(盲聽)</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300">即時応答</button>
+                  <button onclick="jumpToLevelAndSubtype('N2','L6_INTEGRATED_LISTEN')" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold">問題5 統合理解</button>
+                </td>
+                <td class="p-2.5 flex flex-wrap gap-1">
+                  <button onclick="jumpToLevelAndSubtype('N3','L1_TASK')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">課題</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','L2_POINT')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">ポイント</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','L3_SUMMARY')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">概要</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','L4_UTTERANCE')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-bold">問題4 発話表現(SVG)</button>
+                  <button onclick="jumpToLevelAndSubtype('N3','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 text-sky-300">即時応答</button>
+                </td>
+                <td class="p-2.5 flex flex-wrap gap-1">
+                  <button onclick="jumpToLevelAndSubtype('N4','L1_TASK')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">課題</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','L2_POINT')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">ポイント</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','L4_UTTERANCE')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 font-bold">問題3 発話表現(SVG)</button>
+                  <button onclick="jumpToLevelAndSubtype('N4','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300">即時応答</button>
+                </td>
+                <td class="p-2.5 flex flex-wrap gap-1">
+                  <button onclick="jumpToLevelAndSubtype('N1','L1_TASK')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">課題</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','L2_POINT')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">ポイント</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','L3_SUMMARY')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">概要</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','L5_QUICK_RESP')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300">即時応答</button>
+                  <button onclick="jumpToLevelAndSubtype('N1','L6_INTEGRATED_LISTEN')" class="px-2 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold">問題5 統合理解(3人討論)</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button onclick="closeWorkflowModal()" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs">
+          開始實戰刷題
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 2: 8 PEDAGOGICAL & LEARNING SCIENCE THEORIES ================= -->
+  <div id="pedagogyModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-base sm:text-lg font-extrabold text-white">🧠 驅動本平台的 8 大教育心理學與認知科學引擎 (Pedagogical Architecture)</h3>
+          <p class="text-xs text-slate-400">將教育理論轉化為具體可互動的 UI 鷹架與心理計量演算法</p>
+        </div>
+        <button onclick="closePedagogyModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <div id="pedagogyCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+
+      <div class="flex justify-end">
+        <button onclick="closePedagogyModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">
+          關閉視窗
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 3: BYOK GEMINI API KEY VAULT ================= -->
+  <div id="byokModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>🔑 個人 Gemini API Key 保險箱 (BYOK Session Vault)</span>
+        </h3>
+        <button onclick="closeByokModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        本網站所有 132 道 N1–N4 精編題庫、詳解、台日漢字遷移透鏡與 29 首雙聲道 MP3 音檔皆已<strong>100% 內建且完全免費免金鑰</strong>！<br/>
+        若您希望使用「✨ AI 無限動態生題」或與「🤖 AI 家教自由對話」，可輸入您個人的免費 Google AI Studio Gemini API Key（僅暫存於您瀏覽器本地的 <code>sessionStorage</code>，關閉分頁即自動銷毀，絕不上传至任何伺服器）。
+      </p>
+      <input id="byokKeyInput" type="password" placeholder="貼上您的 AIzaSy... Gemini API Key"
+        class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono text-white focus:outline-none focus:border-amber-400" />
+      <div class="flex justify-end gap-2">
+        <button onclick="closeByokModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">
+          取消
+        </button>
+        <button onclick="saveByokKey()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold">
+          儲存於本機瀏覽器
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 4: GOOGLE SHEETS CLOUD SYNC ================= -->
+  <div id="cloudSyncModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>☁️ Google Sheets 雲端題庫免金鑰同步</span>
+        </h3>
+        <button onclick="closeCloudModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        支援學校教師或自學者將公開檢視的 Google 試算表網址貼於下方，系統將透過 Google Visualization JSONP 端點即時匯入自訂筆試與聽解題庫。
+      </p>
+      <input id="sheetUrlInput" type="text" placeholder="貼上 Google Sheets 分享網址或 Sheet ID..."
+        class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-sky-400" />
+      <div class="flex justify-end gap-2">
+        <button onclick="closeCloudModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">
+          取消
+        </button>
+        <button onclick="syncFromGoogleSheet()" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold">
+          立即同步題庫
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 5: NOTEBOOKLM MARKDOWN EXPORT ================= -->
+  <div id="exportModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>📓 匯出結構化錯題、聽解逐字稿與台日漢字遷移筆記 (NotebookLM 專用)</span>
+        </h3>
+        <button onclick="closeExportModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+      <p class="text-xs text-slate-300">
+        複製下方 Markdown 筆記並貼入 <strong class="text-amber-300">Google NotebookLM</strong>，即可一鍵生成專屬雙人語音 Podcast 複習電台與閃卡！
+      </p>
+      <textarea id="exportMarkdownArea" rows="12" readonly
+        class="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-200 focus:outline-none"></textarea>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeExportModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">
+          關閉
+        </button>
+        <button onclick="copyExportMarkdown()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold">
+          📋 一鍵複製 Markdown 筆記
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- Core Scripts -->
+  <script src="assets/js/psychometric.js"></script>
+  <script src="assets/js/audio-engine.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

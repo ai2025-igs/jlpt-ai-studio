@@ -1,0 +1,29 @@
+name: Weekly JLPT Question & Neural Audio Audit
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit_and_rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install edge-tts
+        run: pip install edge-tts
+
+      - name: Validate N1-N4 Question Banks & Rebuild Standalone Bundle
+        run: |
+          python scripts/validate_jlpt_studio.py --level ALL --strict-aqe --check-audio --check-furigana
+          python scripts/build_standalone.py

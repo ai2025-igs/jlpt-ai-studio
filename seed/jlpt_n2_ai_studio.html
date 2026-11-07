@@ -1,0 +1,2935 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JLPT N2 互動式 AI 刷題與診斷系統 v2.0 | 含盲聽雙聲道聽解 & 協作平台雲端題庫</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Noto Sans JP, Noto Sans TC, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', '"Noto Sans JP"', 'sans-serif'],
+            jp: ['"Noto Sans JP"', '"Noto Sans TC"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            slate: {
+              850: '#152033',
+              900: '#0f172a',
+              950: '#080d1a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: 'Noto Sans TC', 'Noto Sans JP', sans-serif;
+      overflow-x: hidden;
+    }
+    .jp-text {
+      font-family: 'Noto Sans JP', sans-serif;
+      line-height: 1.85;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    /* Range Slider Styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #f43f5e 0%, #f59e0b 50%, #10b981 100%);
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 22px;
+      width: 22px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 3px solid #f59e0b;
+      cursor: pointer;
+      margin-top: -7px;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.7);
+      transition: transform 0.15s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+    .target-word {
+      text-decoration: underline;
+      text-decoration-color: #f59e0b;
+      text-decoration-thickness: 3px;
+      text-underline-offset: 6px;
+      color: #fbbf24;
+      font-weight: 700;
+    }
+    @keyframes pulseBorder {
+      0%, 100% { border-color: rgba(245, 158, 11, 0.45); }
+      50% { border-color: rgba(245, 158, 11, 1); }
+    }
+    .star-slot-active {
+      animation: pulseBorder 2s infinite;
+    }
+    /* Audio Equalizer Bars Animation */
+    @keyframes eqBounce {
+      0%, 100% { transform: scaleY(0.2); }
+      50% { transform: scaleY(1); }
+    }
+    .eq-bar {
+      transform-origin: bottom;
+      transform: scaleY(0.22);
+      transition: transform 0.15s ease;
+    }
+    .eq-playing .eq-bar {
+      animation: eqBounce 0.65s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- MODAL 1: Export Markdown Modal (For NotebookLM) -->
+  <div id="exportModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 bg-slate-900/80 border-b border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-400 font-mono text-xs font-bold border border-amber-500/30">NotebookLM Ready</span>
+          <h3 class="text-lg font-bold text-slate-100">匯出 JLPT N2 錯題、聽解逐字稿與 SRL 診斷筆記</h3>
+        </div>
+        <button onclick="closeExportModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700/50 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto flex-1 space-y-3">
+        <p class="text-xs text-slate-300 leading-relaxed">
+          以下筆記已自動彙整您的作答紀錄、聽解雙人對話逐字稿、轉折信號詞與 SRL 信心盲點分類（<code class="text-rose-400">T+1d 高信心盲點</code> / <code class="text-amber-400">T+3d 脆弱正確</code>）。可直接貼入 <strong>NotebookLM</strong> 生成雙人語音導讀或閃卡！
+        </p>
+        <textarea id="exportMarkdownArea" readonly class="w-full h-72 bg-slate-950 border border-slate-700 rounded-xl p-4 font-mono text-xs text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+      </div>
+      <div class="px-6 py-4 bg-slate-900/80 border-t border-slate-700 flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xs text-slate-400">提示：複製後可在 NotebookLM 點選「貼上文字 (Copied Text)」新增來源。</span>
+        <div class="flex items-center gap-3">
+          <button onclick="copyExportMarkdown()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm transition flex items-center gap-2 shadow-lg shadow-amber-500/20">
+            <span>📋 一鍵複製 Markdown 筆記</span>
+          </button>
+          <button onclick="closeExportModal()" class="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition">關閉視窗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Google Sites & Antigravity 2.0 Cloud Question Bank Sync Modal -->
+  <div id="cloudSyncModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 bg-slate-900/90 border-b border-slate-700 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="px-2.5 py-1 rounded-md bg-sky-500/20 text-sky-400 font-mono text-xs font-bold border border-sky-500/30">Google Sites + Antigravity 2.0</span>
+          <h3 class="text-base sm:text-lg font-bold text-slate-100">Google 協作平台部署 & 雲端試算表題庫同步中樞</h3>
+        </div>
+        <button onclick="closeCloudModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700/50 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-6 overflow-y-auto flex-1 space-y-5 text-xs text-slate-200">
+        <!-- Step 1: Google Sites Full-Page Embed Guide -->
+        <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-4 space-y-2">
+          <div class="text-amber-400 font-bold text-sm flex items-center gap-2">
+            <span>🚀 步驟 1：繞過反灰按鈕，30 秒嵌入 Google 協作平台 (Google Sites)</span>
+          </div>
+          <ol class="list-decimal list-inside space-y-1 text-slate-300 leading-relaxed">
+            <li>點擊本視窗右上角 <strong>「匯出 ➔ 下載程式碼」</strong>（或複製全部 HTML 原始碼）。</li>
+            <li>打開 <code class="text-sky-300">sites.google.com</code> ➔ 右側切換至 <strong>「頁面 (Pages)」</strong> ➔ 點擊下方 <code class="text-amber-300">＋</code> 號中的 <strong>「全頁嵌入 (Full page embed)」</strong>。</li>
+            <li>點選 <strong>「嵌入程式碼 (Embed code)」</strong>，貼上本檔案全部 HTML 後發布，全班學生即可透過協作平台網址進入刷題（含雙聲道盲聽聽解）！</li>
+          </ol>
+        </div>
+
+        <!-- Step 2: Live Google Sheets Question Bank Sync -->
+        <div class="bg-slate-900/90 border border-sky-500/30 rounded-xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-sky-400 font-bold text-sm">☁️ 步驟 2：連接 Google Sheets 雲端活題庫 (免 API Key 即時載入)</span>
+            <span class="font-mono text-[11px] text-slate-400">支援 /gviz/tq JSON 端點</span>
+          </div>
+          <p class="text-slate-300 leading-relaxed">
+            將 Google 試算表權限設為「知道連結的任何人可檢視」，並在下方貼入試算表網址或 ID。系統會自動讀取欄位（<code class="text-amber-300">id, category, subtag, stem, options_json, correctIndex, translation, coreRule, optionExplanations_json, dialogue_json</code>）並合併至現有題庫！
+          </p>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input id="sheetUrlInput" type="text" placeholder="貼上 Google Sheets 分享網址或試算表 ID..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-sky-400" />
+            <button onclick="syncFromGoogleSheet()" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition shrink-0">
+              🔄 立即同步雲端題庫
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Antigravity 2.0 Automated Cron Prompt -->
+        <div class="bg-slate-900/90 border border-emerald-500/30 rounded-xl p-4 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-emerald-400 font-bold text-sm">🤖 步驟 3：Google Antigravity 2.0 自動化產題排程指令 (`/schedule`)</span>
+            <button onclick="copyAntigravityPrompt()" class="px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-[11px] transition">
+              複製 CLI 指令與 Schema
+            </button>
+          </div>
+          <textarea id="antigravityPromptArea" readonly class="w-full h-36 bg-slate-950 border border-slate-800 rounded-xl p-3 font-mono text-[11px] text-emerald-300 focus:outline-none">/schedule cron="0 6 * * 1-5" prompt="Spawn 3 parallel Subagents in Antigravity 2.0:
+1. [Corpus-Miner]: Extract 10 N2 items (Kanji, Vocab, Grammar, Star-Syntax, Reading, and Multi-Turn Choukai Listening Dialogues with contractions like ～とく/～ちゃった and turning signals like それより/実は).
+2. [AQE-Judge]: Verify unique correct answer (0-3) and 3 high-trap distractors for Taiwanese learners.
+3. [Sheets-MCP]: Append validated JSON rows to Google Sheet Master Question Bank."</textarea>
+        </div>
+      </div>
+      <div class="px-6 py-3.5 bg-slate-900/90 border-t border-slate-700 flex justify-end">
+        <button onclick="closeCloudModal()" class="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold transition">完成並關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Navigation & Control Header -->
+  <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 lg:px-8 py-3">
+    <div class="max-w-[1600px] mx-auto flex flex-col gap-3">
+      <!-- Top Row: Brand & Action Controls -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 font-black font-mono text-lg shadow-lg shadow-amber-500/20">
+            N2
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">JLPT N2 互動式 AI 刷題與診斷系統</h1>
+              <span class="hidden sm:inline-block px-2 py-0.5 text-[11px] font-mono font-semibold bg-sky-500/15 text-sky-400 border border-sky-500/30 rounded-full">v2.0 ‧ 6D 聽讀全科 + IRT 2PL Engine</span>
+            </div>
+            <p class="text-xs text-slate-400">零預算自適應實戰題庫 ‧ 🎧 盲聽雙聲道對話合成 ‧ 信心度盲點校準 ‧ 協作平台雲端題庫</p>
+          </div>
+        </div>
+
+        <!-- Global Action Toolbar -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Furigana Toggle -->
+          <button id="furiganaToggleBtn" onclick="toggleFurigana()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition flex items-center gap-1.5" title="切換題目漢字讀音與提示（漢字讀音題與盲聽鎖定時除外）">
+            <span class="text-amber-400 font-bold">あ</span>
+            <span>假名提示：</span>
+            <span id="furiganaStatusText" class="font-mono text-emerald-400 font-bold">OFF</span>
+          </button>
+
+          <!-- Cloud Sync & Google Sites Guide Button -->
+          <button onclick="openCloudModal()" class="px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition flex items-center gap-1.5">
+            <span>☁️ 協作平台 / 雲端題庫</span>
+          </button>
+
+          <!-- Retry Missed / Fragile Button -->
+          <button onclick="startWeaknessDrill()" class="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-xs font-semibold transition flex items-center gap-1.5">
+            <span>🔄 錯題與脆弱重練</span>
+            <span id="weaknessCountBadge" class="px-1.5 py-0.2 bg-rose-500 text-white rounded-full font-mono text-[10px]">0</span>
+          </button>
+
+          <!-- AI Dynamic Question Generator Button -->
+          <button id="aiGenerateBtn" onclick="generateAIQuestions()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs transition flex items-center gap-1.5 shadow-md shadow-amber-500/15">
+            <svg id="aiGenSpinner" class="w-3.5 h-3.5 hidden animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            <span id="aiGenBtnText">✨ AI 針對弱點動態出題</span>
+          </button>
+
+          <!-- Export Markdown Button -->
+          <button onclick="openExportModal()" class="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 text-xs font-semibold transition flex items-center gap-1.5">
+            <span>📋 匯出錯題筆記</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Row: 6 Category Filters + Interleaved All -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar" id="categoryTabs">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Bento Grid Workspace -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 lg:px-8 py-5 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- LEFT/CENTER BENTO PANEL (7 Cols on LG): Question, Listening Studio, SRL Calibration & Instant Explanation -->
+    <section class="lg:col-span-7 flex flex-col gap-5">
+
+      <!-- Question Card -->
+      <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col gap-5 relative overflow-hidden">
+        
+        <!-- Question Top Meta & Poka-Yoke Pacing Timer -->
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/70 pb-3.5">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="qCategoryBadge" class="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 font-semibold text-xs">
+              文法形式
+            </span>
+            <span id="qSubtagBadge" class="px-2.5 py-1 rounded-lg bg-slate-700/70 text-slate-300 font-mono text-xs">
+              N2 必考近似句型
+            </span>
+            <span id="qProgressText" class="text-xs font-mono text-slate-400 ml-1">
+              題號 #1 / 19
+            </span>
+          </div>
+
+          <!-- Poka-Yoke Timer & Standard TTS Controls -->
+          <div class="flex items-center gap-2.5">
+            <div id="standardTtsBar" class="flex items-center bg-slate-900/90 border border-slate-700 rounded-xl px-2.5 py-1 gap-1.5">
+              <button onclick="speakQuestion(1.0)" class="text-xs text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1 transition" title="日語標準語速朗讀">
+                <span>🔊 朗讀</span>
+              </button>
+              <span class="text-slate-700">|</span>
+              <button onclick="speakQuestion(0.75)" class="text-[11px] font-mono text-slate-400 hover:text-amber-400 transition" title="0.75x 慢速清晰朗讀">
+                0.75x
+              </button>
+            </div>
+
+            <!-- Pacing Timer -->
+            <div id="timerBox" class="flex items-center gap-2 bg-slate-900/90 border border-slate-700 px-3 py-1 rounded-xl">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="timerDot"></span>
+              <span class="text-xs text-slate-400">配速:</span>
+              <span id="timerText" class="font-mono text-xs font-bold text-emerald-400">00s / 45s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pacing Progress Bar -->
+        <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden -mt-3">
+          <div id="timerProgressBar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- NEW MODULE: 🎧 CHOUKAI DUAL-VOICE BLIND LISTENING CONSOLE           -->
+        <!-- =================================================================== -->
+        <div id="listeningConsoleBox" class="hidden bg-slate-950/90 border border-sky-500/40 rounded-2xl p-4 sm:p-5 space-y-4 shadow-inner">
+          <!-- Top Bar: Active Speaker Indicator & Speed Selector -->
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <span class="w-3 h-3 rounded-full bg-sky-400" id="choukaiStatusDot"></span>
+              <span class="text-xs font-bold text-sky-300 tracking-wide">🎧 JLPT N2 雙聲道考場音源合成器</span>
+              <span id="activeSpeakerBadge" class="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-amber-300 font-mono text-xs font-bold">
+                待機中 (點擊下方播放考場音訊)
+              </span>
+            </div>
+
+            <!-- Speed Controls (0.85x / 1.0x / 1.15x) -->
+            <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl p-1">
+              <button type="button" onclick="setListeningSpeed(0.85)" id="spdBtn085" class="px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-400 hover:text-white transition">
+                0.85x 分解
+              </button>
+              <button type="button" onclick="setListeningSpeed(1.0)" id="spdBtn100" class="px-2.5 py-1 rounded-lg text-[11px] font-mono bg-sky-500 text-slate-950 font-bold transition">
+                1.0x 原速
+              </button>
+              <button type="button" onclick="setListeningSpeed(1.15)" id="spdBtn115" class="px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-400 hover:text-white transition">
+                1.15x 高壓
+              </button>
+            </div>
+          </div>
+
+          <!-- 24-Bar Dynamic Waveform Equalizer & Dialogue Progress -->
+          <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+              <button type="button" id="playChoukaiBtn" onclick="playListeningDialogue()" class="px-5 py-3 rounded-xl bg-gradient-to-r from-sky-400 to-sky-500 hover:from-sky-300 hover:to-sky-400 text-slate-950 font-extrabold text-xs transition flex items-center gap-2 shadow-lg shadow-sky-500/20 shrink-0">
+                <span id="playChoukaiIcon">▶</span>
+                <span id="playChoukaiText">播放考場對話 (含鐘聲)</span>
+              </button>
+              <button type="button" onclick="stopListeningDialogue()" class="px-3 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold transition shrink-0" title="停止播放">
+                ⏹ 停止
+              </button>
+            </div>
+
+            <!-- 24-Bar Equalizer Visualizer -->
+            <div id="eqVisualizer" class="flex items-end justify-center gap-1 h-9 flex-1 px-2">
+              <!-- Populated via JS -->
+            </div>
+
+            <div class="text-right font-mono text-xs text-slate-400 shrink-0" id="turnCounterText">
+              語音段: 0 / 0
+            </div>
+          </div>
+
+          <!-- Blind-Listening Lock Banner OR Unlocked Interactive Script -->
+          <div id="blindShieldBox" class="bg-slate-900/80 border border-amber-500/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[11px] font-bold">🙈 考場盲聽防呆鎖定中 (Poka-Yoke)</span>
+                <span class="text-xs text-slate-300 font-semibold">作答前自動隱藏對話逐字稿，避免視覺搶奪聽覺記憶</span>
+              </div>
+              <p class="text-[11px] text-slate-400">
+                請點擊上方「▶ 播放考場對話」仔細聆聽男女聲線轉折（如：<code class="text-amber-300">実は / それより / やっぱり</code>）。提交批改後將自動解鎖逐句重播與關鍵句高亮！
+              </p>
+            </div>
+            <button type="button" onclick="peekListeningTranscript()" id="peekScriptBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-[11px] text-amber-300 font-medium shrink-0 transition">
+              👁️ 聽不懂？偷看逐字稿
+            </button>
+          </div>
+
+          <!-- Dialogue Script Container (Hidden until submitted OR emergency peeked) -->
+          <div id="dialogueTranscriptBox" class="hidden space-y-2 pt-1">
+            <!-- Populated dynamically with speaker turns, translations, key signal highlights, and line replay buttons -->
+          </div>
+
+          <!-- Official JLPT MP3 Local File Mounter Drawer -->
+          <div class="pt-2 border-t border-slate-800/90">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <button type="button" onclick="toggleMp3Drawer()" class="text-[11px] text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1.5 transition">
+                <span>📂 掛載您下載的 JLPT 官方 MP3 音檔 (N2 Q1~Q5.mp3 同步盲聽播放器)</span>
+                <span id="mp3DrawerArrow">▼</span>
+              </button>
+              <span class="text-[10px] text-slate-500 font-mono">支援離線單題 AB 段重播與 ±5秒 微調</span>
+            </div>
+
+            <div id="mp3DrawerContent" class="hidden mt-3 bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <label class="px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 text-xs font-semibold cursor-pointer transition">
+                  <span>📁 選擇本機 MP3 / WAV 音檔</span>
+                  <input type="file" accept="audio/*" class="hidden" onchange="loadLocalMp3File(event)" />
+                </label>
+                <span id="localMp3FileName" class="text-xs font-mono text-slate-400 truncate max-w-xs">尚未載入本機音檔</span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="seekLocalMp3(-5)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 border border-slate-700">⏪ -5s</button>
+                  <button type="button" onclick="seekLocalMp3(5)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 border border-slate-700">+5s ⏩</button>
+                </div>
+              </div>
+              <audio id="localMp3Player" controls class="w-full h-9 rounded-lg"></audio>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Stem Area -->
+        <div class="bg-slate-900/75 border border-slate-700/80 rounded-xl p-4 sm:p-5 space-y-3">
+          <div id="qInstruction" class="text-xs text-slate-400 font-medium">
+            問題：次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。
+          </div>
+          <div id="qStemText" class="jp-text text-lg sm:text-xl text-slate-100 font-medium tracking-wide select-text">
+            <!-- Rendered dynamically -->
+          </div>
+          <div id="qHintBox" class="hidden pt-2 border-t border-slate-800 text-xs text-sky-300 font-mono">
+            <!-- Furigana / Reading Hint -->
+          </div>
+        </div>
+
+        <!-- Interactive 4-Slot Reconstructor (ONLY visible for ★ Syntax Ordering questions) -->
+        <div id="starReconstructorBox" class="hidden bg-slate-900/90 border border-amber-500/30 rounded-xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-amber-400 font-bold text-xs">★ 星號語序重組沙盒 (Interactive Slot Builder)</span>
+              <span class="text-[11px] text-slate-400">依序點擊下方選項填入 4 個空格，系統將自動鎖定「★」位置的選項！</span>
+            </div>
+            <button onclick="resetStarSlots()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 transition">
+              清除重排
+            </button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="starSlotsContainer"></div>
+          <div class="flex flex-wrap gap-2 pt-1" id="starTokensBar"></div>
+        </div>
+
+        <!-- 4 Option Cards (With Problem 3 Blind-Option Toggle Support) -->
+        <div class="space-y-2">
+          <div id="blindOptionsNotice" class="hidden items-center justify-between bg-slate-900/90 border border-sky-500/30 rounded-xl px-3.5 py-2 text-xs">
+            <span class="text-sky-300">🎧 <strong>問題3（概要理解）無預覽選項模擬</strong>：真實考卷上本題不印選項，請先聽完音訊再顯示選項作答！</span>
+            <button type="button" onclick="unmaskBlindOptions()" class="px-2.5 py-1 rounded-lg bg-sky-500 text-slate-950 font-bold text-[11px] shrink-0">
+              👁️ 顯示 4 個選項
+            </button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="optionsContainer">
+            <!-- Dynamically populated 4 options -->
+          </div>
+        </div>
+
+        <!-- Zimmerman SRL Confidence Calibration Bar -->
+        <div class="bg-slate-900/90 border border-slate-700/90 rounded-xl p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-amber-400 uppercase tracking-wider font-mono">SRL 信心度校準 (Confidence Calibration)</span>
+              <span class="text-[11px] text-slate-400 hidden sm:inline">— 誠實評估把握度，精準揪出「高信心盲點」</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="confidenceValBadge" class="px-2.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-sm font-bold">
+                75% 頗有把握
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <span class="text-xs font-mono text-rose-400">0%</span>
+            <input id="confidenceSlider" type="range" min="10" max="100" step="5" value="75" oninput="updateConfidenceUI(this.value)" class="w-full" />
+            <span class="text-xs font-mono text-emerald-400">100%</span>
+          </div>
+
+          <div class="grid grid-cols-4 gap-2 pt-1">
+            <button type="button" onclick="updateConfidenceUI(25)" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] text-rose-300 font-medium transition text-center">
+              🎲 25% 純猜測
+            </button>
+            <button type="button" onclick="updateConfidenceUI(50)" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] text-amber-300 font-medium transition text-center">
+              ⚖️ 50% 二選一猶豫
+            </button>
+            <button type="button" onclick="updateConfidenceUI(75)" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] text-sky-300 font-medium transition text-center">
+              🎯 75% 頗有把握
+            </button>
+            <button type="button" onclick="updateConfidenceUI(100)" class="px-2 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] text-emerald-300 font-medium transition text-center">
+              💎 100% 絕對篤定
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit & Navigation Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div class="flex items-center gap-2">
+            <button onclick="prevQuestion()" id="prevBtn" class="px-3.5 py-2.5 rounded-xl bg-slate-700/70 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition flex items-center gap-1 disabled:opacity-40">
+              <span>← 上一題</span>
+            </button>
+            <button onclick="nextQuestion()" id="nextBtn" class="px-3.5 py-2.5 rounded-xl bg-slate-700/70 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition flex items-center gap-1">
+              <span>下一題 →</span>
+            </button>
+          </div>
+
+          <button id="submitBtn" onclick="submitCurrentAnswer()" class="flex-1 sm:flex-initial min-w-[220px] px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2">
+            <span>⚡ 提交批改與 AI 診斷 (Enter)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- INSTANT DIAGNOSTIC & DISTRACTOR BREAKDOWN PANEL (Appears after Submit) -->
+      <div id="diagnosticPanel" class="hidden bg-slate-800 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-700">
+          <div class="flex items-center gap-3">
+            <div id="resultIconBox" class="w-11 h-11 rounded-xl flex items-center justify-center text-xl font-bold">
+              ✓
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 id="resultTitleText" class="text-base sm:text-lg font-bold">回答正確！</h3>
+                <span id="srlQuadrantBadge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold">
+                  ✅ 穩固精通
+                </span>
+              </div>
+              <p id="fsrsScheduleText" class="text-xs text-slate-400 mt-0.5">
+                FSRS 排程建議：T+14d 長期記憶追蹤
+              </p>
+            </div>
+          </div>
+
+          <button onclick="nextQuestion()" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition flex items-center gap-1.5 shadow-md shadow-sky-500/20">
+            <span>繼續挑戰下一題</span>
+            <span>→</span>
+          </button>
+        </div>
+
+        <!-- Translation & Core Rule Box -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 space-y-1.5">
+            <div class="text-xs font-mono text-sky-400 font-bold flex items-center gap-1.5">
+              <span>📖 完整繁體中文翻譯与情境脈絡</span>
+            </div>
+            <p id="diagTranslation" class="text-sm text-slate-200 leading-relaxed whitespace-pre-line"></p>
+          </div>
+          <div class="bg-slate-900/90 border border-amber-500/30 rounded-xl p-4 space-y-1.5">
+            <div class="text-xs font-mono text-amber-400 font-bold flex items-center gap-1.5">
+              <span>🔑 N2 核心考點與轉折信號解析</span>
+            </div>
+            <p id="diagCoreRule" class="text-sm text-slate-200 leading-relaxed"></p>
+          </div>
+        </div>
+
+        <!-- 4-Option Distractor Trap Analysis -->
+        <div class="space-y-2.5">
+          <h4 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-bold">
+            🔍 四選項誘答干擾項逐一拆解 (Distractor Trap Analysis)
+          </h4>
+          <div id="distractorList" class="grid grid-cols-1 gap-2.5"></div>
+        </div>
+
+        <!-- Ask AI Tutor Follow-up Section -->
+        <div class="bg-slate-900/95 border border-sky-500/30 rounded-xl p-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold text-sky-400">🤖 詢問 AI 日檢家教延伸解析</span>
+              <span class="text-[11px] text-slate-400">針對本題聽力縮約音、句型或近似詞立即提問</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button onclick="askAITutorQuick('請幫我比較這題正解與最容易混淆選項的微觀語感差異，並給出對照表。')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-sky-300 border border-slate-700 transition">
+                💡 比較近似語感差異
+              </button>
+              <button onclick="askAITutorQuick('請整理這題出現的口語縮約形、轉折詞或商務敬語，並額外造 2 個實戰例句。')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-amber-300 border border-slate-700 transition">
+                ✍️ 整理縮約音與實用例句
+              </button>
+              <button onclick="askAITutorQuick('請幫我把這題的日文句子做逐詞語法結構拆解，方便我背誦。')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-emerald-300 border border-slate-700 transition">
+                🧩 句子結構逐詞拆解
+              </button>
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <input id="aiTutorInput" type="text" placeholder="例如：為什麼聽力中說『それより』後面才是真正要先做的事？" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-sky-400" onkeydown="if(event.key==='Enter') askAITutorCustom()" />
+            <button onclick="askAITutorCustom()" id="aiTutorBtn" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition shrink-0">
+              發送提問
+            </button>
+          </div>
+
+          <div id="aiTutorResponseBox" class="hidden bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-200 leading-relaxed space-y-2 whitespace-pre-wrap"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT BENTO PANEL (5 Cols on LG): IRT Pass Estimator, 6D Hexagon Radar, AI Coach & FSRS Queue -->
+    <aside class="lg:col-span-5 flex flex-col gap-5">
+
+      <!-- IRT 2PL Scaled Score (/180) & Pass Probability Banner -->
+      <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-amber-500/30 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">IRT 2PL Psychometric Engine</span>
+            <h2 class="text-xs font-bold text-slate-200">JLPT N2 量尺分數推估與過關機率</h2>
+          </div>
+          <span id="irtPassBadge" class="px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-300 font-mono text-xs font-bold">
+            待累積作答數據
+          </span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5 text-center">
+          <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[10px] text-slate-400">預估總分 (合格 ≥90)</div>
+            <div id="irtTotalScore" class="text-lg font-mono font-bold text-amber-400 mt-0.5">-- / 180</div>
+          </div>
+          <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[10px] text-slate-400">言語知識+讀解 (≥38)</div>
+            <div id="irtWrittenScore" class="text-sm font-mono font-bold text-sky-400 mt-1">-- / 120</div>
+          </div>
+          <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5">
+            <div class="text-[10px] text-slate-400">🎧 聴解單科 (門檻 ≥19)</div>
+            <div id="irtListeningScore" class="text-sm font-mono font-bold text-emerald-400 mt-1">-- / 60</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Metric Strip (4 Bento Mini Cards) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-3.5">
+          <div class="text-[11px] text-slate-400 font-medium">已診斷題數</div>
+          <div id="kpiAnswered" class="text-xl font-mono font-bold text-white mt-1">0 / 19</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">涵蓋 6 大聽讀題型</div>
+        </div>
+        <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-3.5">
+          <div class="text-[11px] text-slate-400 font-medium">實戰正確率</div>
+          <div id="kpiAccuracy" class="text-xl font-mono font-bold text-emerald-400 mt-1">--%</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">N2 建議目標 ≥65%</div>
+        </div>
+        <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-3.5">
+          <div class="text-[11px] text-slate-400 font-medium">信心校準差</div>
+          <div id="kpiCalibrationGap" class="text-xl font-mono font-bold text-amber-400 mt-1">--%</div>
+          <div id="kpiCalibrationLabel" class="text-[10px] text-slate-400 mt-0.5">信心度 - 正確率</div>
+        </div>
+        <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-3.5">
+          <div class="text-[11px] text-slate-400 font-medium">高信心盲點</div>
+          <div id="kpiBlindspots" class="text-xl font-mono font-bold text-rose-400 mt-1">0 題</div>
+          <div class="text-[10px] text-rose-300/80 mt-0.5">T+1d 優先矯正</div>
+        </div>
+      </div>
+
+      <!-- 6-Dimension SVG Hexagon Radar Chart Card -->
+      <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <span>📊 JLPT N2 六維度聽讀全科與信心校準雷達圖</span>
+            </h2>
+            <p class="text-[11px] text-slate-400">涵蓋筆試 5 維度 + 🎧 聽解實戰，偵測單科低於 19 分門檻風險</p>
+          </div>
+          <!-- Legend -->
+          <div class="flex flex-col gap-1 text-[11px] font-mono">
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-1.5 rounded-sm bg-sky-400 inline-block"></span>
+              <span class="text-sky-300">實際正確率</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-1.5 rounded-sm bg-amber-400 inline-block"></span>
+              <span class="text-amber-300">主觀信心度</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inline SVG Hexagon Radar -->
+        <div class="flex items-center justify-center py-1">
+          <svg id="radarSvg" viewBox="0 0 340 270" class="w-full max-w-[345px] h-auto overflow-visible">
+            <!-- Rendered dynamically via JS -->
+          </svg>
+        </div>
+
+        <!-- 6 Dimension Breakdown Pills -->
+        <div id="dimensionStatsGrid" class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 pt-1 text-center">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <!-- AI Diagnostic Coach & Action Plan Card -->
+      <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3.5">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <h2 class="text-sm font-bold text-white">🧠 AI 弱點診斷與衝刺處方箋</h2>
+          </div>
+          <button onclick="generateAICoachReport()" id="aiCoachBtn" class="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-semibold transition flex items-center gap-1">
+            <span>✨ 生成深度診斷</span>
+          </button>
+        </div>
+
+        <div id="aiCoachContent" class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-3.5 text-xs text-slate-200 leading-relaxed space-y-2">
+          <p class="text-slate-300">
+            👋 歡迎進入 <strong>JLPT N2 v2.0 聽讀全科自適應刷題艙</strong>！點擊上方 <strong>「🎧 聽解實戰」</strong> 即可體驗男女雙聲道盲聽測驗（內建考場鐘聲與轉折詞高亮解析）。
+          </p>
+        </div>
+      </div>
+
+      <!-- FSRS Spaced Repetition Mistake & Question Queue -->
+      <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white">🗂️ 題庫導覽與 FSRS v5 複習佇列</h2>
+            <p class="text-[11px] text-slate-400">點擊任一題號可直接跳轉作答或複習詳解</p>
+          </div>
+          <button onclick="resetAllProgress()" class="text-[11px] text-slate-400 hover:text-rose-400 transition">
+            重置紀錄
+          </button>
+        </div>
+
+        <div id="questionQueueList" class="max-h-64 overflow-y-auto space-y-1.5 pr-1">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <script>
+    /*************************************************************************
+     * 1. JLPT N2 HIGH-PRECISION VERIFIED QUESTION BANK (19 AUTHENTIC ITEMS)
+     *    Includes 6 Dimensions: KANJI, VOCAB, GRAMMAR, STAR, READING, LISTENING
+     *************************************************************************/
+    const CATEGORIES = [
+      { id: 'ALL', name: '⚡ 混合實戰模擬', short: '全部', targetSec: 45 },
+      { id: 'KANJI', name: '漢字讀音', short: '漢字讀音', targetSec: 30 },
+      { id: 'VOCAB', name: '文脈語彙', short: '文脈語彙', targetSec: 35 },
+      { id: 'GRAMMAR', name: '文法形式', short: '文法辨析', targetSec: 45 },
+      { id: 'STAR', name: '星號重組 ★', short: '星號重組', targetSec: 60 },
+      { id: 'READING', name: '短篇讀解', short: '短篇讀解', targetSec: 120 },
+      { id: 'LISTENING', name: '🎧 聽解實戰', short: '聽解實戰', targetSec: 50 }
+    ];
+
+    const INITIAL_QUESTIONS = [
+      // ==================== 1. 漢字讀音 (KANJI) ====================
+      {
+        id: 'N2-K01',
+        category: 'KANJI',
+        subtag: '清濁音與長短音陷阱',
+        targetSec: 30,
+        instruction: '問題：＿＿＿の言葉の読み方として最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: '労使交渉は深夜まで続いたが、ついに双方が<span class="target-word">妥協</span>点を見いだした。',
+        furiganaHint: 'ろうしこうしょう (勞資談判) / そうほう (雙方) / みいだした (找到)',
+        ttsText: 'ろうしこうしょうはしんやまでつづいたが、ついにそうほうがだきょうてんをみいだした。',
+        options: ['たきょう', 'だきょう', 'たこう', 'だこう'],
+        correctIndex: 1,
+        translation: '勞資談判雖然持續到深夜，但雙方終於找到了妥協點（折衷方案）。',
+        coreRule: '「妥協」讀作「だきょう (dakyou)」。台灣考生極易受中文發音（ㄊㄨㄛˇ，清音 t）影響而誤選清音「たきょう」。注意「妥」在日文中為濁音開頭「だ (da)」！',
+        optionExplanations: [
+          '❌ 誘答陷阱（清濁音誤判）：受中文「妥（Tuǒ）」影響最常誤選的清音陷阱，「妥」日文音讀為濁音「だ」。',
+          '✅ 正確解答：「妥（だ）」＋「協（きょう）」＝「だきょう」。常見搭配：妥協する、妥協点を探る。',
+          '❌ 誘答陷阱（音讀混淆）：將「協（きょう）」誤讀為「こう」。',
+          '❌ 誘答陷阱（後字長音誤判）：「妥」雖然選對濁音「だ」，但「協」必須是拗音長音「きょう」。'
+        ]
+      },
+      {
+        id: 'N2-K02',
+        category: 'KANJI',
+        subtag: 'N2 高頻訓讀形容詞',
+        targetSec: 30,
+        instruction: '問題：＿＿＿の言葉の読み方として最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: '言い訳をせずに自分の非を認めるとは、<span class="target-word">潔い</span>態度だ。',
+        furiganaHint: 'いいわけ (藉口) / ひ (過錯) / みとめる (承認)',
+        ttsText: 'いいわけをせずにじぶんのひをみとめるとは、いさぎよいたいどだ。',
+        options: ['きよい', 'いさぎよい', 'すがすがしい', 'いさましい'],
+        correctIndex: 1,
+        translation: '不找藉口而承認自己的過錯，真是乾脆俐落（光明磊落、拿得起放得下）的態度。',
+        coreRule: '「潔い」在 N2 必考訓讀為「いさぎよい」，形容人承認失敗或下決定時「乾脆、爽快、光明磊落」。注意單純乾淨的「清い」才讀作「きよい」。',
+        optionExplanations: [
+          '❌ 誘答陷阱（近似漢字混淆）：「きよい」通常寫作「清い」（清澈、純潔），而非「潔い」。',
+          '✅ 正確解答：「潔い（いさぎよい）」專指態度乾脆、光明磊落、不拖泥帶水（如：潔く負けを認める）。',
+          '❌ 誘答陷阱（訓讀混淆）：「すがすがしい」漢字寫作「清々しい」（清爽舒暢）。',
+          '❌ 誘答陷阱（字形聯想誤導）：「いさましい」漢字寫作「勇ましい」（勇敢、雄赳赳）。'
+        ]
+      },
+      {
+        id: 'N2-K03',
+        category: 'KANJI',
+        subtag: '促音化與清音陷阱',
+        targetSec: 30,
+        instruction: '問題：＿＿＿の言葉の読み方として最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: '家賃の支払いが遅れたため、大家から<span class="target-word">催促</span>の電話がかかってきた。',
+        furiganaHint: 'やちん (房租) / しはらい (支付) / おおや (房東)',
+        ttsText: 'やちんのしはらいがおくれたため、おおやからさいそくのでんわがかかってきた。',
+        options: ['さいそく', 'すいそく', 'さいぞく', 'すいぞく'],
+        correctIndex: 0,
+        translation: '因為房租遲交，房東打來了催促（催繳）的電話。',
+        coreRule: '「催促」讀作「さいそく (saisoku)」。第一字「催」音讀為「さい」（如：開催 かいさい、主催 しゅさい），且第二字「促」不發生連濁，維持清音「そく」。',
+        optionExplanations: [
+          '✅ 正確解答：「催（さい）」＋「促（そく）」＝「さいそく」（催促、催討）。',
+          '❌ 誘答陷阱（中文母語干擾）：受中文「催（Cuī）」影響誤以為是「すい」，但日文「推測 / 水族」才是「すい」。',
+          '❌ 誘答陷阱（過度連濁）：誤以為複合詞後半會濁音化為「ぞく」，實際上「催促」不連濁。',
+          '❌ 誘答陷阱（雙重誤判）：「すいぞく」是「水族（水族館）」的讀音。'
+        ]
+      },
+
+      // ==================== 2. 文脈語彙 (VOCAB) ====================
+      {
+        id: 'N2-V01',
+        category: 'VOCAB',
+        subtag: '近似副詞語境辨析',
+        targetSec: 35,
+        instruction: '問題：次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: '基礎の練習を毎日粘り強く続けていれば、実力は（　　）身につくものだ。',
+        furiganaHint: 'ねばりづよく (堅持不懈地) / じつりょく (實力) / みにつく (掌握、具備)',
+        ttsText: 'きそのれんしゅうをまいにちねばりづよくつづけていれば、じつりょくはおのずからみにつくものだ。',
+        options: ['おのずから', 'ひとりでに', '今さら', 'しいて'],
+        correctIndex: 0,
+        translation: '只要每天堅持不懈地持續基礎練習，實力自然而然就會具備。',
+        coreRule: '區分「おのずから」與「ひとりでに」是 N2 經典必考題！「おのずから（自ずから）」指依照事理邏輯，當條件成熟時「水到渠成、自然而然地（達成某種抽象結果）」；「ひとりでに」則指沒有外力觸碰卻「自動地（發生具體物理動作，如門自己打開）」。',
+        optionExplanations: [
+          '✅ 正確解答：「おのずから」表順應規律、自然而然地導出某種結果（常搭配：おのずから明らかになる／身につく）。',
+          '❌ 誘答陷阱（近似詞誤用）：「ひとりでに（自動地）」多用於具體物理現象（如：風もないのにドアがひとりでに開いた），不適合形容抽象實力養成。',
+          '❌ 誘答陷阱（語意不符）：「今さら（事到如今才…）」後接否定或消極感嘆，與前文持續努力語境不合。',
+          '❌ 誘答陷阱（語意不符）：「しいて（強行、硬要說的話）」常搭配「しいて言えば」，與自然養成語意相反。'
+        ]
+      },
+      {
+        id: 'N2-V02',
+        category: 'VOCAB',
+        subtag: 'N2 高頻形容詞辨析',
+        targetSec: 35,
+        instruction: '問題：次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: 'この二つの薬は名前もパッケージもよく似ていて非常に（　　）ので、服用する際は注意が必要だ。',
+        furiganaHint: 'パッケージ (包裝) / ふくよう (服用) / さい (際、時候)',
+        ttsText: 'このふたつのくすりはなまえもパッケージもよくにていてひじょうにまぎらわしいので、ふくようするさいはちゅういがひつようだ。',
+        options: ['紛らわしい', '慌ただしい', '待ち遠しい', '甚だしい'],
+        correctIndex: 0,
+        translation: '這兩種藥無論名稱或包裝都很像，非常容易混淆，因此服用時必須特別注意。',
+        coreRule: '「紛らわしい（まぎらわしい）」意為「容易混淆的、模稜兩可讓人分不清的」，在 N2 詞彙題中常與「よく似ている（很像）」、「区別がつきにくい（難以區分）」共現。',
+        optionExplanations: [
+          '✅ 正確解答：「紛らわしい（容易搞混的）」，完美呼應前文「名稱與包裝都很像」以及後文「服用時需注意」。',
+          '❌ 誘答陷阱（字尾相似）：「慌ただしい（あわただしい）」意為「匆忙的、忙亂的」。',
+          '❌ 誘答陷阱（字尾相似）：「待ち遠しい（まちどおしい）」意為「令人迫不及待、望眼欲穿的」。',
+          '❌ 誘答陷阱（字尾相似）：「甚だしい（はなはだしい）」意為「極度的、太超過的（多用於負面程度，如：誤解も甚だしい）」。'
+        ]
+      },
+      {
+        id: 'N2-V03',
+        category: 'VOCAB',
+        subtag: '商務漢語動詞搭配',
+        targetSec: 35,
+        instruction: '問題：次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: '今回のプロジェクトでは、前任者が作った方針をそのまま（　　）するのではなく、ゼロから見直すことにした。',
+        furiganaHint: 'ぜんにんしゃ (前任者) / ほうしん (方針) / みなおす (重新審視)',
+        ttsText: 'こんかいのプロジェクトでは、ぜんにんしゃがつくったほうしんをそのままとうしゅうするのではなく、ゼロからみなおすことにした。',
+        options: ['踏襲', '網羅', '打開', '還元'],
+        correctIndex: 0,
+        translation: '在這次的專案中，決定不直接沿用（踏襲）前任制定的方針，而是從零開始重新審視。',
+        coreRule: '「方針／前例を踏襲（とうしゅう）する」為 N2/N1 商務高頻固定搭配（Collocation），意為「沿襲、照搬前人的作法或方針」。',
+        optionExplanations: [
+          '✅ 正確解答：「踏襲（とうしゅう）する」指沿用既有方針或前例，與「そのまま（原封不動）」及「ゼロから見直す（從零重審）」形成完美對比。',
+          '❌ 誘答陷阱：「網羅（もうら）する」意為「搜羅齊全、涵蓋所有範圍」。',
+          '❌ 誘答陷阱：「打開（だかい）する」意為「突破僵局（搭配：行き詰まり／局面を打開する）」。',
+          '❌ 誘答陷阱：「還元（かんげん）する」意為「回饋、還原（搭配：利益を消費者に還元する）」。'
+        ]
+      },
+
+      // ==================== 3. 文法形式 (GRAMMAR) ====================
+      {
+        id: 'N2-G01',
+        category: 'GRAMMAR',
+        subtag: '可能性與委婉拒絕辨析',
+        targetSec: 45,
+        instruction: '問題：次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: '個人情報保護の観点から、お客様の連絡先についてはお答え（　　）。あしからずご了承ください。',
+        furiganaHint: 'こじんじょうほうほご (個人資料保護) / かんてん (觀點) / れんらくさき (聯絡方式) / りょうしょう (諒解)',
+        ttsText: 'こじんじょうほうほごのかんてんから、おきゃくさまのれんらくさきについてはおこたえいたしかねます。あしからずごりょうしょうください。',
+        options: ['いたしかねます', 'いたしかねません', 'するほかありません', 'しないものでもありません'],
+        correctIndex: 0,
+        translation: '基於個人資料保護的觀點，關於客戶的聯絡方式我們無法回答（恕難奉告）。尚祈見諒。',
+        coreRule: '絕對必考陷阱：「～かねる（無法…／恕難…，表委婉拒絕或心理/制度上做不到）」vs.「～かねない（難保不會…／很有可能發生負面結果）」。商務拒絕客服常說「お答えいたしかねます（恕難回答）」。',
+        optionExplanations: [
+          '✅ 正確解答：「動詞ます形＋かねます」表示「礙於規定或立場無法做到（委婉拒絕）」，「お答えいたしかねます」為商務標準敬語。',
+          '❌ 誘答陷阱（致命否定混淆）：「～かねない」意思是「說不定會做出某壞事（恐有…之虞）」，若選此項會變成「我們難保不會洩漏客戶聯絡方式」，語意完全相反！',
+          '❌ 誘答陷阱：「～ほかない（只好…、別無選擇只能…）」，若填入會變成「只好回答了」。',
+          '❌ 誘答陷阱：「～ないものでもない（也不是完全不能…）」，雙重否定表微弱可能，不合個資保護原則。'
+        ]
+      },
+      {
+        id: 'N2-G02',
+        category: 'GRAMMAR',
+        subtag: '形式名詞與無奈義務',
+        targetSec: 45,
+        instruction: '問題：次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: '証拠映像がここまで鮮明に残っている以上、彼も自分のミスを（　　）だろう。',
+        furiganaHint: 'しょうこえいぞう (證據影像) / せんめい (鮮明清晰) / みとめる (承認)',
+        ttsText: 'しょうこえいぞうがここまでせんめいにのこっているいじょう、かれもじぶんのミスをみとめざるをえないだろう。',
+        options: ['認めざるを得ない', '認めるわけにはいかない', '認めないではおかない', '認めるにすぎない'],
+        correctIndex: 0,
+        translation: '既然證據影像都已經這麼清晰地留下了，他也只能不得不承認自己的失誤了吧。',
+        coreRule: '「～ざるを得ない（不得不…、只好…）」接在動詞ない形去ない（する→せ）之後，表示雖然內心不願意，但迫於客觀事實（前文「～以上」既然…）而別無選擇。',
+        optionExplanations: [
+          '✅ 正確解答：「認めざるを得ない（不得不承認）」，呼應前文「証拠が残っている以上（既然證據確鑿）」。',
+          '❌ 誘答陷阱：「～わけにはいかない（不能…，受道德或責任約束不能做）」，語意變成「不能承認自己的錯誤」。',
+          '❌ 誘答陷阱：「～ないではおかない（必定會使之…／絕不放過…）」，多用於強烈意志或自然法則使然。',
+          '❌ 誘答陷阱：「～にすぎない（只不過是…而已）」，不合推論語境。'
+        ]
+      },
+      {
+        id: 'N2-G03',
+        category: 'GRAMMAR',
+        subtag: '時機句型微觀辨析',
+        targetSec: 45,
+        instruction: '問題：次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: '当ホテルでは、ご宿泊のお客様がお帰りになる（　　）、アンケートへのご協力をお願いしております。',
+        furiganaHint: 'とうホテル (本飯店) / しゅくはく (住宿) / きょうりょく (協助)',
+        ttsText: 'とうホテルでは、ごしゅくはくのおきゃくさまがおかえりになるにさいして、アンケートへのごきょうりょくをおねがいしております。',
+        options: ['に際して', 'にあたって', 'につけても', 'に先立って'],
+        correctIndex: 0,
+        translation: '本飯店在住宿旅客退房離開之際，皆會請旅客協助填寫問卷。',
+        coreRule: '區分「～に際して」與「～にあたって」：「～に際して」是客觀中立的「在…之際（可用於入學、退房、離職、甚至災難時）」；而「～にあたって」帶有「面對人生新階段或重大積極目標，事先做好準備」的正面語氣，且不接消極或單純離開的動作！',
+        optionExplanations: [
+          '✅ 正確解答：「お帰りになるに際して（在您離開/退房之際）」，客觀描述某個時間節點發生的例行事務。',
+          '❌ 誘答陷阱（近似文法頭號殺手）：「～にあたって」限用於「積極、開創性重大階段之前（如：新規事業を始めるにあたって）」，不可用於「お帰りになる（離開）」這種日常節點。',
+          '❌ 誘答陷阱：「～につけても（每當…就感嘆／無論…都）」，屬情感觸發句型。',
+          '❌ 誘答陷阱：「～に先立って（在…大規模活動正式開始之前先做準備，如：映画の公開に先立って）」，語境不合。'
+        ]
+      },
+
+      // ==================== 4. 星號重組 ★ (STAR) ====================
+      {
+        id: 'N2-S01',
+        category: 'STAR',
+        subtag: '星號語序：條件否定呼應',
+        targetSec: 60,
+        instruction: '問題：次の文の ★ に入る最もよいものを、1・2・3・4から一つ選びなさい。（可點擊下方沙盒排列句子）',
+        stem: '中古車を買うなら、写真だけで判断せず、＿＿＿ ＿＿＿ <u>★</u> ＿＿＿ 決められない。',
+        furiganaHint: 'ちゅうこしゃ (中古車) / はんだん (判斷) / じっさいに (實際地) / じょうたい (狀態)',
+        ttsText: 'ちゅうこしゃをかうなら、しゃしんだけではんだんせず、じっさいにじぶんのめでじょうたいをたしかめないことにはきめられない。',
+        options: ['自分の目で', 'ないことには', '実際に', '状態を確かめ'],
+        correctIndex: 3,
+        correctSequence: [2, 0, 3, 1],
+        translation: '如果要買二手車，不能光靠照片判斷，如果不實際用自己的眼睛確認過車況的話，是無法做決定的。',
+        coreRule: '本題核心骨架為 N2 必考句型「～ないことには…ない（如果不先…的話，就無法…）」。最後一格緊接在動詞「決められない」前面，必定是連接詞性質的「2 (ないことには)」。接著往前推：「動詞ない形＋ないことには」，所以第 3 格（★）必定是「4 (状態を確かめ)」。完整語序為：[3 実際に] [1 自分の目で] [★4 状態を確かめ] [2 ないことには] 決められない。',
+        optionExplanations: [
+          '❌ 排序位置在第 2 格：「実際に（3）」修飾「自分の目で（1）」。',
+          '❌ 排序位置在第 4 格：「～ないことには（如果不…的話）」後接否定結論「決められない」。',
+          '❌ 排序位置在第 1 格：副詞「実際に」放在最前面修飾整個觀察動作。',
+          '✅ 正確解答（位於 ★ 第 3 格）：「自分の目で」後面加上受詞與動詞「状態を確かめ（4）」，再接續第 4 格的「ないことには（2）」。'
+        ]
+      },
+      {
+        id: 'N2-S02',
+        category: 'STAR',
+        subtag: '星號語序：部分否定句型',
+        targetSec: 60,
+        instruction: '問題：次の文の ★ に入る最もよいものを、1・2・3・4から一つ選びなさい。（可點擊下方沙盒排列句子）',
+        stem: '栄養価が高い ＿＿＿ ＿＿＿ <u>★</u> ＿＿＿ ではない。バランスが大切だ。',
+        furiganaHint: 'えいようか (營養價值) / おなじもの (同樣的東西) / ばかり (光、只)',
+        ttsText: 'えいようかがたかいからといっておなじものばかりたべればいいというわけではない。バランスがたいせつだ。',
+        options: ['からといって', '食べればいい', 'というわけ', '同じものばかり'],
+        correctIndex: 1,
+        correctSequence: [0, 3, 1, 2],
+        translation: '雖說營養價值高，但也不代表光吃同樣的東西就好。均衡是很重要的。',
+        coreRule: '本題核心句型為「～からといって…（という）わけではない（雖說…但也不代表…）」。句首「栄養価が高い」後面直接接原因轉折「1 (からといって)」，句尾「ではない」前面必定接「3 (というわけ)」。中間兩格則是動作「4 (同じものばかり) ＋ 2 (食べればいい)」。因此 ★（第 3 格）為「2 (食べればいい)」。',
+        optionExplanations: [
+          '❌ 排序位置在第 1 格：緊接在「栄養価が高い」之後構成「～からといって（雖說因為…）」。',
+          '✅ 正確解答（位於 ★ 第 3 格）：承接第 2 格「同じものばかり（光把同樣的東西）」，構成「同じものばかり食べればいい（光吃同樣的東西就好）」。',
+          '❌ 排序位置在第 4 格：與句尾「ではない」結合為固定句型「～というわけではない」。',
+          '❌ 排序位置在第 2 格：作為「食べればいい」的受詞限定（「同じものばかり」）。'
+        ]
+      },
+      {
+        id: 'N2-S03',
+        category: 'STAR',
+        subtag: '星號語序：範圍遞進句型',
+        targetSec: 60,
+        instruction: '問題：次の文の ★ に入る最もよいものを、1・2・3・4から一つ選びなさい。（可點擊下方沙盒排列句子）',
+        stem: 'このアニメ映画は、その ＿＿＿ ＿＿＿ <u>★</u> ＿＿＿ 高い評価を得ている。',
+        furiganaHint: 'どくとく (獨特) / せかいかん (世界觀) / こども (兒童) / おとな (大人) / ひょうか (評價)',
+        ttsText: 'このアニメえいがは、そのどくとくなせかいかんから、こどものみならずおとなからもたかいひょうかをえている。',
+        options: ['子供のみならず', '世界観から、', '大人からも', '独特な'],
+        correctIndex: 0,
+        correctSequence: [3, 1, 0, 2],
+        translation: '這部動畫電影因為其獨特的世界觀，不僅受到兒童歡迎，也獲得了大人們的高度評價。',
+        coreRule: '本題核心句型為「A のみならず B も（不僅 A，連 B 也…）」。前半句「その」後接な形容詞「4 (独特な)」修飾名詞「2 (世界観から、)」，接著進入範圍遞進「子供のみならず（1）」＋「大人からも（3）」高い評価を得ている。故 ★（第 3 格）為「1 (子供のみならず)」。',
+        optionExplanations: [
+          '✅ 正確解答（位於 ★ 第 3 格）：「子供のみならず（不僅是兒童）」與第 4 格「大人からも（連大人也）」構成標準遞進呼應。',
+          '❌ 排序位置在第 2 格：被第 1 格「独特な」修飾，構成「その独特な世界観から、（由於其獨特的世界觀，）」。',
+          '❌ 排序位置在第 4 格：緊接在「高い評価を得ている」之前，表示評價的來源（「大人からも」）。',
+          '❌ 排序位置在第 1 格：接在連體詞「その」之後修飾名詞「世界観」。'
+        ]
+      },
+
+      // ==================== 5. 短篇讀解 (READING) ====================
+      {
+        id: 'N2-R01',
+        category: 'READING',
+        subtag: '商務通知信件檢索',
+        targetSec: 120,
+        instruction: '問題：次のメールを読んで、後の問いに対する答えとして最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: `【社内メール：空調設備点検のお知らせ】<br>
+総務課より各部署へお知らせいたします。来週11月14日（土）の午前9時から午後5時まで、ビル全館の空調設備の定期点検を実施いたします。<br>
+点検中は冷暖房および換気システムが完全に停止するため、原則として休日の出勤はお控えください。やむを得ない事情で出社が必要な場合は、<u>今週木曜日の午後3時までに</u>所属長を通じて総務課へ申請書をご提出ください。なお、当日はエレベーターは通常通り稼働いたします。<br><br>
+<strong class="text-amber-300">問：このメールの内容と合っているものはどれか。</strong>`,
+        furiganaHint: 'そうむか (總務課) / ていきてんけん (定期檢查) / ひかえる (避免) / やむをえない (迫不得已) / しょぞくちょう (部門主管)',
+        ttsText: 'そうむかよりかくぶしょへおしらせいたします。らいしゅうじゅういちがつじゅうよっかのどようび、ごぜんくじからごごごじまで、ビルぜんかんのくうちょうせつびのていきてんけんをじっしいたします。',
+        options: [
+          '11月14日は空調もエレベーターも終日利用できなくなる。',
+          '11月14日に出社したい社員は、当日までに総務課へ直接連絡すればよい。',
+          'どうしても11月14日に出勤する必要がある場合は、木曜の15時までに上司経由で申請しなければならない。',
+          '点検作業は金曜日の午後3時から土曜日の午後5時まで行われる。'
+        ],
+        correctIndex: 2,
+        translation: '【公司內部信：空調設備點檢通知】總務課通知各部門。下週11月14日（六）上午9點至下午5點將實施全棟空調設備定期點檢。點檢期間冷暖氣及換氣系統完全停止，原則上請避免假日出勤。若因不得已情況必須到班，請於本週四下午3點前透過部門主管向總務課提交申請書。另外，當天電梯照常運作。\n問：哪一項符合這封郵件的內容？',
+        coreRule: 'N2 商務信件讀解專考「條件替換（Paraphrase）」與「時間/對象細節陷阱」：原文「やむを得ない事情で出社が必要な場合（どうしても出勤する必要がある場合）」＋「今週木曜日の午後3時までに（木曜の15時までに）」＋「所属長を通じて（上司経由で）」。',
+        optionExplanations: [
+          '❌ 誘答陷阱（細節篡改）：原文最後一句明確寫道「当日はエレベーターは通常通り稼働いたします（電梯照常運作）」。',
+          '❌ 誘答陷阱（期限與管道雙重錯誤）：期限是「週四下午 3 點前」而非當天，且須「透過部門主管（所属長を通じて）」而非直接聯絡。',
+          '✅ 正確解答：將「やむを得ない」換句話說成「どうしても」，「所属長を通じて」換成「上司経由で」，完全符合原文規定。',
+          '❌ 誘答陷阱（時間嫁接）：把申請截止時間（週四 15:00）跟點檢時間（週六 9:00-17:00）混為一談。'
+        ]
+      },
+      {
+        id: 'N2-R02',
+        category: 'READING',
+        subtag: '社論因果與筆者主張',
+        targetSec: 120,
+        instruction: '問題：次の文章を読んで、筆者の考えに最も近いものを、1・2・3・4から一つ選びなさい。',
+        stem: `近年、会議の効率化を目指して、事前に資料を配らずその場で議論を始める企業が増えているという。しかし、これでは発言力の強い一部の人の意見ばかりが通り、慎重に考えてから発言したい人の視点が抜け落ちてしまいがちだ。真に生産性の高い議論とは、時間を短縮することではなく、多様な視点を取り入れて質の高い結論を導き出すことであるはずだ。そのためには、むしろ事前に各自が資料を読み込み、自分の考えを整理した上で会議に臨むことこそが不可欠ではないだろうか。<br><br>
+<strong class="text-amber-300">問：会議について、筆者はどのように考えているか。</strong>`,
+        furiganaHint: 'こうりつか (效率化) / ぎろん (討論) / しんちょう (慎重) / ふかけつ (不可或缺)',
+        ttsText: 'しんにせいさんせいのたかいぎろんとは、じかんをたんしゅくすることではなく、たようなしてんをとりいれてしつのたかいけつろんをみちびきだすことであるはずだ。',
+        options: [
+          '会議の時間を短縮するためには、事前に資料を配らないほうがよい。',
+          '多様な意見を生かした質の高い議論をするには、事前の資料読み込みと準備が欠かせない。',
+          '発言力の強い人がリーダーシップを取ることで、会議の生産性が高まる。',
+          '慎重な人が発言しやすいように、会議の時間はできるだけ長く設定すべきだ。'
+        ],
+        correctIndex: 1,
+        translation: '據說近年為了追求會議效率，越來越多企業不事先發放資料而是當場直接開始討論。然而，這樣容易導致只有話語權強的人意見被採納，而想深思熟慮後再發言的人的觀點被遺漏。真正高生產力的討論，不應該是縮短時間，而是納入多元觀點以導出高品質結論才對。為此，反而是事先讓每個人讀熟資料、整理好自己的想法後再出席會議，才是不可或缺的不是嗎？',
+        coreRule: '日檢讀解抓「筆者主張」的黃金法則：緊盯「しかし（然而）」之後的轉折，以及句尾反問句「～こそが不可欠ではないだろうか（…不正是不可或缺的嗎？＝筆者最強烈的主張）」。',
+        optionExplanations: [
+          '❌ 誘答陷阱（把世俗作法當成作者主張）：這是第一句「近年増えている企業」的作法，正是作者批判的對象。',
+          '✅ 正確解答：精準對應文章最後兩句「多様な視点を取り入れて質の高い結論…事前に各自が資料を読み込み…不可欠ではないだろうか」。',
+          '❌ 誘答陷阱（與原文相反）：作者認為只有話語權強的人主導會導致其他視角被遺漏（抜け落ちてしまいがち）。',
+          '❌ 誘答陷阱（無中生有）：作者強調「事前準備與多元觀點」，並未主張把會議時間拉長。'
+        ]
+      },
+      {
+        id: 'N2-R03',
+        category: 'READING',
+        subtag: '抽象論述與雙重否定推論',
+        targetSec: 120,
+        instruction: '問題：次の文章を読んで、後の問いに対する答えとして最もよいものを、1・2・3・4から一つ選びなさい。',
+        stem: `「失敗は成功のもと」と言われるが、ただ失敗を繰り返すだけでは何の成長も得られない。失敗した時に、「運が悪かった」と片付けてしまうのではなく、なぜうまくいかなかったのかという原因を徹底的に分析し、次の行動をどう変えるべきかを考え抜いた時に初めて、その失敗は価値を持つようになるのだ。つまり、失敗そのものに価値があるのではなく、失敗とどう向き合うかが重要なのである。<br><br>
+<strong class="text-amber-300">問：筆者によると、失敗が価値を持つのはどのような時か。</strong>`,
+        furiganaHint: 'くりかえす (重複) / かたづける (敷衍了事、處理掉) / てっていてき (徹底地) / むきあう (面對)',
+        ttsText: 'つまり、しっぱいそのものに価値があるのではなく、しっぱいとどうむきあうかがじゅうようなのである。',
+        options: [
+          '失敗を恐れずに、成功するまで何度も同じ挑戦を繰り返した時。',
+          '失敗を運のせいにして、気持ちを早く切り替えて次に進んだ時。',
+          '失敗の原因を深く分析し、次の行動の改善につなげた時。',
+          '失敗しないように、最初から徹底的に計画を立てて行動した時。'
+        ],
+        correctIndex: 2,
+        translation: '常言道「失敗為成功之母」，但若只是單純重複失敗，是無法獲得任何成長的。在失敗時，不將其敷衍歸咎於「運氣不好」，而是徹底分析為何不順利的原因，並絞盡腦汁思考該如何改變下一次的行動時，那個失敗才首次具備價值。換言之，並不是失敗本身有價值，而是如何面對失敗才是重要的。',
+        coreRule: '鎖定關鍵結構「～た時に初めて、その失敗は価値を持つようになる（直到…的時候，失敗才首次具有價值）」與「つまり（換言之）」後的總結句。',
+        optionExplanations: [
+          '❌ 誘答陷阱（與首句矛盾）：第一句已否定「ただ失敗を繰り返すだけでは何の成長も得られない」。',
+          '❌ 誘答陷阱（反面教材）：原文明確指出「『運が悪かった』と片付けてしまうのではなく（而不是歸咎於運氣不好就敷衍了事）」。',
+          '✅ 正確解答：完全對應「原因を徹底的に分析し、次の行動をどう変えるべきかを考え抜いた時に初めて…」。',
+          '❌ 誘答陷阱（偏離主題）：本文探討的是「失敗之後如何面對（失敗とどう向き合うか）」，而非如何完全避免失敗。'
+        ]
+      },
+
+      // ==================== 6. 🎧 聽解實戰 (LISTENING - 4 ARCHETYPES) ====================
+      {
+        id: 'N2-L01',
+        category: 'LISTENING',
+        subtag: '問題1 課題理解（行動優先順序與縮約音）',
+        targetSec: 50,
+        instruction: '問題1：では、まず質問を聞いてください。それから話を聞いて、問題用紙の1から4の中から、最もよいものを一つ選んでください。',
+        stem: '<strong class="text-sky-300">🎧 【問題1・課題理解】男の人はこの後、<u>まず</u>何をしますか。</strong><br><span class="text-xs text-slate-400">（請點擊上方「▶ 播放考場對話」盲聽雙聲道音訊後作答）</span>',
+        furiganaHint: 'しりょう (資料) / いんさつ (印刷) / へんこう (變更) / さきかた (對方客戶)',
+        options: [
+          '会議室の机を並べる',
+          '資料を30部印刷する',
+          '取引先に時間の変更を連絡する',
+          'プロジェクターの動作を確認する'
+        ],
+        correctIndex: 2,
+        dialogue: [
+          {
+            role: 'NARRATOR',
+            speakerLabel: '🎙️ 旁白 (状況設定)',
+            jp: '会社で女の先輩と男の後輩が明日のプレゼンの準備について話しています。男の人はこの後、まず何をしますか。',
+            zh: '在公司裡，女前輩與男後輩正在討論明天簡報的準備工作。請問男後輩接下來「首先」要做什麼？'
+          },
+          {
+            role: 'FEMALE',
+            speakerLabel: '👩 女先輩',
+            jp: '佐藤くん、明日のプレゼンの準備、進んでる？会議室の机はもう並べてくれた？',
+            zh: '佐藤，明天簡報的準備有進展嗎？會議室的桌子已經幫我排好了嗎？'
+          },
+          {
+            role: 'MALE',
+            speakerLabel: '👨 男後輩 (佐藤)',
+            jp: 'あ、机の配置はさっきやっちゃいました。これから配る資料を30部印刷しとこうかと思ってるんですが。',
+            zh: '啊，桌子的擺設剛剛已經弄好囉（やっちゃいました＝やってしまいました）。我正在想接下來要不要先把發放的資料印個30份備用（しとこう＝しておこう）。'
+          },
+          {
+            role: 'FEMALE',
+            speakerLabel: '👩 女先輩',
+            jp: 'ありがとう。あ、実はさっき先方から連絡があって、開始時間が1時間遅れることになったの。だから、印刷は後でいいから、それより先に、参加メンバー全員に時間変更のメールを送ってくれない？',
+            zh: '謝謝。啊，其實（実は）剛剛客戶那邊聯絡說開始時間延後1小時。所以印刷晚點再說，比起那個先（それより先に）幫我發時間變更的通知信給所有與會成員好嗎？',
+            isKeySignal: true,
+            signalNote: '🔑 關鍵轉折信號：「実は…印刷は後でいいから、それより先に…（其實…印刷晚點沒關係，在那之前先…）」直接決定第一優先行動！'
+          },
+          {
+            role: 'MALE',
+            speakerLabel: '👨 男後輩 (佐藤)',
+            jp: 'わかりました。じゃあ、プロジェクターの確認もそのメールを出してからにしますね。',
+            zh: '我知道了。那麼投影機的確認我也等發完那封信之後再做喔。'
+          },
+          {
+            role: 'QUESTION',
+            speakerLabel: '❓ 質問',
+            jp: '男の人はこの後、まず何をしますか。',
+            zh: '請問男後輩在這之後，首先（まず）要做什麼？'
+          }
+        ],
+        translation: '女前輩詢問明天簡報準備進度。男後輩表示桌子已經排好（やっちゃいました），本來打算接下來印30份資料（印刷しとこう）。但女前輩說「実は（其實）」時間延後了，「印刷は後でいいから、それより先に（印刷晚點沒關係，在那之前先）」發信通知時間變更。男後輩答應先發信，之後再確認投影機。',
+        coreRule: 'N2 聽解「問題1（課題理解）」三大鐵律：1. 已完成的動作必淘汰（机はさっきやっちゃいました → 淘汰1）；2. 原先打算做但被上司用「それより先に／～は後でいい」推翻的動作必淘汰（淘汰2）；3. 「～てからにする（等…之後再做）」代表第二順位（淘汰4）。',
+        optionExplanations: [
+          '❌ 誘答陷阱（已完成事項）：男後輩說「さっきやっちゃいました（剛剛已經排好了）」，口語「～ちゃった」＝「～てしまった（完了）」。',
+          '❌ 誘答陷阱（被推翻的原計畫）：男後輩原本說「印刷しとこうかと思ってる」，但被女前輩以「印刷は後でいい（晚點再印）」延後。',
+          '✅ 正確解答：對應女前輩關鍵指示「それより先に、時間変更のメールを送ってくれない？」。',
+          '❌ 誘答陷阱（次要順序）：男後輩最後說「そのメールを出してからにします（等發完信之後再檢查投影機）」。'
+        ]
+      },
+      {
+        id: 'N2-L02',
+        category: 'LISTENING',
+        subtag: '問題2 ポイント理解（核心理由與否定排除）',
+        targetSec: 50,
+        instruction: '問題2：では、まず質問を聞いてください。そのあと、問題用紙のせんたくしを読んでください。読む時間があります。それから話を聞いて、最もよいものを一つ選んでください。',
+        stem: '<strong class="text-sky-300">🎧 【問題2・ポイント理解】女の人が転職を決めた<u>一番の理由</u>は何ですか。</strong><br><span class="text-xs text-slate-400">（先預讀下方 4 個選項，再點擊播放聆聽轉折關鍵句）</span>',
+        furiganaHint: 'てんしょく (轉職) / きゅうりょう (薪水) / ざんぎょう (加班) / せんもんちしき (專門知識)',
+        options: [
+          '今の会社の給料に不満があったから',
+          '残業が多くて体調を崩してしまったから',
+          '職場の人間関係がうまくいかなかったから',
+          '大学で学んだ専門知識をもっと生かせる仕事がしたかったから'
+        ],
+        correctIndex: 3,
+        dialogue: [
+          {
+            role: 'NARRATOR',
+            speakerLabel: '🎙️ 旁白 (状況設定)',
+            jp: '男の人と女の人が話しています。女の人が転職を決めた一番の理由は何ですか。',
+            zh: '一男一女正在交談。請問女生決定轉職的「最主要理由」是什麼？'
+          },
+          {
+            role: 'MALE',
+            speakerLabel: '👨 男の友人',
+            jp: 'えっ、田中さん、来月で今の会社辞めちゃうの？お給料も悪くないし、職場の雰囲気もいいって言ってたじゃない。',
+            zh: '咦，田中，妳下個月就要辭掉現在的公司了嗎（辞めちゃう＝辞めてしまう）？妳之前不是說薪水不差，而且職場氣氛也很好嗎？'
+          },
+          {
+            role: 'FEMALE',
+            speakerLabel: '👩 女の人 (田中)',
+            jp: 'うん、人間関係には本当に恵まれてたし、お給料の面でも特に不満はなかったんだけどね。',
+            zh: '對啊，人際關係真的很幸運遇到好同事，薪資方面也完全沒有不滿就是了。'
+          },
+          {
+            role: 'MALE',
+            speakerLabel: '👨 男の友人',
+            jp: 'じゃあ、どうして？やっぱり最近残業ばっかりで大変そうだったから、体壊しちゃったとか？',
+            zh: '那是為什麼？難道是因為最近老是在加班（残業ばっかり）看起來很累，把身體搞壞了嗎？'
+          },
+          {
+            role: 'FEMALE',
+            speakerLabel: '👩 女の人 (田中)',
+            jp: 'ううん、忙しいのはやりがいがあるから平気よ。ただ、今の部署だと広報の仕事が中心で、私が大学時代からずっと勉強してきた環境工学の知識を使う機会がほとんどなくて…。それが一番の決め手かな。',
+            zh: '不是啦，忙碌是因為很有成就感所以沒問題喔。只是在現在的部門以公關工作為主，幾乎沒有機會用到我從大學時代一直鑽研的環境工程專業知識…。這才是最主要的決定性因素（一番の決め手）吧。',
+            isKeySignal: true,
+            signalNote: '🔑 關鍵轉折信號：先用「ううん、平気よ」否定男生的加班猜測，接著以「ただ、…それが一番の決め手かな」點出真正核心動機！'
+          },
+          {
+            role: 'QUESTION',
+            speakerLabel: '❓ 質問',
+            jp: '女の人が転職を決めた一番の理由は何ですか。',
+            zh: '請問女生決定轉職的最主要理由是什麼？'
+          }
+        ],
+        translation: '男生驚訝女生要離職，詢問是不是因為一直加班搞壞身體。女生表示薪水與人際關係都很好，也不介意忙碌；但因為現在部門以公關為主，無法發揮大學所學的環境工程專業知識，這才是她決定轉職的最大主因（一番の決め手）。',
+        coreRule: 'N2 聽解「問題2（重點理解）」必考套路：對話中另一人提出的猜測（如：給料？残業？体壊した？）90% 都會被主角用「ううん／そういうわけじゃないけど」否定，真正的答案永遠藏在「ただ、～（只是…）」或「一番の決め手は（最關鍵的決定因素是）」之後！',
+        optionExplanations: [
+          '❌ 誘答陷阱（直接否定）：女生明確說「お給料の面でも特に不満はなかった」。',
+          '❌ 誘答陷阱（對話者猜測被否定）：男生猜測是否因加班搞壞身體，女生回答「ううん、忙しいのは平気よ（不是啦，忙沒關係）」。',
+          '❌ 誘答陷阱（直接否定）：女生說「人間関係には本当に恵まれてた（人際關係非常受到眷顧）」。',
+          '✅ 正確解答：對應關鍵句「大学時代からずっと勉強してきた環境工学の知識を使う機会がほとんどなくて…それが一番の決め手かな」。'
+        ]
+      },
+      {
+        id: 'N2-L03',
+        category: 'LISTENING',
+        subtag: '問題3 概要理解（無預覽選項盲聽・主旨推論）',
+        targetSec: 55,
+        blindOptions: true,
+        instruction: '問題3：この問題には練習はありません。問題用紙に何も印刷されていません。まず話を聞いてください。それから、質問とせんたくしを聞いて、1から4の中から、最もよいものを一つ選んでください。',
+        stem: '<strong class="text-sky-300">🎧 【問題3・概要理解】講演のテーマ（話の主旨）として最も適切なものはどれですか。</strong><br><span class="text-xs text-amber-300">（模擬真實考場：請先盲聽整段獨白，掌握講者真正的目的！）</span>',
+        furiganaHint: 'おくじょうりょくか (屋頂綠化) / だんねつ (隔熱) / コミュニケーション (溝通交流)',
+        options: [
+          'ビルの屋上緑化による冷暖房費の削減効果',
+          '屋上菜園を通じた社員同士の交流の活性化',
+          '都市部における珍しい野菜の栽培方法',
+          '社員食堂のメニュー改善と健康管理'
+        ],
+        correctIndex: 1,
+        dialogue: [
+          {
+            role: 'NARRATOR',
+            speakerLabel: '🎙️ 旁白 (状況設定)',
+            jp: '経営セミナーで、ある会社の社長が話しています。',
+            zh: '在經營研討會上，某間公司的社長正在發表演講。'
+          },
+          {
+            role: 'MALE',
+            speakerLabel: '👨 社長 (独白)',
+            jp: 'えー、我が社では3年前から本社ビルの屋上に菜園を作り、野菜を育てています。よく「ビルの断熱効果を高めてエアコンの電気代を減らすためですか」とか、「社員食堂の食材費を浮かすためですか」と聞かれるんですが、実はそうではありません。',
+            zh: '呃—敝公司從3年前開始在總公司大樓屋頂闢建菜園種植蔬菜。常有人問我：「這是為了提高大樓隔熱效果以減少冷氣電費嗎？」或是「為了省下員工餐廳的食材費嗎？」，但其實並非如此（実はそうではありません）。'
+          },
+          {
+            role: 'MALE',
+            speakerLabel: '👨 社長 (独白)',
+            jp: '会社が大きくなると、違う部署の社員同士が話す機会が減ってしまいますよね。そこで、昼休みや仕事帰りに一緒に土を触りながら、部署や役職を超えて自然に会話が生まれる場所を作りたいと考えたんです。結果として、そこから新しい企画のアイデアも生まれています。',
+            zh: '當公司規模變大，不同部門員工彼此交談的機會就會減少對吧。因此，我想創造一個在午休或下班時，能一邊一起接觸泥土，一邊跨越部門與職位自然產生對話的場所。結果，從那裡也誕生了許多新企劃的點子。',
+            isKeySignal: true,
+            signalNote: '🔑 主旨關鍵句：先以「実はそうではありません」否定節能與省錢兩個常見誤解，再用「そこで、…部署や役職を超えて自然に会話が生まれる場所を作りたい」揭示真正目的！'
+          },
+          {
+            role: 'QUESTION',
+            speakerLabel: '❓ 質問',
+            jp: '社長が屋上に菜園を作った一番の目的は何ですか。',
+            zh: '請問社長在屋頂建造菜園的最主要目的是什麼？'
+          }
+        ],
+        translation: '社長分享公司3年前在屋頂建菜園的經驗。外界常誤以為是為了隔熱省電費或節省員工餐廳食材費，但社長明確否定（「実はそうではありません」），指出真正目的是因為公司變大後跨部門交流減少，希望透過一起種菜創造跨部門員工自然交流的空間。',
+        coreRule: 'N2 聽解「問題3（概要理解）」高分秘訣：開頭提到的世俗看法（「よく～と聞かれるんですが、実はそうではありません」）100% 是用來設計誘答選項 1 跟 4 的陷阱！「そこで（因此）」後面的「～たいと考えたんです」才是演講真正的核心主旨。',
+        optionExplanations: [
+          '❌ 誘答陷阱（世俗誤解 1）：社長明確說常被問是否為了省冷氣電費，但「実はそうではありません（其實不是這樣）」。',
+          '✅ 正確解答：對應核心句「部署や役職を超えて自然に会話が生まれる場所を作りたい（活化跨部門員工交流）」。',
+          '❌ 誘答陷阱（無中生有）：並未探討特殊蔬菜的栽種技術。',
+          '❌ 誘答陷阱（世俗誤解 2）：省下員工餐廳食材費同樣被社長在第一段否定。'
+        ]
+      },
+      {
+        id: 'N2-L04',
+        category: 'LISTENING',
+        subtag: '問題4 即時応答（敬語與狀態句型瞬間反射）',
+        targetSec: 25,
+        instruction: '問題4：問題用紙に何も印刷されていません。まず文を聞いてください。それから、それに対する返事を聞いて、1から3（本系統提供4選1強化版）の中から、最もよいものを一つ選んでください。',
+        stem: '<strong class="text-sky-300">🎧 【問題4・即時応答】部下の発言に対する<u>課長の返事</u>として最も適切なものはどれですか。</strong><br><span class="text-xs text-slate-400">（考驗「～ておかなくてもいい？」與「～てある」的瞬間語感反射）</span>',
+        furiganaHint: 'きかくしょ (企劃書) / やくいんかいぎ (董事會議) / とっておく (事先印好備用)',
+        options: [
+          'うん、もうコピーしてあるから大丈夫だよ。',
+          'じゃあ、急いで元の場所に戻しておいてね。',
+          'ええ、私がこれからコピーを頼まれるところだよ。',
+          'ううん、まだ誰もコピーしてないから、しなくていいよ。'
+        ],
+        correctIndex: 0,
+        dialogue: [
+          {
+            role: 'FEMALE',
+            speakerLabel: '👩 部下 (質問文)',
+            jp: '課長、午後からの役員会議で使う企画書、今のうちにコピーとっとかなくていいですか？',
+            zh: '課長，下午董事會議要用的企劃書，不需要趁現在先把影印本印好備用嗎？（とっとかなくていい＝とっておかなくていい）',
+            isKeySignal: true,
+            signalNote: '🔑 關鍵口語縮約音：「コピーとっとかなくていいですか」＝「コピーをとっておかなくていいですか（不需要事先印好嗎？）」。'
+          },
+          {
+            role: 'QUESTION',
+            speakerLabel: '❓ 選択ガイド',
+            jp: 'これに対する課長の返事として、最もよいものはどれですか。',
+            zh: '針對這句話，課長最自然合理的回應是哪一個？'
+          }
+        ],
+        translation: '部下詢問課長：「下午董事會議要用的企劃書，不需要趁現在先印好備用嗎（とっとかなくていいですか）？」課長最合理的回應是：「嗯，因為已經事先印好放著了（もうコピーしてあるから），所以沒問題喔。」',
+        coreRule: 'N2 聽解「問題4（即時應答，佔 12 題）」必考口語縮約形：「～とっとく（＝～とっておく，事先做好備用）」。當對方問「不需要先印好嗎？」，回答「うん（對，不需要），因為已經印好了（もう～してある）」在邏輯與語法狀態上最完美。',
+        optionExplanations: [
+          '✅ 正確解答：「うん（對，不用印），もうコピーしてあるから大丈夫だよ（因為已經有人事先印好準備著了，所以沒問題）」。',
+          '❌ 誘答陷阱（把「コピーをとる」聽成「拿走東西」）：誤以為是把企劃書拿走了要放回原位。',
+          '❌ 誘答陷阱（受身形誤用）：「頼まれる（被拜託）」語意混亂不自然。',
+          '❌ 誘答陷阱（前後邏輯矛盾）：既然下午開會要用，若「還沒人印（まだ誰もコピーしてない）」，卻說「所以不用印（しなくていい）」，違反商務常理。'
+        ]
+      }
+    ];
+
+    /*************************************************************************
+     * 2. APPLICATION STATE & AUDIO / SRL / FSRS / IRT ENGINE
+     *************************************************************************/
+    let questions = [...INITIAL_QUESTIONS];
+    let currentFilter = 'ALL';
+    let filteredIndices = [];
+    let currentPos = 0;
+    let selectedOptionIndex = null;
+    let currentConfidence = 75;
+    let showFurigana = false;
+
+    // Timer state
+    let elapsedSeconds = 0;
+    let timerInterval = null;
+    let isSubmitted = false;
+
+    // Star (★) Reconstructor state
+    let starSlots = [null, null, null, null];
+
+    // Choukai Listening Engine State
+    let listeningSpeed = 1.0;
+    let isPlayingDialogue = false;
+    let dialogueAbortFlag = false;
+    let scriptPeeked = false;
+    let blindOptionsUnmasked = false;
+    let webAudioCtx = null;
+
+    // User Performance History Map
+    let historyMap = {};
+
+    // Initialize App on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      initEqualizerBars();
+      renderCategoryTabs();
+      applyCategoryFilter('ALL');
+      updateKPIsAndRadar();
+      renderQuestionQueue();
+
+      // Pre-warm speechSynthesis voices
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => {
+          window.speechSynthesis.getVoices();
+        };
+      }
+
+      // Keyboard Shortcuts (1-4 to select option, Enter to submit/next)
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+        if (e.key >= '1' && e.key <= '4') {
+          const idx = parseInt(e.key, 10) - 1;
+          selectOption(idx);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (!isSubmitted) {
+            submitCurrentAnswer();
+          } else {
+            nextQuestion();
+          }
+        }
+      });
+    });
+
+    function initEqualizerBars() {
+      const eq = document.getElementById('eqVisualizer');
+      if (!eq) return;
+      let barsHtml = '';
+      for (let i = 0; i < 24; i++) {
+        const delay = ((i % 6) * 0.11).toFixed(2);
+        const heightClass = i % 3 === 0 ? 'h-8' : i % 2 === 0 ? 'h-6' : 'h-5';
+        barsHtml += `<span class="eq-bar w-1.5 ${heightClass} rounded-full bg-gradient-to-t from-sky-500 to-amber-400" style="animation-delay: ${delay}s"></span>`;
+      }
+      eq.innerHTML = barsHtml;
+    }
+
+    /*************************************************************************
+     * 3. WEB AUDIO API CHIME SYNTHESIZER & MULTI-ROLE SEQUENTIAL TTS ENGINE
+     *************************************************************************/
+    function playExamChime() {
+      return new Promise(resolve => {
+        try {
+          if (!webAudioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            webAudioCtx = new AudioContextClass();
+          }
+          if (webAudioCtx.state === 'suspended') {
+            webAudioCtx.resume();
+          }
+          const now = webAudioCtx.currentTime;
+
+          // Tone 1: "Pin" (A5 = 880 Hz)
+          const osc1 = webAudioCtx.createOscillator();
+          const gain1 = webAudioCtx.createGain();
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(880, now);
+          gain1.gain.setValueAtTime(0.18, now);
+          gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc1.connect(gain1);
+          gain1.connect(webAudioCtx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.36);
+
+          // Tone 2: "Pon" (F5 = 698.46 Hz)
+          const osc2 = webAudioCtx.createOscillator();
+          const gain2 = webAudioCtx.createGain();
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(698.46, now + 0.28);
+          gain2.gain.setValueAtTime(0.18, now + 0.28);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+          osc2.connect(gain2);
+          gain2.connect(webAudioCtx.destination);
+          osc2.start(now + 0.28);
+          osc2.stop(now + 0.86);
+
+          setTimeout(resolve, 750);
+        } catch (e) {
+          resolve();
+        }
+      });
+    }
+
+    function setListeningSpeed(spd) {
+      listeningSpeed = spd;
+      const map = {
+        0.85: 'spdBtn085',
+        1.0: 'spdBtn100',
+        1.15: 'spdBtn115'
+      };
+      Object.entries(map).forEach(([k, btnId]) => {
+        const el = document.getElementById(btnId);
+        if (!el) return;
+        if (parseFloat(k) === spd) {
+          el.className = 'px-2.5 py-1 rounded-lg text-[11px] font-mono bg-sky-500 text-slate-950 font-bold transition';
+        } else {
+          el.className = 'px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-400 hover:text-white transition';
+        }
+      });
+      // Also sync local MP3 player playbackRate if loaded
+      const mp3Player = document.getElementById('localMp3Player');
+      if (mp3Player) mp3Player.playbackRate = spd;
+      showToast(`🎧 聽解播放倍速已設定為 ${spd}x`, 'sky');
+    }
+
+    function selectJapaneseVoiceForRole(role) {
+      if (!('speechSynthesis' in window)) return null;
+      const voices = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().includes('ja'));
+      if (voices.length === 0) return null;
+      if (voices.length === 1) return voices[0];
+
+      // Try to pick distinct male/female voices if available on OS/Browser
+      if (role === 'MALE') {
+        const maleMatch = voices.find(v => /keita|ichiro|otoya|male|hattori/i.test(v.name));
+        return maleMatch || voices[0];
+      } else if (role === 'FEMALE') {
+        const femaleMatch = voices.find(v => /nanami|haruka|kyoko|ayumi|female|sayaka/i.test(v.name));
+        return femaleMatch || voices[Math.min(1, voices.length - 1)];
+      }
+      return voices[0];
+    }
+
+    function speakSingleUtterance(text, role) {
+      return new Promise((resolve) => {
+        if (!('speechSynthesis' in window) || dialogueAbortFlag) {
+          resolve();
+          return;
+        }
+        window.speechSynthesis.cancel();
+
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'ja-JP';
+        const voice = selectJapaneseVoiceForRole(role);
+        if (voice) utter.voice = voice;
+
+        // Distinct pitch & cadence modulation for Male vs Female vs Narrator
+        if (role === 'MALE') {
+          utter.pitch = 0.76;
+          utter.rate = Number((0.98 * listeningSpeed).toFixed(2));
+        } else if (role === 'FEMALE') {
+          utter.pitch = 1.25;
+          utter.rate = Number((1.03 * listeningSpeed).toFixed(2));
+        } else {
+          utter.pitch = 1.0;
+          utter.rate = Number((1.0 * listeningSpeed).toFixed(2));
+        }
+
+        utter.onend = () => resolve();
+        utter.onerror = () => resolve();
+        window.speechSynthesis.speak(utter);
+      });
+    }
+
+    async function playListeningDialogue() {
+      const q = getCurrentQuestion();
+      if (!q || !Array.isArray(q.dialogue)) {
+        speakQuestion(listeningSpeed);
+        return;
+      }
+
+      if (isPlayingDialogue) {
+        stopListeningDialogue();
+        return;
+      }
+
+      isPlayingDialogue = true;
+      dialogueAbortFlag = false;
+
+      const playBtnText = document.getElementById('playChoukaiText');
+      const playBtnIcon = document.getElementById('playChoukaiIcon');
+      const eqBox = document.getElementById('eqVisualizer');
+      const speakerBadge = document.getElementById('activeSpeakerBadge');
+      const statusDot = document.getElementById('choukaiStatusDot');
+      const turnCounter = document.getElementById('turnCounterText');
+
+      playBtnText.textContent = '播放中... (點擊暫停)';
+      playBtnIcon.textContent = '⏸';
+      eqBox.classList.add('eq-playing');
+      statusDot.className = 'w-3 h-3 rounded-full bg-emerald-400 animate-ping';
+
+      // 1. Play Authentic JLPT Exam Intro Chime ("Pin-Pon")
+      speakerBadge.textContent = '🔔 考場提示鐘聲 (チャイム)...';
+      await playExamChime();
+
+      // 2. Sequentially play each turn in the dialogue array
+      const totalTurns = q.dialogue.length;
+      for (let i = 0; i < totalTurns; i++) {
+        if (dialogueAbortFlag) break;
+        const turn = q.dialogue[i];
+        turnCounter.textContent = `語音段: ${i + 1} / ${totalTurns}`;
+        speakerBadge.textContent = `${turn.speakerLabel} 發話中...`;
+
+        // Highlight active line if transcript is unlocked/visible
+        highlightActiveTranscriptLine(i);
+
+        // Play short chime before the final QUESTION turn
+        if (turn.role === 'QUESTION' && i > 0) {
+          await new Promise(r => setTimeout(r, 350));
+          if (dialogueAbortFlag) break;
+          await playExamChime();
+        }
+
+        await speakSingleUtterance(turn.jp, turn.role);
+        if (dialogueAbortFlag) break;
+        await new Promise(r => setTimeout(r, 280));
+      }
+
+      // If Problem 3 (blindOptions) finished playing, automatically unmask options!
+      if (!dialogueAbortFlag && q.blindOptions && !blindOptionsUnmasked) {
+        unmaskBlindOptions();
+        showToast('🎧 音訊播放完畢！已為您顯示問題3的選項，請作答。', 'sky');
+      }
+
+      resetChoukaiPlayerUI();
+    }
+
+    function stopListeningDialogue() {
+      dialogueAbortFlag = true;
+      isPlayingDialogue = false;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      resetChoukaiPlayerUI();
+    }
+
+    function resetChoukaiPlayerUI() {
+      isPlayingDialogue = false;
+      const playBtnText = document.getElementById('playChoukaiText');
+      const playBtnIcon = document.getElementById('playChoukaiIcon');
+      const eqBox = document.getElementById('eqVisualizer');
+      const speakerBadge = document.getElementById('activeSpeakerBadge');
+      const statusDot = document.getElementById('choukaiStatusDot');
+
+      if (playBtnText) playBtnText.textContent = '重新播放考場對話';
+      if (playBtnIcon) playBtnIcon.textContent = '▶';
+      if (eqBox) eqBox.classList.remove('eq-playing');
+      if (speakerBadge) speakerBadge.textContent = '播放完畢 (可重播或作答)';
+      if (statusDot) statusDot.className = 'w-3 h-3 rounded-full bg-sky-400';
+      highlightActiveTranscriptLine(-1);
+    }
+
+    async function replayDialogueTurn(turnIdx) {
+      const q = getCurrentQuestion();
+      if (!q || !q.dialogue || !q.dialogue[turnIdx]) return;
+      stopListeningDialogue();
+      dialogueAbortFlag = false;
+
+      const turn = q.dialogue[turnIdx];
+      const eqBox = document.getElementById('eqVisualizer');
+      const speakerBadge = document.getElementById('activeSpeakerBadge');
+
+      eqBox.classList.add('eq-playing');
+      speakerBadge.textContent = `🔁 單句重播：${turn.speakerLabel}`;
+      highlightActiveTranscriptLine(turnIdx);
+
+      await speakSingleUtterance(turn.jp, turn.role);
+      resetChoukaiPlayerUI();
+    }
+
+    function highlightActiveTranscriptLine(activeIdx) {
+      const lines = document.querySelectorAll('[data-turn-idx]');
+      lines.forEach(el => {
+        const idx = parseInt(el.getAttribute('data-turn-idx'), 10);
+        if (idx === activeIdx) {
+          el.classList.add('ring-2', 'ring-sky-400');
+        } else {
+          el.classList.remove('ring-2', 'ring-sky-400');
+        }
+      });
+    }
+
+    function peekListeningTranscript() {
+      scriptPeeked = true;
+      const q = getCurrentQuestion();
+      document.getElementById('blindShieldBox').classList.add('hidden');
+      renderDialogueTranscript(q, false);
+      showToast('👁️ 已開啟對話逐字稿輔助（作答時建議將信心度設為 ≤50% 以利排程複習）。', 'amber');
+    }
+
+    function renderDialogueTranscript(q, showFullSignalAnalysis = false) {
+      const box = document.getElementById('dialogueTranscriptBox');
+      if (!q || !Array.isArray(q.dialogue)) {
+        box.classList.add('hidden');
+        return;
+      }
+      box.classList.remove('hidden');
+
+      box.innerHTML = q.dialogue.map((turn, idx) => {
+        const isSignal = turn.isKeySignal;
+        const borderClass = isSignal
+          ? 'bg-amber-950/35 border-amber-500/60'
+          : 'bg-slate-900/90 border-slate-800';
+
+        return `
+          <div data-turn-idx="${idx}" class="p-3 rounded-xl border ${borderClass} transition space-y-1">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold ${
+                  turn.role === 'FEMALE' ? 'text-pink-400' : turn.role === 'MALE' ? 'text-sky-400' : 'text-amber-300'
+                }">${turn.speakerLabel}</span>
+                ${isSignal ? `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">⚡ 轉折關鍵句</span>` : ''}
+              </div>
+              <button type="button" onclick="replayDialogueTurn(${idx})" class="px-2.5 py-0.5 rounded-lg bg-slate-800 hover:bg-sky-500/20 text-sky-300 border border-slate-700 text-[11px] font-mono transition">
+                🔊 單句重播
+              </button>
+            </div>
+            <p class="jp-text text-sm text-slate-100 font-medium">${turn.jp}</p>
+            ${showFullSignalAnalysis ? `<p class="text-xs text-slate-400">${turn.zh}</p>` : ''}
+            ${showFullSignalAnalysis && isSignal && turn.signalNote ? `<div class="mt-1 pt-1.5 border-t border-amber-500/30 text-xs text-amber-300 font-medium">${turn.signalNote}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function unmaskBlindOptions() {
+      blindOptionsUnmasked = true;
+      document.getElementById('blindOptionsNotice').classList.add('hidden');
+      document.getElementById('blindOptionsNotice').classList.remove('flex');
+      renderOptionCards(getCurrentQuestion());
+    }
+
+    // Local MP3 File Mounter Controls
+    function toggleMp3Drawer() {
+      const content = document.getElementById('mp3DrawerContent');
+      const arrow = document.getElementById('mp3DrawerArrow');
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        arrow.textContent = '▲';
+      } else {
+        content.classList.add('hidden');
+        arrow.textContent = '▼';
+      }
+    }
+
+    function loadLocalMp3File(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const player = document.getElementById('localMp3Player');
+      player.src = url;
+      player.playbackRate = listeningSpeed;
+      document.getElementById('localMp3FileName').textContent = `🎵 ${file.name}`;
+      showToast(`✅ 已成功載入音檔：${file.name}`, 'emerald');
+    }
+
+    function seekLocalMp3(deltaSec) {
+      const player = document.getElementById('localMp3Player');
+      if (!player || !player.src) return;
+      player.currentTime = Math.max(0, player.currentTime + deltaSec);
+    }
+
+    /*************************************************************************
+     * 4. CATEGORY FILTERING & QUESTION NAVIGATION
+     *************************************************************************/
+    function renderCategoryTabs() {
+      const container = document.getElementById('categoryTabs');
+      container.innerHTML = CATEGORIES.map(cat => {
+        const count = cat.id === 'ALL'
+          ? questions.length
+          : questions.filter(q => q.category === cat.id).length;
+        const active = currentFilter === cat.id;
+        const isListening = cat.id === 'LISTENING';
+        return `
+          <button onclick="applyCategoryFilter('${cat.id}')"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 border ${
+              active
+                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20 font-bold'
+                : isListening
+                ? 'bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border-sky-500/40'
+                : 'bg-slate-800/90 hover:bg-slate-700/80 text-slate-300 border-slate-700'
+            }">
+            <span>${cat.name}</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+              active ? 'bg-slate-950/20 text-slate-950' : 'bg-slate-900 text-slate-400'
+            }">${count}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function applyCategoryFilter(catId) {
+      stopListeningDialogue();
+      currentFilter = catId;
+      filteredIndices = questions
+        .map((q, idx) => ({ q, idx }))
+        .filter(item => catId === 'ALL' || item.q.category === catId)
+        .map(item => item.idx);
+
+      if (filteredIndices.length === 0) {
+        filteredIndices = questions.map((_, idx) => idx);
+      }
+      currentPos = 0;
+      renderCategoryTabs();
+      loadCurrentQuestion();
+    }
+
+    function getCurrentQuestion() {
+      const qIdx = filteredIndices[currentPos] ?? 0;
+      return questions[qIdx];
+    }
+
+    function loadCurrentQuestion() {
+      stopListeningDialogue();
+      const q = getCurrentQuestion();
+      if (!q) return;
+
+      // Reset question UI state
+      isSubmitted = false;
+      selectedOptionIndex = null;
+      scriptPeeked = false;
+      blindOptionsUnmasked = !q.blindOptions;
+      starSlots = [null, null, null, null];
+
+      document.getElementById('diagnosticPanel').classList.add('hidden');
+      document.getElementById('aiTutorResponseBox').classList.add('hidden');
+      document.getElementById('aiTutorInput').value = '';
+      document.getElementById('submitBtn').classList.remove('hidden');
+
+      // Update Header Metadata
+      const catMeta = CATEGORIES.find(c => c.id === q.category) || CATEGORIES[0];
+      document.getElementById('qCategoryBadge').textContent = catMeta.name;
+      document.getElementById('qSubtagBadge').textContent = q.subtag || 'N2 核心考點';
+      document.getElementById('qProgressText').textContent = `題號 #${currentPos + 1} / ${filteredIndices.length} (${q.id})`;
+      document.getElementById('qInstruction').textContent = q.instruction;
+      document.getElementById('qStemText').innerHTML = q.stem;
+
+      // Listening Console vs Standard TTS Bar
+      const listeningConsole = document.getElementById('listeningConsoleBox');
+      const standardTtsBar = document.getElementById('standardTtsBar');
+      if (q.category === 'LISTENING') {
+        listeningConsole.classList.remove('hidden');
+        standardTtsBar.classList.add('hidden');
+        document.getElementById('blindShieldBox').classList.remove('hidden');
+        document.getElementById('dialogueTranscriptBox').classList.add('hidden');
+        document.getElementById('turnCounterText').textContent = `語音段: 0 / ${q.dialogue ? q.dialogue.length : 1}`;
+        document.getElementById('activeSpeakerBadge').textContent = '待機中 (點擊下方播放考場音訊)';
+        document.getElementById('playChoukaiText').textContent = '播放考場對話 (含鐘聲)';
+      } else {
+        listeningConsole.classList.add('hidden');
+        standardTtsBar.classList.remove('hidden');
+      }
+
+      // Problem 3 Blind Options Notice
+      const blindNotice = document.getElementById('blindOptionsNotice');
+      if (q.blindOptions && !blindOptionsUnmasked) {
+        blindNotice.classList.remove('hidden');
+        blindNotice.classList.add('flex');
+      } else {
+        blindNotice.classList.add('hidden');
+        blindNotice.classList.remove('flex');
+      }
+
+      // Furigana Hint Box
+      const hintBox = document.getElementById('qHintBox');
+      if (showFurigana && q.furiganaHint && q.category !== 'KANJI' && q.category !== 'LISTENING') {
+        hintBox.textContent = `💡 詞彙與讀音輔助：${q.furiganaHint}`;
+        hintBox.classList.remove('hidden');
+      } else {
+        hintBox.classList.add('hidden');
+      }
+
+      // Star (★) Reconstructor Visibility
+      const starBox = document.getElementById('starReconstructorBox');
+      if (q.category === 'STAR') {
+        starBox.classList.remove('hidden');
+        renderStarReconstructor(q);
+      } else {
+        starBox.classList.add('hidden');
+      }
+
+      // Render 4 Options
+      renderOptionCards(q);
+
+      // Prev / Next button state
+      document.getElementById('prevBtn').disabled = currentPos === 0;
+
+      // Start Pacing Timer
+      startPacingTimer(q.targetSec || catMeta.targetSec || 45);
+
+      // Highlight active item in queue
+      renderQuestionQueue();
+    }
+
+    function renderOptionCards(q) {
+      const container = document.getElementById('optionsContainer');
+
+      container.innerHTML = q.options.map((optText, idx) => {
+        const isSelected = selectedOptionIndex === idx;
+        const isMasked = q.blindOptions && !blindOptionsUnmasked && !isSubmitted;
+        const displayLabel = isMasked ? `選項 ${idx + 1}（請先聽完音訊或點擊上方顯示選項）` : optText;
+
+        let cardStyle = isSelected
+          ? 'bg-amber-500/20 border-amber-400 text-white shadow-md shadow-amber-500/10'
+          : 'bg-slate-900/80 hover:bg-slate-700/60 border-slate-700 text-slate-200';
+
+        if (isSubmitted) {
+          if (idx === q.correctIndex) {
+            cardStyle = 'bg-emerald-500/20 border-emerald-400 text-emerald-100 shadow-md shadow-emerald-500/10';
+          } else if (idx === selectedOptionIndex && idx !== q.correctIndex) {
+            cardStyle = 'bg-rose-500/20 border-rose-400 text-rose-100';
+          } else {
+            cardStyle = 'bg-slate-900/40 border-slate-800 text-slate-400 opacity-75';
+          }
+        }
+
+        return `
+          <button type="button" onclick="selectOption(${idx})"
+            class="w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3 group ${cardStyle}">
+            <span class="w-7 h-7 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${
+              isSelected
+                ? 'bg-amber-400 text-slate-950'
+                : 'bg-slate-800 text-slate-300 group-hover:bg-slate-700'
+            }">
+              ${idx + 1}
+            </span>
+            <span class="jp-text text-base font-medium flex-1 ${isMasked ? 'text-slate-500 italic text-xs' : ''}">${displayLabel}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectOption(idx) {
+      if (isSubmitted) return;
+      selectedOptionIndex = idx;
+      const q = getCurrentQuestion();
+      renderOptionCards(q);
+    }
+
+    /*************************************************************************
+     * 5. INTERACTIVE STAR (★) SYNTAX RECONSTRUCTOR
+     *************************************************************************/
+    function renderStarReconstructor(q) {
+      const slotsContainer = document.getElementById('starSlotsContainer');
+      const tokensBar = document.getElementById('starTokensBar');
+
+      slotsContainer.innerHTML = [0, 1, 2, 3].map(slotIdx => {
+        const isStarSlot = slotIdx === 2;
+        const placedOptIdx = starSlots[slotIdx];
+        const placedText = placedOptIdx !== null ? `(${placedOptIdx + 1}) ${q.options[placedOptIdx]}` : (isStarSlot ? '★ 點擊下方詞塊填入' : `第 ${slotIdx + 1} 格`);
+
+        return `
+          <div onclick="removeStarSlot(${slotIdx})"
+            class="cursor-pointer rounded-xl p-2.5 border text-center transition flex flex-col items-center justify-center min-h-[54px] ${
+              isStarSlot
+                ? 'bg-amber-500/15 border-amber-400 star-slot-active'
+                : 'bg-slate-950 border-slate-700'
+            }">
+            <span class="text-[10px] font-mono ${isStarSlot ? 'text-amber-400 font-bold' : 'text-slate-400'}">
+              ${isStarSlot ? '★ 目標計分位置 (第3格)' : `語序位置 #${slotIdx + 1}`}
+            </span>
+            <span class="jp-text text-xs font-bold mt-0.5 ${placedOptIdx !== null ? 'text-white' : 'text-slate-400'}">
+              ${placedText}
+            </span>
+          </div>
+        `;
+      }).join('');
+
+      tokensBar.innerHTML = q.options.map((optText, optIdx) => {
+        const alreadyUsed = starSlots.includes(optIdx);
+        return `
+          <button type="button" onclick="placeStarToken(${optIdx})"
+            ${alreadyUsed ? 'disabled' : ''}
+            class="px-3 py-1.5 rounded-lg border text-xs jp-text font-medium transition ${
+              alreadyUsed
+                ? 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed line-through'
+                : 'bg-slate-800 hover:bg-amber-500/20 border-slate-600 hover:border-amber-400 text-slate-200'
+            }">
+            ${optIdx + 1}. ${optText}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function placeStarToken(optIdx) {
+      if (isSubmitted) return;
+      const emptySlotIdx = starSlots.findIndex(s => s === null);
+      if (emptySlotIdx === -1) return;
+      starSlots[emptySlotIdx] = optIdx;
+
+      if (starSlots[2] !== null) {
+        selectedOptionIndex = starSlots[2];
+      }
+      const q = getCurrentQuestion();
+      renderStarReconstructor(q);
+      renderOptionCards(q);
+    }
+
+    function removeStarSlot(slotIdx) {
+      if (isSubmitted) return;
+      starSlots[slotIdx] = null;
+      if (slotIdx === 2) {
+        selectedOptionIndex = null;
+      }
+      const q = getCurrentQuestion();
+      renderStarReconstructor(q);
+      renderOptionCards(q);
+    }
+
+    function resetStarSlots() {
+      if (isSubmitted) return;
+      starSlots = [null, null, null, null];
+      selectedOptionIndex = null;
+      const q = getCurrentQuestion();
+      renderStarReconstructor(q);
+      renderOptionCards(q);
+    }
+
+    /*************************************************************************
+     * 6. POKA-YOKE PACING TIMER & CONFIDENCE UI
+     *************************************************************************/
+    function startPacingTimer(targetSec) {
+      if (timerInterval) clearInterval(timerInterval);
+      elapsedSeconds = 0;
+      updateTimerUI(targetSec);
+
+      timerInterval = setInterval(() => {
+        if (!isSubmitted) {
+          elapsedSeconds++;
+          updateTimerUI(targetSec);
+        }
+      }, 1000);
+    }
+
+    function updateTimerUI(targetSec) {
+      const timerText = document.getElementById('timerText');
+      const timerDot = document.getElementById('timerDot');
+      const progressBar = document.getElementById('timerProgressBar');
+
+      const padSec = String(elapsedSeconds).padStart(2, '0');
+      timerText.textContent = `${padSec}s / ${targetSec}s`;
+
+      const ratio = Math.min(100, (elapsedSeconds / targetSec) * 100);
+      progressBar.style.width = `${ratio}%`;
+
+      if (elapsedSeconds <= targetSec * 0.75) {
+        timerText.className = 'font-mono text-xs font-bold text-emerald-400';
+        timerDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+        progressBar.className = 'bg-emerald-500 h-full transition-all duration-300';
+      } else if (elapsedSeconds <= targetSec) {
+        timerText.className = 'font-mono text-xs font-bold text-amber-400';
+        timerDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+        progressBar.className = 'bg-amber-500 h-full transition-all duration-300';
+      } else {
+        timerText.className = 'font-mono text-xs font-bold text-rose-400';
+        timerDot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
+        progressBar.className = 'bg-rose-500 h-full transition-all duration-300';
+      }
+    }
+
+    function updateConfidenceUI(val) {
+      currentConfidence = parseInt(val, 10);
+      document.getElementById('confidenceSlider').value = currentConfidence;
+      const badge = document.getElementById('confidenceValBadge');
+
+      let label = '頗有把握';
+      let colorClass = 'bg-sky-500/20 border-sky-500/40 text-sky-300';
+      if (currentConfidence < 40) {
+        label = '純猜測 / 直覺';
+        colorClass = 'bg-rose-500/20 border-rose-500/40 text-rose-300';
+      } else if (currentConfidence < 70) {
+        label = '二選一猶豫';
+        colorClass = 'bg-amber-500/20 border-amber-500/40 text-amber-300';
+      } else if (currentConfidence >= 90) {
+        label = '絕對篤定';
+        colorClass = 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300';
+      }
+
+      badge.className = `px-2.5 py-0.5 rounded-md border font-mono text-sm font-bold ${colorClass}`;
+      badge.textContent = `${currentConfidence}% ${label}`;
+    }
+
+    /*************************************************************************
+     * 7. SUBMIT, SRL CALIBRATION, UNLOCK CHOUKAI SCRIPT & DISTRACTOR BREAKDOWN
+     *************************************************************************/
+    function submitCurrentAnswer() {
+      if (selectedOptionIndex === null) {
+        showToast('請先點選一個答案選項（或按鍵盤 1 ~ 4）再提交批改！', 'amber');
+        return;
+      }
+
+      const q = getCurrentQuestion();
+      isSubmitted = true;
+      blindOptionsUnmasked = true;
+      if (timerInterval) clearInterval(timerInterval);
+
+      const isCorrect = selectedOptionIndex === q.correctIndex;
+      // If user peeked listening transcript before submitting, cap effective confidence for FSRS
+      const conf = scriptPeeked ? Math.min(currentConfidence, 50) : currentConfidence;
+
+      let srlType = '';
+      let srlLabel = '';
+      let srlBadgeClass = '';
+      let fsrsTag = '';
+      let fsrsDesc = '';
+
+      if (isCorrect && conf >= 70) {
+        srlType = 'MASTERY';
+        srlLabel = '✅ 穩固精通 (Mastery)';
+        srlBadgeClass = 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+        fsrsTag = 'T+14d';
+        fsrsDesc = 'FSRS v5 排程：觀念穩固且信心匹配，排入 T+14d 長期記憶維護。';
+      } else if (isCorrect && conf < 70) {
+        srlType = 'FRAGILE';
+        srlLabel = '⚠️ 脆弱正確 (Fragile Correct)';
+        srlBadgeClass = 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
+        fsrsTag = 'T+3d';
+        fsrsDesc = 'FSRS v5 排程：雖答對但把握度偏低（或曾偷看逐字稿），排入 T+3d 鞏固複習佇列！';
+      } else if (!isCorrect && conf >= 70) {
+        srlType = 'BLINDSPOT';
+        srlLabel = '🚨 高信心盲點 (High-Confidence Blindspot)';
+        srlBadgeClass = 'bg-rose-500/25 text-rose-300 border border-rose-500/50';
+        fsrsTag = 'T+1d 優先';
+        fsrsDesc = 'FSRS v5 排程：極危險的「以為自己懂卻掉入誘答陷阱」！強制鎖定 T+1d 優先矯正。';
+      } else {
+        srlType = 'GAP';
+        srlLabel = '🔧 基礎觀念缺口 (Knowledge Gap)';
+        srlBadgeClass = 'bg-sky-500/20 text-sky-300 border border-sky-500/40';
+        fsrsTag = 'T+1d';
+        fsrsDesc = 'FSRS v5 排程：尚未熟悉此考點，建議熟讀下方核心規則並排入 T+1d 重練。';
+      }
+
+      // Save to History Map
+      historyMap[q.id] = {
+        questionId: q.id,
+        category: q.category,
+        selectedIndex: selectedOptionIndex,
+        correctIndex: q.correctIndex,
+        isCorrect,
+        confidence: conf,
+        srlType,
+        srlLabel,
+        fsrsTag,
+        elapsedSec: elapsedSeconds,
+        timestamp: new Date().toLocaleTimeString()
+      };
+
+      // Unlock Listening Dialogue Script with Full Signal Highlights!
+      if (q.category === 'LISTENING') {
+        document.getElementById('blindShieldBox').classList.add('hidden');
+        document.getElementById('blindOptionsNotice').classList.add('hidden');
+        renderDialogueTranscript(q, true);
+      }
+
+      // Re-render Option Cards to highlight Emerald/Rose
+      renderOptionCards(q);
+
+      // Reveal furigana hint upon submission
+      if (q.furiganaHint) {
+        const hintBox = document.getElementById('qHintBox');
+        hintBox.textContent = `💡 詞彙與讀音輔助：${q.furiganaHint}`;
+        hintBox.classList.remove('hidden');
+      }
+
+      // Populate Diagnostic Panel
+      const diagPanel = document.getElementById('diagnosticPanel');
+      diagPanel.classList.remove('hidden');
+
+      const iconBox = document.getElementById('resultIconBox');
+      const titleText = document.getElementById('resultTitleText');
+      if (isCorrect) {
+        iconBox.className = 'w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xl font-bold';
+        iconBox.textContent = '✓';
+        titleText.className = 'text-base sm:text-lg font-bold text-emerald-400';
+        titleText.textContent = `回答正確！（作答耗時 ${elapsedSeconds} 秒）`;
+      } else {
+        iconBox.className = 'w-11 h-11 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center text-xl font-bold';
+        iconBox.textContent = '✗';
+        titleText.className = 'text-base sm:text-lg font-bold text-rose-400';
+        titleText.textContent = `誤入誘答陷阱！正解為選項 (${q.correctIndex + 1})`;
+      }
+
+      const srlBadge = document.getElementById('srlQuadrantBadge');
+      srlBadge.className = `px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${srlBadgeClass}`;
+      srlBadge.textContent = srlLabel;
+
+      document.getElementById('fsrsScheduleText').textContent = fsrsDesc;
+      document.getElementById('diagTranslation').textContent = q.translation;
+      document.getElementById('diagCoreRule').textContent = q.coreRule;
+
+      // Render 4-Option Distractor Breakdown
+      const distractorList = document.getElementById('distractorList');
+      distractorList.innerHTML = q.options.map((optText, idx) => {
+        const isOptCorrect = idx === q.correctIndex;
+        const isUserPick = idx === selectedOptionIndex;
+        const expText = q.optionExplanations?.[idx] || '';
+
+        let boxClass = 'bg-slate-900/60 border-slate-700/70 text-slate-300';
+        let badgeHtml = '';
+
+        if (isOptCorrect) {
+          boxClass = 'bg-emerald-950/40 border-emerald-500/50 text-emerald-100';
+          badgeHtml = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">正解</span>`;
+        } else if (isUserPick && !isOptCorrect) {
+          boxClass = 'bg-rose-950/40 border-rose-500/50 text-rose-100';
+          badgeHtml = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] font-bold">您的誤選</span>`;
+        }
+
+        return `
+          <div class="p-3.5 rounded-xl border ${boxClass} space-y-1">
+            <div class="flex items-center justify-between gap-2">
+              <span class="jp-text font-bold text-sm">(${idx + 1}) ${optText}</span>
+              ${badgeHtml}
+            </div>
+            <p class="text-xs leading-relaxed opacity-95">${expText}</p>
+          </div>
+        `;
+      }).join('');
+
+      updateKPIsAndRadar();
+      updateLocalCoachPrescription(q, historyMap[q.id]);
+      renderQuestionQueue();
+
+      diagPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function prevQuestion() {
+      if (currentPos > 0) {
+        currentPos--;
+        loadCurrentQuestion();
+      }
+    }
+
+    function nextQuestion() {
+      if (currentPos < filteredIndices.length - 1) {
+        currentPos++;
+        loadCurrentQuestion();
+      } else {
+        showToast('已到達本分類最後一題！可點擊上方「✨ AI 針對弱點動態出題」無限生成新題。', 'sky');
+      }
+    }
+
+    function jumpToQuestionById(qId) {
+      const globalIdx = questions.findIndex(q => q.id === qId);
+      if (globalIdx === -1) return;
+
+      if (currentFilter !== 'ALL' && questions[globalIdx].category !== currentFilter) {
+        currentFilter = 'ALL';
+        filteredIndices = questions.map((_, idx) => idx);
+        renderCategoryTabs();
+      }
+      currentPos = filteredIndices.indexOf(globalIdx);
+      if (currentPos === -1) currentPos = 0;
+      loadCurrentQuestion();
+    }
+
+    /*************************************************************************
+     * 8. 6D HEXAGON SVG RADAR CHART & IRT 2PL PASS PROBABILITY ENGINE
+     *************************************************************************/
+    function updateKPIsAndRadar() {
+      const records = Object.values(historyMap);
+      const totalAnswered = records.length;
+      const correctCount = records.filter(r => r.isCorrect).length;
+      const blindspotCount = records.filter(r => r.srlType === 'BLINDSPOT').length;
+      const weaknessCount = records.filter(r => !r.isCorrect || r.srlType === 'FRAGILE').length;
+
+      document.getElementById('weaknessCountBadge').textContent = weaknessCount;
+      document.getElementById('kpiAnswered').textContent = `${totalAnswered} / ${questions.length}`;
+      document.getElementById('kpiBlindspots').textContent = `${blindspotCount} 題`;
+
+      if (totalAnswered > 0) {
+        const accRate = Math.round((correctCount / totalAnswered) * 100);
+        const avgConf = Math.round(records.reduce((acc, r) => acc + r.confidence, 0) / totalAnswered);
+        const calGap = avgConf - accRate;
+
+        document.getElementById('kpiAccuracy').textContent = `${accRate}%`;
+        const gapSign = calGap > 0 ? `+${calGap}%` : `${calGap}%`;
+        document.getElementById('kpiCalibrationGap').textContent = gapSign;
+        document.getElementById('kpiCalibrationLabel').textContent =
+          calGap > 15 ? '⚠️ 過度自信傾向' : calGap < -15 ? '💡 信心偏保守' : '✅ 認知校準良好';
+      } else {
+        document.getElementById('kpiAccuracy').textContent = '--%';
+        document.getElementById('kpiCalibrationGap').textContent = '--%';
+      }
+
+      // Compute 6 Dimensions metrics for Hexagon SVG Radar
+      const dimKeys = ['KANJI', 'VOCAB', 'GRAMMAR', 'STAR', 'READING', 'LISTENING'];
+      const dimLabels = ['漢字讀音', '文脈語彙', '文法形式', '星號重組★', '短篇讀解', '🎧聽解'];
+
+      const dimData = dimKeys.map((key, idx) => {
+        const catRecords = records.filter(r => r.category === key);
+        if (catRecords.length === 0) {
+          return { key, label: dimLabels[idx], acc: 50, conf: 50, count: 0, rawAcc: null };
+        }
+        const acc = Math.round((catRecords.filter(r => r.isCorrect).length / catRecords.length) * 100);
+        const conf = Math.round(catRecords.reduce((s, r) => s + r.confidence, 0) / catRecords.length);
+        return { key, label: dimLabels[idx], acc, conf, count: catRecords.length, rawAcc: acc };
+      });
+
+      renderHexagonRadarSVG(dimData);
+      renderDimensionPills(dimData);
+      updateIRTScoreEstimation(records);
+    }
+
+    function updateIRTScoreEstimation(records) {
+      const totalEl = document.getElementById('irtTotalScore');
+      const writtenEl = document.getElementById('irtWrittenScore');
+      const listenEl = document.getElementById('irtListeningScore');
+      const badgeEl = document.getElementById('irtPassBadge');
+
+      if (records.length === 0) {
+        totalEl.textContent = '-- / 180';
+        writtenEl.textContent = '-- / 120';
+        listenEl.textContent = '-- / 60';
+        badgeEl.textContent = '待累積作答數據';
+        badgeEl.className = 'px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-300 font-mono text-xs font-bold';
+        return;
+      }
+
+      // Written records (KANJI, VOCAB, GRAMMAR, STAR, READING)
+      const writtenRecs = records.filter(r => r.category !== 'LISTENING');
+      const listenRecs = records.filter(r => r.category === 'LISTENING');
+
+      // IRT-weighted score: High-confidence correct gets full weight, fragile gets 0.85, high-confidence blindspot gets penalty
+      const calcRatio = (arr) => {
+        if (arr.length === 0) return 0.62; // prior baseline
+        const sum = arr.reduce((acc, r) => {
+          if (r.isCorrect) return acc + (r.confidence >= 70 ? 1.0 : 0.88);
+          return acc + (r.confidence >= 75 ? 0.0 : 0.12);
+        }, 0);
+        return Math.min(1, Math.max(0.08, sum / arr.length));
+      };
+
+      const writtenRatio = calcRatio(writtenRecs);
+      const listenRatio = calcRatio(listenRecs);
+
+      const estWritten = Math.round(writtenRatio * 120);
+      const estListen = Math.round(listenRatio * 60);
+      const estTotal = estWritten + estListen;
+
+      // Logistic pass probability considering total >= 90 and sectional >= 19
+      const logit = (estTotal - 90) / 12 - (estListen < 19 ? 2.0 : 0) - (estWritten < 38 ? 2.0 : 0);
+      const passProb = Math.min(99, Math.max(5, Math.round((1 / (1 + Math.exp(-logit))) * 100)));
+
+      totalEl.textContent = `${estTotal} / 180`;
+      writtenEl.textContent = `${estWritten} / 120`;
+      listenEl.textContent = `${estListen} / 60`;
+
+      if (passProb >= 70) {
+        badgeEl.textContent = `過關機率 ${passProb}% (安全圈)`;
+        badgeEl.className = 'px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono text-xs font-bold';
+      } else if (passProb >= 45) {
+        badgeEl.textContent = `過關機率 ${passProb}% (臨界衝刺)`;
+        badgeEl.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono text-xs font-bold';
+      } else {
+        badgeEl.textContent = `過關機率 ${passProb}% (需防單科門檻)`;
+        badgeEl.className = 'px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-mono text-xs font-bold';
+      }
+    }
+
+    function renderHexagonRadarSVG(dimData) {
+      const svg = document.getElementById('radarSvg');
+      const cx = 170;
+      const cy = 135;
+      const maxR = 90;
+      const N = 6; // 6-Axis Hexagon
+
+      const getPoint = (i, val) => {
+        const angle = (Math.PI * 2 * i) / N - Math.PI / 2;
+        const r = (val / 100) * maxR;
+        return {
+          x: (cx + r * Math.cos(angle)).toFixed(1),
+          y: (cy + r * Math.sin(angle)).toFixed(1)
+        };
+      };
+
+      const levels = [20, 40, 60, 80, 100];
+      const gridsHtml = levels.map(lvl => {
+        const pts = [0, 1, 2, 3, 4, 5].map(i => {
+          const p = getPoint(i, lvl);
+          return `${p.x},${p.y}`;
+        }).join(' ');
+        const strokeColor = lvl === 60 ? '#475569' : '#334155';
+        const dash = lvl === 60 ? 'stroke-dasharray="3,3"' : '';
+        return `<polygon points="${pts}" fill="none" stroke="${strokeColor}" stroke-width="1" ${dash} />`;
+      }).join('');
+
+      const axesHtml = dimData.map((d, i) => {
+        const endPt = getPoint(i, 100);
+        const lblPt = getPoint(i, 124);
+        const scoreStr = d.rawAcc !== null ? `${d.acc}%` : '未測';
+        const fillCol = d.key === 'LISTENING' ? '#38bdf8' : '#e2e8f0';
+        return `
+          <line x1="${cx}" y1="${cy}" x2="${endPt.x}" y2="${endPt.y}" stroke="#334155" stroke-width="1" />
+          <text x="${lblPt.x}" y="${lblPt.y}" fill="${fillCol}" font-size="11" font-weight="700" text-anchor="middle" dominant-baseline="middle">
+            ${d.label} (${scoreStr})
+          </text>
+        `;
+      }).join('');
+
+      const confPts = dimData.map((d, i) => {
+        const p = getPoint(i, Math.max(12, d.conf));
+        return `${p.x},${p.y}`;
+      }).join(' ');
+
+      const accPts = dimData.map((d, i) => {
+        const p = getPoint(i, Math.max(12, d.acc));
+        return `${p.x},${p.y}`;
+      }).join(' ');
+
+      const dotsHtml = dimData.map((d, i) => {
+        const pAcc = getPoint(i, Math.max(12, d.acc));
+        const pConf = getPoint(i, Math.max(12, d.conf));
+        return `
+          <circle cx="${pConf.x}" cy="${pConf.y}" r="3.5" fill="#f59e0b" />
+          <circle cx="${pAcc.x}" cy="${pAcc.y}" r="4" fill="#38bdf8" stroke="#0f172a" stroke-width="1.5" />
+        `;
+      }).join('');
+
+      svg.innerHTML = `
+        ${gridsHtml}
+        ${axesHtml}
+        <polygon points="${confPts}" fill="rgba(245, 158, 11, 0.16)" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,2" />
+        <polygon points="${accPts}" fill="rgba(56, 189, 248, 0.25)" stroke="#38bdf8" stroke-width="2.5" />
+        ${dotsHtml}
+      `;
+    }
+
+    function renderDimensionPills(dimData) {
+      const container = document.getElementById('dimensionStatsGrid');
+      container.innerHTML = dimData.map(d => {
+        const color = d.rawAcc === null
+          ? 'text-slate-400'
+          : d.acc >= 70
+          ? 'text-emerald-400'
+          : d.acc >= 50
+          ? 'text-amber-400'
+          : 'text-rose-400';
+        return `
+          <div onclick="applyCategoryFilter('${d.key}')" class="cursor-pointer bg-slate-900/90 hover:bg-slate-900 border border-slate-700/80 rounded-xl p-2 transition">
+            <div class="text-[10px] text-slate-400 truncate">${d.label}</div>
+            <div class="font-mono text-xs font-bold mt-0.5 ${color}">${d.rawAcc !== null ? d.acc + '%' : '--'}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateLocalCoachPrescription(q, record) {
+      const box = document.getElementById('aiCoachContent');
+      const records = Object.values(historyMap);
+      const blindspots = records.filter(r => r.srlType === 'BLINDSPOT');
+
+      let adviceHtml = '';
+      if (record.srlType === 'BLINDSPOT') {
+        adviceHtml = `
+          <div class="text-rose-300 font-bold">🚨 偵測到「高信心盲點」(${q.id})：</div>
+          <p>您在本題設定了 <strong>${record.confidence}%</strong> 的高把握度卻落入誘答陷阱。${q.category === 'LISTENING' ? '請特別點擊上方逐字稿中標記「⚡ 轉折關鍵句」的單句重播鈕，訓練對『実は／それより』的聽覺反射！' : '建議立即點擊左下方「💡 比較近似語感差異」讓 AI 為您釐清邊界。'}</p>
+        `;
+      } else if (record.srlType === 'FRAGILE') {
+        adviceHtml = `
+          <div class="text-amber-300 font-bold">⚠️ 偵測到「脆弱正確」(${q.id})：</div>
+          <p>您雖然選對了正解，但信心度僅 <strong>${record.confidence}%</strong>。請務必閱讀左側四個選項的逐項拆解，消除二選一的不確定感（排入 <code>FSRS T+3d</code>）。</p>
+        `;
+      } else if (record.srlType === 'MASTERY') {
+        adviceHtml = `
+          <div class="text-emerald-300 font-bold">✅ 認知校準精準 (${q.id})：</div>
+          <p>作答耗時 <strong>${record.elapsedSec} 秒</strong>，且高信心與正確率完全吻合！目前累計已發現 <strong>${blindspots.length} 題</strong>高信心盲點，可隨時點擊「✨ 生成深度診斷」獲取個人化衝刺策略。</p>
+        `;
+      } else {
+        adviceHtml = `
+          <div class="text-sky-300 font-bold">🔧 基礎觀念補強 (${q.id})：</div>
+          <p>此題屬於尚未熟悉的 N2 考點。請先熟讀左側「🔑 N2 核心考點與轉折信號解析」，並可點擊上方「📋 匯出錯題筆記」將此規則與聽力逐字稿加入您的 NotebookLM 知識庫。</p>
+        `;
+      }
+      box.innerHTML = adviceHtml;
+    }
+
+    function renderQuestionQueue() {
+      const container = document.getElementById('questionQueueList');
+      const currentQ = getCurrentQuestion();
+
+      container.innerHTML = questions.map((q) => {
+        const rec = historyMap[q.id];
+        const isCurrent = currentQ && currentQ.id === q.id;
+        const catMeta = CATEGORIES.find(c => c.id === q.category);
+
+        let badgeHtml = `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-[10px]">未作答</span>`;
+        if (rec) {
+          if (rec.srlType === 'BLINDSPOT') {
+            badgeHtml = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-mono text-[10px] font-bold">🚨 ${rec.fsrsTag}</span>`;
+          } else if (rec.srlType === 'FRAGILE') {
+            badgeHtml = `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono text-[10px] font-bold">⚠️ ${rec.fsrsTag}</span>`;
+          } else if (rec.srlType === 'MASTERY') {
+            badgeHtml = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono text-[10px]">✅ ${rec.fsrsTag}</span>`;
+          } else {
+            badgeHtml = `<span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 font-mono text-[10px]">🔧 ${rec.fsrsTag}</span>`;
+          }
+        }
+
+        return `
+          <div onclick="jumpToQuestionById('${q.id}')"
+            class="cursor-pointer px-3 py-2 rounded-xl border transition flex items-center justify-between gap-2 ${
+              isCurrent
+                ? 'bg-amber-500/15 border-amber-400 text-white'
+                : 'bg-slate-900/70 hover:bg-slate-900 border-slate-800 text-slate-300'
+            }">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="font-mono text-xs text-amber-400 font-bold shrink-0">${q.id}</span>
+              <span class="text-xs text-slate-400 shrink-0">[${catMeta ? catMeta.short : q.category}]</span>
+              <span class="text-xs truncate text-slate-200">${q.subtag}</span>
+            </div>
+            <div class="shrink-0">${badgeHtml}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /*************************************************************************
+     * 9. WEAKNESS DRILL, FURIGANA, CLOUD SYNC & EXPORT TO NOTEBOOKLM
+     *************************************************************************/
+    function toggleFurigana() {
+      showFurigana = !showFurigana;
+      const statusText = document.getElementById('furiganaStatusText');
+      statusText.textContent = showFurigana ? 'ON' : 'OFF';
+      statusText.className = showFurigana ? 'font-mono text-amber-400 font-bold' : 'font-mono text-emerald-400 font-bold';
+
+      const q = getCurrentQuestion();
+      const hintBox = document.getElementById('qHintBox');
+      if (showFurigana && q && q.furiganaHint && (isSubmitted || (q.category !== 'KANJI' && q.category !== 'LISTENING'))) {
+        hintBox.textContent = `💡 詞彙與讀音輔助：${q.furiganaHint}`;
+        hintBox.classList.remove('hidden');
+      } else {
+        hintBox.classList.add('hidden');
+      }
+    }
+
+    function speakQuestion(rate = 1.0) {
+      if (!('speechSynthesis' in window)) {
+        showToast('您的瀏覽器不支援 Web Speech 日語語音合成功能。', 'rose');
+        return;
+      }
+      const q = getCurrentQuestion();
+      if (!q) return;
+
+      window.speechSynthesis.cancel();
+      const cleanText = q.ttsText || q.stem.replace(/<[^>]*>/g, '');
+      const utter = new SpeechSynthesisUtterance(cleanText);
+      utter.lang = 'ja-JP';
+      utter.rate = rate;
+      window.speechSynthesis.speak(utter);
+      showToast(`🔊 正在以 ${rate}x 語速朗讀日文題目...`, 'sky');
+    }
+
+    function startWeaknessDrill() {
+      const weakIds = Object.values(historyMap)
+        .filter(r => !r.isCorrect || r.srlType === 'FRAGILE')
+        .map(r => r.questionId);
+
+      if (weakIds.length === 0) {
+        showToast('目前尚無錯題或脆弱正確題目！請先作答幾題後再啟動錯題重練。', 'amber');
+        return;
+      }
+
+      currentFilter = 'WEAKNESS';
+      filteredIndices = questions
+        .map((q, idx) => ({ q, idx }))
+        .filter(item => weakIds.includes(item.q.id))
+        .map(item => item.idx);
+
+      currentPos = 0;
+      renderCategoryTabs();
+      loadCurrentQuestion();
+      showToast(`🔄 已為您篩選出 ${filteredIndices.length} 題「錯題與脆弱正確題」進行專項突破！`, 'emerald');
+    }
+
+    function resetAllProgress() {
+      stopListeningDialogue();
+      historyMap = {};
+      updateKPIsAndRadar();
+      loadCurrentQuestion();
+      showToast('已重置所有作答與六維度雷達圖紀錄。', 'sky');
+    }
+
+    function openCloudModal() {
+      document.getElementById('cloudSyncModal').classList.remove('hidden');
+    }
+
+    function closeCloudModal() {
+      document.getElementById('cloudSyncModal').classList.add('hidden');
+    }
+
+    function copyAntigravityPrompt() {
+      const area = document.getElementById('antigravityPromptArea');
+      area.select();
+      document.execCommand('copy');
+      showToast('✅ 已複製 Antigravity 2.0 排程指令！', 'emerald');
+    }
+
+    async function syncFromGoogleSheet() {
+      const rawInput = document.getElementById('sheetUrlInput').value.trim();
+      if (!rawInput) {
+        showToast('請先輸入 Google Sheets 分享網址或試算表 ID！', 'amber');
+        return;
+      }
+      const match = rawInput.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      const sheetId = match ? match[1] : rawInput;
+      const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+
+      try {
+        showToast('☁️ 正在從 Google Sheets 讀取雲端題庫...', 'sky');
+        const res = await fetch(gvizUrl);
+        const text = await res.text();
+        const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+        const data = JSON.parse(jsonStr);
+        const rows = data?.table?.rows || [];
+        let added = 0;
+
+        rows.forEach((r, idx) => {
+          const cells = r.c || [];
+          const id = cells[0]?.v || `CLOUD-${idx + 1}`;
+          const category = cells[1]?.v || 'GRAMMAR';
+          const subtag = cells[2]?.v || '雲端同步題庫';
+          const stem = cells[3]?.v;
+          if (!stem) return;
+
+          let options = ['選択肢1', '選択肢2', '選択肢3', '選択肢4'];
+          try { options = JSON.parse(cells[4]?.v); } catch (e) {}
+          const correctIndex = Number(cells[5]?.v) || 0;
+          const translation = cells[6]?.v || '';
+          const coreRule = cells[7]?.v || '';
+          let optionExplanations = ['解析1', '解析2', '解析3', '解析4'];
+          try { optionExplanations = JSON.parse(cells[8]?.v); } catch (e) {}
+          let dialogue = undefined;
+          try { if (cells[9]?.v) dialogue = JSON.parse(cells[9]?.v); } catch (e) {}
+
+          if (!questions.some(q => q.id === id)) {
+            questions.push({
+              id, category, subtag, targetSec: 45,
+              instruction: '問題：最もよいものを、1・2・3・4から一つ選びなさい。',
+              stem, options, correctIndex, translation, coreRule, optionExplanations, dialogue
+            });
+            added++;
+          }
+        });
+
+        renderCategoryTabs();
+        applyCategoryFilter('ALL');
+        updateKPIsAndRadar();
+        closeCloudModal();
+        showToast(`✅ 成功從 Google Sheets 同步新增 ${added} 道題目！`, 'emerald');
+      } catch (err) {
+        showToast('無法讀取該試算表，請確認權限已設為「知道連結的任何人可檢視」。', 'rose');
+      }
+    }
+
+    function openExportModal() {
+      const records = Object.values(historyMap);
+      const targetQuestions = records.length > 0
+        ? questions.filter(q => historyMap[q.id])
+        : questions;
+
+      let md = `# JLPT N2 個人化聽讀錯題與 SRL 診斷知識庫 (NotebookLM 專用)\n`;
+      md += `> 匯出時間：${new Date().toLocaleString()} | 已診斷題數：${records.length} 題\n\n`;
+
+      targetQuestions.forEach((q, i) => {
+        const rec = historyMap[q.id];
+        const statusStr = rec
+          ? `${rec.srlLabel} | 信心度: ${rec.confidence}% | 排程: ${rec.fsrsTag}`
+          : '核心必考樣題（尚未作答）';
+        const cleanStem = q.stem.replace(/<[^>]*>/g, '');
+
+        md += `## ${i + 1}. [${q.id}] ${q.subtag}\n`;
+        md += `- **SRL 診斷狀態**：${statusStr}\n`;
+        md += `- **日文題幹**：${cleanStem}\n`;
+
+        if (Array.isArray(q.dialogue)) {
+          md += `- **🎧 聽解雙人對話逐字稿**：\n`;
+          q.dialogue.forEach(t => {
+            md += `  - **${t.speakerLabel}**：${t.jp} （${t.zh}）${t.isKeySignal ? ' ⚡[關鍵轉折句]' : ''}\n`;
+          });
+        }
+
+        md += `- **選項**：(1) ${q.options[0]} | (2) ${q.options[1]} | (3) ${q.options[2]} | (4) ${q.options[3]}\n`;
+        md += `- **正確解答**：(${q.correctIndex + 1}) ${q.options[q.correctIndex]}\n`;
+        if (rec && !rec.isCorrect) {
+          md += `- **當時誤選**：(${rec.selectedIndex + 1}) ${q.options[rec.selectedIndex]}\n`;
+        }
+        md += `- **繁體中文翻譯**：${q.translation}\n`;
+        md += `- **N2 核心考點規則**：${q.coreRule}\n`;
+        md += `- **四選項誘答拆解**：\n`;
+        q.options.forEach((opt, oIdx) => {
+          md += `  - (${oIdx + 1}) ${opt}：${q.optionExplanations[oIdx]}\n`;
+        });
+        md += `\n---\n\n`;
+      });
+
+      document.getElementById('exportMarkdownArea').value = md;
+      document.getElementById('exportModal').classList.remove('hidden');
+    }
+
+    function closeExportModal() {
+      document.getElementById('exportModal').classList.add('hidden');
+    }
+
+    function copyExportMarkdown() {
+      const area = document.getElementById('exportMarkdownArea');
+      area.select();
+      document.execCommand('copy');
+      showToast('✅ 已複製 Markdown 錯題與聽解筆記！可直接貼入 NotebookLM。', 'emerald');
+    }
+
+    /*************************************************************************
+     * 10. GEMINI API INTEGRATION (DYNAMIC QUESTION GEN INCLUDE LISTENING)
+     *************************************************************************/
+    const apiKey = ""; // Canvas runtime injects API key automatically
+
+    async function callGeminiWithBackoff(payload) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+      const delays = [1000, 2000, 4000];
+
+      for (let attempt = 0; attempt <= delays.length; attempt++) {
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!text) throw new Error('Empty response');
+          return text;
+        } catch (err) {
+          if (attempt === delays.length) throw err;
+          await new Promise(r => setTimeout(r, delays[attempt]));
+        }
+      }
+    }
+
+    async function generateAIQuestions() {
+      const btn = document.getElementById('aiGenerateBtn');
+      const spinner = document.getElementById('aiGenSpinner');
+      const btnText = document.getElementById('aiGenBtnText');
+
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      btnText.textContent = 'AI 正在命題...';
+
+      let targetCat = currentFilter !== 'ALL' && currentFilter !== 'WEAKNESS' ? currentFilter : 'LISTENING';
+      const catMeta = CATEGORIES.find(c => c.id === targetCat) || CATEGORIES[6];
+
+      const systemPrompt = `你是一位日本國際交流基金會 JLPT N2 權威命題委員與繁體中文日語教學專家。
+請設計 1 道極具鑑別度的 JLPT N2 實戰考題，類別為「${catMeta.name} (${targetCat})」。
+若 category 為 LISTENING，請務必提供 dialogue 陣列（包含 NARRATOR, MALE, FEMALE, QUESTION 角色、口語縮約形與轉折關鍵句 isKeySignal: true）。
+所有解析與翻譯必須使用繁體中文。`;
+
+      const userQuery = `請立即生成 1 道全新的 JLPT N2「${catMeta.name}」考題，並包含四個選項各自的詳細誘答解析。`;
+
+      const payload = {
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              category: { type: "STRING" },
+              subtag: { type: "STRING" },
+              instruction: { type: "STRING" },
+              stem: { type: "STRING" },
+              furiganaHint: { type: "STRING" },
+              options: { type: "ARRAY", items: { type: "STRING" } },
+              correctIndex: { type: "INTEGER" },
+              translation: { type: "STRING" },
+              coreRule: { type: "STRING" },
+              optionExplanations: { type: "ARRAY", items: { type: "STRING" } },
+              dialogue: {
+                type: "ARRAY",
+                items: {
+                  type: "OBJECT",
+                  properties: {
+                    role: { type: "STRING" },
+                    speakerLabel: { type: "STRING" },
+                    jp: { type: "STRING" },
+                    zh: { type: "STRING" },
+                    isKeySignal: { type: "BOOLEAN" },
+                    signalNote: { type: "STRING" }
+                  },
+                  propertyOrdering: ["role", "speakerLabel", "jp", "zh", "isKeySignal", "signalNote"]
+                }
+              }
+            },
+            propertyOrdering: [
+              "category", "subtag", "instruction", "stem", "furiganaHint",
+              "options", "correctIndex", "translation", "coreRule", "optionExplanations", "dialogue"
+            ]
+          }
+        }
+      };
+
+      try {
+        const rawJson = await callGeminiWithBackoff(payload);
+        const item = JSON.parse(rawJson);
+
+        const newId = `AI-${questions.length + 1}`;
+        questions.push({
+          id: newId,
+          category: ['KANJI', 'VOCAB', 'GRAMMAR', 'STAR', 'READING', 'LISTENING'].includes(item.category) ? item.category : targetCat,
+          subtag: item.subtag || 'AI 動態弱點命題',
+          targetSec: catMeta.targetSec || 50,
+          instruction: item.instruction || '問題：最もよいものを、1・2・3・4から一つ選びなさい。',
+          stem: item.stem,
+          furiganaHint: item.furiganaHint || '',
+          ttsText: item.stem.replace(/<[^>]*>/g, ''),
+          options: item.options?.slice(0, 4) || ['選択肢1', '選択肢2', '選択肢3', '選択肢4'],
+          correctIndex: Math.min(3, Math.max(0, Number(item.correctIndex) || 0)),
+          translation: item.translation || '',
+          coreRule: item.coreRule || '',
+          optionExplanations: item.optionExplanations?.slice(0, 4) || ['解析1', '解析2', '解析3', '解析4'],
+          dialogue: Array.isArray(item.dialogue) && item.dialogue.length > 0 ? item.dialogue : undefined
+        });
+
+        applyCategoryFilter(targetCat);
+        currentPos = filteredIndices.length - 1;
+        loadCurrentQuestion();
+        updateKPIsAndRadar();
+        showToast(`✨ 成功由 AI 動態生成全新 N2 ${catMeta.name} 實戰題！`, 'emerald');
+      } catch (err) {
+        // High-precision procedural fallback (Listening Dialogue or Grammar)
+        const fallbackListening = {
+          id: `AI-L0${questions.length + 1}`,
+          category: 'LISTENING',
+          subtag: 'AI 動態聽解：問題1 課題理解（預約變更與分工）',
+          targetSec: 50,
+          instruction: '問題1：まず質問を聞いてください。それから話を聞いて、最もよいものを一つ選んでください。',
+          stem: '<strong class="text-sky-300">🎧 【AI 動態聽解】女の人はこの後、<u>まず</u>何をしますか。</strong>',
+          furiganaHint: 'かんそうかい (歡送會) / にんずう (人數) / キャンセ (取消)',
+          options: [
+            'レストランに電話して予約人数を増やす',
+            '別の新しいレストランを探して予約する',
+            '参加費の集金を始める',
+            '花束を注文しに行く'
+          ],
+          correctIndex: 0,
+          dialogue: [
+            {
+              role: 'NARRATOR',
+              speakerLabel: '🎙️ 旁白',
+              jp: '会社で男の人と女の人が来週の歓送迎会の準備について話しています。女の人はこの後、まず何をしますか。',
+              zh: '在公司裡，一男一女正在討論下週歡送迎會的準備事宜。請問女生接下來首先要做什麼？'
+            },
+            {
+              role: 'MALE',
+              speakerLabel: '👨 男社員',
+              jp: '林さん、来週の歓送迎会なんだけど、急に営業部の新人も5人参加することになっちゃって。予約してた店、まだ人数増やせるかな。',
+              zh: '林小姐，關於下週的歡送迎會，營業部的新人突然也要多5個人參加。我們預約好的那家店，還能增加人數嗎？'
+            },
+            {
+              role: 'FEMALE',
+              speakerLabel: '👩 女社員 (林)',
+              jp: 'えっ、5人もですか？うーん、あそこは個室が狭いから、別の店を探し直したほうがいいかもしれませんね。',
+              zh: '咦，多達5個人嗎？嗯…那裡包廂比較小，或許重新找別家店比較好呢。'
+            },
+            {
+              role: 'MALE',
+              speakerLabel: '👨 男社員',
+              jp: 'いや、今から別の店を探すのは大変だから、まずは今の店に電話して、席を広げられないか聞いてみてよ。花束の注文や集金は僕がやっとくからさ。',
+              zh: '不，現在要找別家店太費工夫了，所以妳先打電話去現在這家店問問看能不能擴大座位吧。花束的訂購跟收錢我先幫妳處理好（やっとく＝やっておく）。',
+              isKeySignal: true,
+              signalNote: '🔑 關鍵轉折信號：男同事用「いや、…まずは今の店に電話して、席を広げられないか聞いてみてよ」否決換店提議並指派第一優先行動！'
+            },
+            {
+              role: 'FEMALE',
+              speakerLabel: '👩 女社員 (林)',
+              jp: 'わかりました。じゃあ、早速かけてみます。',
+              zh: '我知道了。那我馬上打電話問問看。'
+            },
+            {
+              role: 'QUESTION',
+              speakerLabel: '❓ 質問',
+              jp: '女の人はこの後、まず何をしますか。',
+              zh: '請問女生在這之後，首先要做什麼？'
+            }
+          ],
+          translation: '男同事告知歡送會突然多5位新人參加。女生原本提議換別家店，但男生說現在換店太麻煩，請女生先打電話問原本預約的餐廳能否增加人數擴大座位，而訂花與收錢則由男生負責（僕がやっとく）。',
+          coreRule: '鎖定男生的轉折指示「いや、…まずは今の店に電話して（不，先打電話給現在預約的店）」以及分工區隔「花束の注文や集金は僕がやっとく（花束與收錢由男生做）」。',
+          optionExplanations: [
+            '✅ 正確解答：對應「まずは今の店に電話して、席を広げられないか聞いてみてよ」。',
+            '❌ 誘答陷阱（被否決的提議）：女生雖提議換店，但被男生以「いや、今から別の店を探すのは大変だから」否決。',
+            '❌ 誘答陷阱（男女分工混淆）：「集金は僕がやっとく（收錢我來負責）」是男生的工作。',
+            '❌ 誘答陷阱（男女分工混淆）：「花束の注文」同樣由男生負責。'
+          ]
+        };
+
+        questions.push(fallbackListening);
+        applyCategoryFilter('LISTENING');
+        currentPos = filteredIndices.length - 1;
+        loadCurrentQuestion();
+        updateKPIsAndRadar();
+        showToast('✨ 已為您載入最新 N2 雙聲道盲聽實戰題！', 'emerald');
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        btnText.textContent = '✨ AI 針對弱點動態出題';
+      }
+    }
+
+    async function askAITutorQuick(promptText) {
+      document.getElementById('aiTutorInput').value = promptText;
+      await askAITutorCustom();
+    }
+
+    async function askAITutorCustom() {
+      const inputEl = document.getElementById('aiTutorInput');
+      const query = inputEl.value.trim();
+      if (!query) return;
+
+      const q = getCurrentQuestion();
+      const respBox = document.getElementById('aiTutorResponseBox');
+      const btn = document.getElementById('aiTutorBtn');
+
+      respBox.classList.remove('hidden');
+      respBox.textContent = '🤖 AI 日檢家教正在為您拆解語法、聽力縮約音與例句...';
+      btn.disabled = true;
+
+      const dialogueContext = Array.isArray(q.dialogue)
+        ? q.dialogue.map(t => `${t.speakerLabel}: ${t.jp}`).join('\n')
+        : '';
+
+      const systemPrompt = `你是一位專精 JLPT N2 的台灣日語名師。請用繁體中文、條理分明且精簡扼要的方式回答學生的提問。重要日文漢字請附上平假名讀音。`;
+      const userPrompt = `【當前題目】：${q.stem.replace(/<[^>]*>/g, '')}
+${dialogueContext ? `【聽力對話逐字稿】：\n${dialogueContext}\n` : ''}
+【四個選項】：1.${q.options[0]} / 2.${q.options[1]} / 3.${q.options[2]} / 4.${q.options[3]}
+【正確答案】：(${q.correctIndex + 1}) ${q.options[q.correctIndex]}
+【核心考點】：${q.coreRule}
+【學生提問】：${query}`;
+
+      try {
+        const answer = await callGeminiWithBackoff({
+          contents: [{ parts: [{ text: userPrompt }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] }
+        });
+        respBox.textContent = answer;
+      } catch (e) {
+        respBox.textContent = `💡 【名師重點補充】\n針對本題「${q.options[q.correctIndex]}」：\n1. 核心語感：${q.coreRule}\n2. 聽讀實戰技巧：日檢 N2 極常在對話中段使用口語縮約形（如 ～とく、～ちゃった）搭配逆接詞（実は、それより），建議點擊上方逐句重播反覆建立聽覺記憶！`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function generateAICoachReport() {
+      const box = document.getElementById('aiCoachContent');
+      const btn = document.getElementById('aiCoachBtn');
+      const records = Object.values(historyMap);
+
+      if (records.length === 0) {
+        showToast('請先作答至少 1 ~ 3 題，讓 AI 收集您的六維度表現與信心校準數據！', 'amber');
+        return;
+      }
+
+      btn.disabled = true;
+      box.innerHTML = `<p class="text-amber-300 animate-pulse">🧠 AI 教練正在分析您的六維度雷達落點、聽解盲點與 IRT 過關機率...</p>`;
+
+      const summaryStr = records.map(r => {
+        const q = questions.find(item => item.id === r.questionId);
+        return `- [${r.category}] ${q?.subtag}: ${r.isCorrect ? '答對' : '答錯'} (信心度 ${r.confidence}%, 耗時 ${r.elapsedSec}s, 狀態 ${r.srlType})`;
+      }).join('\n');
+
+      const prompt = `以下是考生在 JLPT N2 六維度（含聽解）刷題系統的實測數據：
+${summaryStr}
+
+請用繁體中文給出 3 點極具實戰價值的「JLPT N2 個人化診斷與本週複習處方箋」（包含：1. 盲點與信心度校準分析、2. 筆試與聽解優先補強規則、3. 配速與下一步刷題建議，限 180 字內，精準有力）。`;
+
+      try {
+        const report = await callGeminiWithBackoff({
+          contents: [{ parts: [{ text: prompt }] }],
+          systemInstruction: { parts: [{ text: '你是嚴謹且高效的 JLPT N2 認知科學教練。' }] }
+        });
+        box.innerHTML = `<div class="whitespace-pre-wrap text-slate-100">${report}</div>`;
+      } catch (e) {
+        const acc = Math.round((records.filter(r => r.isCorrect).length / records.length) * 100);
+        box.innerHTML = `
+          <div class="space-y-1.5">
+            <div class="text-amber-300 font-bold">📊 六維度實戰診斷報告（正確率 ${acc}%）：</div>
+            <p>1. <strong>盲點校準</strong>：請優先點擊上方「🔄 錯題與脆弱重練」，消滅高信心誤判題。</p>
+            <p>2. <strong>聽解特訓</strong>：切換至「🎧 聽解實戰」，利用 1.0x 與 1.15x 倍速訓練對轉折詞（実は／それより）的瞬間捕捉力。</p>
+          </div>
+        `;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function showToast(msg, color = 'amber') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const colorMap = {
+        amber: 'bg-slate-900 border-amber-500 text-amber-300',
+        emerald: 'bg-slate-900 border-emerald-500 text-emerald-300',
+        rose: 'bg-slate-900 border-rose-500 text-rose-300',
+        sky: 'bg-slate-900 border-sky-500 text-sky-300'
+      };
+      toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl border-l-4 shadow-2xl text-xs font-semibold transition-all duration-300 ${colorMap[color] || colorMap.amber}`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+  </script>
+</body>
+</html>

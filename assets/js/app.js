@@ -1,0 +1,1653 @@
+/*************************************************************************
+ * app.js
+ * Core Application Controller for JLPT N1-N4 Interactive AI Studio v3.0
+ * Features:
+ * - Multi-Level Router (N2 Default -> N3 -> N4 -> N1)
+ * - 6 Category Tabs + Official Exam Sub-Type Filter Dropdown
+ * - Sweller Scaffolding Mode vs. Exam Simulation Mode
+ * - Socratic Hint & 1-Distractor Elimination Scaffold
+ * - Paivio Situational SVG Renderer (for N3/N4 Utterance Expressions)
+ * - Odlin L1 Kanji Transfer Card & Worked-Example Syntactic Chain
+ * - localStorage Persistence + JSON Backup/Restore + BYOK Gemini Vault
+ *************************************************************************/
+
+const CATEGORIES = [
+  { id: 'ALL', name: '⚡ 跨題型交錯實戰', short: '全部', targetSec: 45 },
+  { id: 'KANJI', name: '漢字・表記', short: '漢字表記', targetSec: 30 },
+  { id: 'VOCAB', name: '語形成・語彙・用法', short: '語彙用法', targetSec: 35 },
+  { id: 'GRAMMAR', name: '文法・文章文法', short: '文法克漏', targetSec: 45 },
+  { id: 'STAR', name: '星號重組 ★', short: '星號重組', targetSec: 60 },
+  { id: 'READING', name: '讀解・統合・檢索', short: '各類讀解', targetSec: 120 },
+  { id: 'LISTENING', name: '🎧 聽解全題型', short: '聽解實戰', targetSec: 50 }
+];
+
+const STORAGE_KEY = 'jlpt_ai_studio_v3_progress';
+const BYOK_STORAGE_KEY = 'jlpt_ai_studio_gemini_key';
+
+let allBanks = { N1: [], N2: [], N3: [], N4: [] };
+let currentLevel = 'N2';
+let questions = [];
+let questionMap = {};
+
+let currentFilter = 'ALL';
+let currentOfficialSubfilter = 'ALL_SUB';
+let filteredIndices = [];
+let currentPos = 0;
+let selectedOptionIndex = null;
+let currentConfidence = 75;
+let showFurigana = false;
+let pedagogicalMode = 'SCAFFOLD'; // 'SCAFFOLD' | 'EXAM'
+let eliminatedOptionIndex = null;
+let socraticHintUsed = false;
+
+// Pacing Timer State
+let elapsedSeconds = 0;
+let timerInterval = null;
+let isSubmitted = false;
+
+// Star (★) Reconstructor State
+let starSlots = [null, null, null, null];
+
+// Choukai Blind-Listening State
+let scriptPeeked = false;
+let blindOptionsUnmasked = false;
+
+// Persistent User Performance History Map: { [questionId]: record }
+let historyMap = {};
+
+window.addEventListener('DOMContentLoaded', async () => {
+  loadPersistedProgress();
+  initEqualizerBars();
+  renderPedagogicalTheoryModalContent();
+  updateByokStatusUI();
+
+  await loadAllQuestionBanks();
+  switchLevel('N2', false);
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+    if (e.key >= '1' && e.key <= '4') {
+      const idx = parseInt(e.key, 10) - 1;
+      selectOption(idx);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!isSubmitted) {
+        submitCurrentAnswer();
+      } else {
+        nextQuestion();
+      }
+    }
+  });
+});
+
+async function loadAllQuestionBanks() {
+  // If embedded banks exist (Standalone HTML mode), load them first
+  if (window.EMBEDDED_JLPT_BANKS) {
+    allBanks = window.EMBEDDED_JLPT_BANKS;
+  }
+
+  // Try fetching fresh JSON banks from ./data/n{1..4}_bank.json
+  const levels = ['N2', 'N3', 'N4', 'N1'];
+  await Promise.all(levels.map(async (lvl) => {
+    try {
+      const res = await fetch(`data/${lvl.toLowerCase()}_bank.json`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          allBanks[lvl] = data;
+        }
+      }
+    } catch (e) {
+      // Offline or file:// protocol: keep embedded bank
+    }
+  }));
+
+  // Index all questions into questionMap
+  questionMap = {};
+  Object.values(allBanks).forEach(arr => {
+    (arr || []).forEach(q => {
+      questionMap[q.id] = q;
+    });
+  });
+
+  updateLevelSwitcherCounts();
+}
+
+function updateLevelSwitcherCounts() {
+  ['N2', 'N3', 'N4', 'N1'].forEach(lvl => {
+    const cntEl = document.getElementById(`lvlCount_${lvl}`);
+    if (cntEl && allBanks[lvl]) {
+      cntEl.textContent = `${allBanks[lvl].length}題`;
+    }
+  });
+}
+
+function switchLevel(lvl, showNotification = true) {
+  if (typeof stopListeningDialogue === 'function') stopListeningDialogue();
+  currentLevel = lvl;
+  questions = [...(allBanks[lvl] || [])];
+  currentFilter = 'ALL';
+  currentOfficialSubfilter = 'ALL_SUB';
+
+  // Update Level Switcher Pills UI
+  ['N2', 'N3', 'N4', 'N1'].forEach(code => {
+    const btn = document.getElementById(`lvlBtn_${code}`);
+    if (!btn) return;
+    if (code === lvl) {
+      btn.className = 'px-3.5 py-2 rounded-xl font-bold text-xs transition flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border border-amber-300';
+    } else {
+      btn.className = 'px-3.5 py-2 rounded-xl font-semibold text-xs transition flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700';
+    }
+  });
+
+  // Update Header Brand Badge & Exam Gate Info
+  const spec = LEVEL_SPECS[lvl] || LEVEL_SPECS.N2;
+  const brandBadge = document.getElementById('headerLevelBadge');
+  const brandTitle = document.getElementById('headerLevelTitle');
+  const brandSub = document.getElementById('headerLevelDesc');
+  if (brandBadge) brandBadge.textContent = lvl;
+  if (brandTitle) brandTitle.textContent = `JLPT ${lvl} 互動式 AI 刷題與認知診斷系統 v3.0`;
+  if (brandSub) brandSub.textContent = `${spec.desc} ｜ ⏱️ ${spec.timerSpec} ｜ 📚 ${spec.vocabScale}`;
+
+  // Auto-enable Furigana for N3/N4 in Scaffolding mode
+  if ((lvl === 'N3' || lvl === 'N4') && pedagogicalMode === 'SCAFFOLD') {
+    showFurigana = true;
+  }
+  syncFuriganaUI();
+
+  populateOfficialSubfilterDropdown();
+  renderCategoryTabs();
+  applyCategoryFilter('ALL');
+  updateKPIsAndRadar();
+  renderQuestionQueue();
+
+  if (showNotification) {
+    showToast(`🎯 已切換至 JLPT ${lvl}（共 ${questions.length} 道精編實戰題，${spec.sectionsMode}）`, 'amber');
+  }
+}
+
+function setPedagogicalMode(mode) {
+  pedagogicalMode = mode;
+  const btnScaffold = document.getElementById('modeBtnScaffold');
+  const btnExam = document.getElementById('modeBtnExam');
+  const scaffoldToolbar = document.getElementById('scaffoldingActionStrip');
+
+  if (mode === 'SCAFFOLD') {
+    if (btnScaffold) btnScaffold.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 transition flex items-center gap-1';
+    if (btnExam) btnExam.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1';
+    if (scaffoldToolbar) scaffoldToolbar.classList.remove('hidden');
+    if (currentLevel === 'N3' || currentLevel === 'N4') {
+      showFurigana = true;
+      syncFuriganaUI();
+    }
+    showToast('🌱 已啟用「教學鷹架模式」：提供蘇格拉底產婆提示、誘答排除與分級振假名輔助！', 'emerald');
+  } else {
+    if (btnExam) btnExam.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500 text-white transition flex items-center gap-1';
+    if (btnScaffold) btnScaffold.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1';
+    if (scaffoldToolbar) scaffoldToolbar.classList.add('hidden');
+    showFurigana = false;
+    syncFuriganaUI();
+    showToast('⚔️ 已進入「考場實戰模式」：隱藏所有鷹架提示，嚴格執行考場盲聽與配速計時！', 'rose');
+  }
+  loadCurrentQuestion();
+}
+
+function populateOfficialSubfilterDropdown() {
+  const select = document.getElementById('officialSubtypeSelect');
+  if (!select) return;
+  const map = new Map();
+  questions.forEach(q => {
+    if (q.officialCode && q.officialName) {
+      const prev = map.get(q.officialCode) || { name: q.officialName, count: 0 };
+      prev.count++;
+      map.set(q.officialCode, prev);
+    }
+  });
+
+  let html = `<option value="ALL_SUB">📑 官方細分大題：全部題型 (${questions.length}題)</option>`;
+  Array.from(map.entries()).forEach(([code, info]) => {
+    html += `<option value="${code}">${info.name} (${info.count}題)</option>`;
+  });
+  select.innerHTML = html;
+  select.value = currentOfficialSubfilter;
+}
+
+function applyOfficialSubfilter(subCode) {
+  currentOfficialSubfilter = subCode;
+  filterQuestionsList();
+}
+
+function renderCategoryTabs() {
+  const container = document.getElementById('categoryTabs');
+  if (!container) return;
+  container.innerHTML = CATEGORIES.map(cat => {
+    const count = cat.id === 'ALL'
+      ? questions.length
+      : questions.filter(q => q.category === cat.id).length;
+    const active = currentFilter === cat.id;
+    const isListening = cat.id === 'LISTENING';
+    return `
+      <button onclick="applyCategoryFilter('${cat.id}')"
+        class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 border ${
+          active
+            ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20 font-bold'
+            : isListening
+            ? 'bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border-sky-500/40'
+            : 'bg-slate-800/90 hover:bg-slate-700/80 text-slate-300 border-slate-700'
+        }">
+        <span>${cat.name}</span>
+        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+          active ? 'bg-slate-950/20 text-slate-950' : 'bg-slate-900 text-slate-400'
+        }">${count}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function applyCategoryFilter(catId) {
+  if (typeof stopListeningDialogue === 'function') stopListeningDialogue();
+  currentFilter = catId;
+  currentOfficialSubfilter = 'ALL_SUB';
+  const select = document.getElementById('officialSubtypeSelect');
+  if (select) select.value = 'ALL_SUB';
+  filterQuestionsList();
+}
+
+function filterQuestionsList() {
+  filteredIndices = questions
+    .map((q, idx) => ({ q, idx }))
+    .filter(item => {
+      const matchCat = currentFilter === 'ALL' || item.q.category === currentFilter;
+      const matchSub = currentOfficialSubfilter === 'ALL_SUB' || item.q.officialCode === currentOfficialSubfilter;
+      return matchCat && matchSub;
+    })
+    .map(item => item.idx);
+
+  if (filteredIndices.length === 0) {
+    filteredIndices = questions.map((_, idx) => idx);
+  }
+  currentPos = 0;
+  renderCategoryTabs();
+  loadCurrentQuestion();
+}
+
+function getCurrentQuestion() {
+  const qIdx = filteredIndices[currentPos] ?? 0;
+  return questions[qIdx];
+}
+
+function initEqualizerBars() {
+  const eq = document.getElementById('eqVisualizer');
+  if (!eq) return;
+  let barsHtml = '';
+  for (let i = 0; i < 24; i++) {
+    const delay = ((i % 6) * 0.11).toFixed(2);
+    const heightClass = i % 3 === 0 ? 'h-8' : i % 2 === 0 ? 'h-6' : 'h-5';
+    barsHtml += `<span class="eq-bar w-1.5 ${heightClass} rounded-full bg-gradient-to-t from-sky-500 to-amber-400" style="animation-delay: ${delay}s"></span>`;
+  }
+  eq.innerHTML = barsHtml;
+}
+
+function loadCurrentQuestion() {
+  if (typeof stopListeningDialogue === 'function') stopListeningDialogue();
+  const q = getCurrentQuestion();
+  if (!q) return;
+
+  isSubmitted = false;
+  selectedOptionIndex = null;
+  eliminatedOptionIndex = null;
+  socraticHintUsed = false;
+  scriptPeeked = false;
+  blindOptionsUnmasked = !q.blindOptions;
+  starSlots = [null, null, null, null];
+
+  document.getElementById('diagnosticPanel')?.classList.add('hidden');
+  document.getElementById('aiTutorResponseBox')?.classList.add('hidden');
+  document.getElementById('socraticHintBanner')?.classList.add('hidden');
+  const tutorInput = document.getElementById('aiTutorInput');
+  if (tutorInput) tutorInput.value = '';
+  document.getElementById('submitBtn')?.classList.remove('hidden');
+
+  const catMeta = CATEGORIES.find(c => c.id === q.category) || CATEGORIES[0];
+  document.getElementById('qCategoryBadge').textContent = q.officialName || catMeta.name;
+  document.getElementById('qSubtagBadge').textContent = q.subtag || `${currentLevel} 核心考點`;
+  document.getElementById('qBloomBadge').textContent = q.bloomLabel || 'L2 理解';
+  document.getElementById('qIrtBadge').textContent = `IRT b=${(q.irtB ?? 0).toFixed(1)}`;
+  document.getElementById('qProgressText').textContent = `題號 #${currentPos + 1} / ${filteredIndices.length} (${q.id})`;
+  document.getElementById('qInstruction').textContent = q.instruction;
+  document.getElementById('qStemText').innerHTML = q.stem;
+
+  // Render Situational SVG Card (for N3/N4 Utterance Expressions L4_UTTERANCE)
+  const svgBox = document.getElementById('situationSvgBox');
+  if (svgBox) {
+    if (q.situationSvg) {
+      svgBox.innerHTML = q.situationSvg;
+      svgBox.classList.remove('hidden');
+    } else {
+      svgBox.innerHTML = '';
+      svgBox.classList.add('hidden');
+    }
+  }
+
+  // Listening Console vs Standard TTS Bar
+  const listeningConsole = document.getElementById('listeningConsoleBox');
+  const standardTtsBar = document.getElementById('standardTtsBar');
+  if (q.category === 'LISTENING') {
+    listeningConsole.classList.remove('hidden');
+    standardTtsBar.classList.add('hidden');
+    document.getElementById('blindShieldBox').classList.remove('hidden');
+    document.getElementById('dialogueTranscriptBox').classList.add('hidden');
+    document.getElementById('turnCounterText').textContent = `語音段: 0 / ${q.dialogue ? q.dialogue.length : 1}`;
+    document.getElementById('activeSpeakerBadge').textContent = '待機中 (點擊下方播放考場雙聲道音訊)';
+    document.getElementById('playChoukaiText').textContent = '播放考場對話 (含鐘聲)';
+    const consoleTitle = document.getElementById('choukaiConsoleTitle');
+    if (consoleTitle) consoleTitle.textContent = `🎧 JLPT ${currentLevel} 雙聲道考場音源合成器 (${q.officialName || '聴解'})`;
+  } else {
+    listeningConsole.classList.add('hidden');
+    standardTtsBar.classList.remove('hidden');
+  }
+
+  // Problem 3 / Quick Response Blind Options Notice
+  const blindNotice = document.getElementById('blindOptionsNotice');
+  if (q.blindOptions && !blindOptionsUnmasked) {
+    blindNotice.classList.remove('hidden');
+    blindNotice.classList.add('flex');
+  } else {
+    blindNotice.classList.add('hidden');
+    blindNotice.classList.remove('flex');
+  }
+
+  // Furigana Hint Box
+  updateFuriganaHintVisibility(q);
+
+  // Star (★) Reconstructor Visibility
+  const starBox = document.getElementById('starReconstructorBox');
+  if (q.category === 'STAR') {
+    starBox.classList.remove('hidden');
+    renderStarReconstructor(q);
+  } else {
+    starBox.classList.add('hidden');
+  }
+
+  renderOptionCards(q);
+  document.getElementById('prevBtn').disabled = currentPos === 0;
+  startPacingTimer(q.targetSec || catMeta.targetSec || 45);
+  renderQuestionQueue();
+}
+
+function updateFuriganaHintVisibility(q) {
+  const hintBox = document.getElementById('qHintBox');
+  if (!hintBox || !q) return;
+  if (showFurigana && q.furiganaHint && (isSubmitted || (q.category !== 'KANJI' && q.category !== 'LISTENING'))) {
+    hintBox.textContent = `💡 詞彙與讀音鷹架輔助：${q.furiganaHint}`;
+    hintBox.classList.remove('hidden');
+  } else {
+    hintBox.classList.add('hidden');
+  }
+}
+
+function syncFuriganaUI() {
+  const statusText = document.getElementById('furiganaStatusText');
+  if (statusText) {
+    statusText.textContent = showFurigana ? 'ON' : 'OFF';
+    statusText.className = showFurigana ? 'font-mono text-amber-400 font-bold' : 'font-mono text-emerald-400 font-bold';
+  }
+  if (showFurigana) {
+    document.body.classList.remove('hide-inline-ruby');
+  } else {
+    document.body.classList.add('hide-inline-ruby');
+  }
+  updateFuriganaHintVisibility(getCurrentQuestion());
+}
+
+function toggleFurigana() {
+  showFurigana = !showFurigana;
+  syncFuriganaUI();
+}
+
+function triggerSocraticHint() {
+  const q = getCurrentQuestion();
+  if (!q) return;
+  socraticHintUsed = true;
+  const banner = document.getElementById('socraticHintBanner');
+  const textEl = document.getElementById('socraticHintText');
+  if (banner && textEl) {
+    textEl.textContent = q.socraticHint || q.coreRule;
+    banner.classList.remove('hidden');
+    showToast('🎯 已展開蘇格拉底產婆引導提示（思考關鍵語境線索，不直接洩漏答案）！', 'amber');
+  }
+}
+
+function eliminateOneDistractor() {
+  const q = getCurrentQuestion();
+  if (!q || isSubmitted) return;
+  if (eliminatedOptionIndex !== null) {
+    showToast('本題已排除過一個誘答選項囉！', 'sky');
+    return;
+  }
+  const wrongIndices = q.options.map((_, idx) => idx).filter(idx => idx !== q.correctIndex);
+  eliminatedOptionIndex = wrongIndices[Math.floor(Math.random() * wrongIndices.length)];
+  if (selectedOptionIndex === eliminatedOptionIndex) {
+    selectedOptionIndex = null;
+  }
+  renderOptionCards(q);
+  showToast(`✂️ 認知減負鷹架：已為您排除明顯誘答項（選項 ${eliminatedOptionIndex + 1}）！`, 'emerald');
+}
+
+function renderOptionCards(q) {
+  const container = document.getElementById('optionsContainer');
+  if (!container || !q) return;
+
+  container.innerHTML = q.options.map((optText, idx) => {
+    const isSelected = selectedOptionIndex === idx;
+    const isEliminated = eliminatedOptionIndex === idx && !isSubmitted;
+    const isMasked = q.blindOptions && !blindOptionsUnmasked && !isSubmitted;
+    const displayLabel = isMasked
+      ? `選項 ${idx + 1}（考場全盲聽鎖定中：請先聽完音訊或點擊上方顯示選項）`
+      : optText;
+
+    let cardStyle = isSelected
+      ? 'bg-amber-500/20 border-amber-400 text-white shadow-md shadow-amber-500/10'
+      : 'bg-slate-900/80 hover:bg-slate-700/60 border-slate-700 text-slate-200';
+
+    if (isEliminated) {
+      cardStyle = 'bg-slate-950/40 border-slate-800/60 text-slate-600 line-through opacity-45 cursor-not-allowed';
+    }
+
+    if (isSubmitted) {
+      if (idx === q.correctIndex) {
+        cardStyle = 'bg-emerald-500/20 border-emerald-400 text-emerald-100 shadow-md shadow-emerald-500/10';
+      } else if (idx === selectedOptionIndex && idx !== q.correctIndex) {
+        cardStyle = 'bg-rose-500/20 border-rose-400 text-rose-100';
+      } else {
+        cardStyle = 'bg-slate-900/40 border-slate-800 text-slate-400 opacity-75';
+      }
+    }
+
+    return `
+      <button type="button" onclick="selectOption(${idx})" ${isEliminated ? 'disabled' : ''}
+        class="w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3 group ${cardStyle}">
+        <span class="w-7 h-7 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${
+          isSelected
+            ? 'bg-amber-400 text-slate-950'
+            : 'bg-slate-800 text-slate-300 group-hover:bg-slate-700'
+        }">
+          ${idx + 1}
+        </span>
+        <span class="jp-text text-base font-medium flex-1 ${isMasked ? 'text-slate-500 italic text-xs' : ''}">${displayLabel}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function selectOption(idx) {
+  if (isSubmitted || idx === eliminatedOptionIndex) return;
+  const q = getCurrentQuestion();
+  if (!q || idx >= q.options.length) return;
+  selectedOptionIndex = idx;
+  renderOptionCards(q);
+}
+
+/*************************************************************************
+ * INTERACTIVE STAR (★) SYNTAX RECONSTRUCTOR
+ *************************************************************************/
+function renderStarReconstructor(q) {
+  const slotsContainer = document.getElementById('starSlotsContainer');
+  const tokensBar = document.getElementById('starTokensBar');
+  if (!slotsContainer || !tokensBar) return;
+
+  slotsContainer.innerHTML = [0, 1, 2, 3].map(slotIdx => {
+    const isStarSlot = slotIdx === 2;
+    const placedOptIdx = starSlots[slotIdx];
+    const placedText = placedOptIdx !== null
+      ? `(${placedOptIdx + 1}) ${q.options[placedOptIdx]}`
+      : (isStarSlot ? '★ 點擊下方詞塊填入' : `第 ${slotIdx + 1} 格`);
+
+    return `
+      <div onclick="removeStarSlot(${slotIdx})"
+        class="cursor-pointer rounded-xl p-2.5 border text-center transition flex flex-col items-center justify-center min-h-[54px] ${
+          isStarSlot
+            ? 'bg-amber-500/15 border-amber-400 star-slot-active'
+            : 'bg-slate-950 border-slate-700'
+        }">
+        <span class="text-[10px] font-mono ${isStarSlot ? 'text-amber-400 font-bold' : 'text-slate-400'}">
+          ${isStarSlot ? '★ 目標計分位置 (第3格)' : `語序位置 ${slotIdx + 1}`}
+        </span>
+        <span class="jp-text text-xs sm:text-sm font-bold mt-0.5 ${placedOptIdx !== null ? 'text-white' : 'text-slate-500'}">
+          ${placedText}
+        </span>
+      </div>
+    `;
+  }).join('');
+
+  tokensBar.innerHTML = q.options.map((optText, idx) => {
+    const used = starSlots.includes(idx);
+    return `
+      <button type="button" onclick="placeStarToken(${idx})" ${used ? 'disabled' : ''}
+        class="px-3 py-1.5 rounded-lg border text-xs sm:text-sm jp-text font-medium transition ${
+          used
+            ? 'bg-slate-900 border-slate-800 text-slate-600 opacity-40 cursor-not-allowed'
+            : 'bg-slate-800 hover:bg-amber-500/20 border-slate-600 hover:border-amber-400 text-slate-100'
+        }">
+        <span class="font-mono text-amber-400 font-bold mr-1">(${idx + 1})</span>${optText}
+      </button>
+    `;
+  }).join('');
+}
+
+function placeStarToken(optIdx) {
+  if (isSubmitted) return;
+  const emptySlotIdx = starSlots.findIndex(s => s === null);
+  if (emptySlotIdx === -1) return;
+  starSlots[emptySlotIdx] = optIdx;
+  if (starSlots[2] !== null) {
+    selectedOptionIndex = starSlots[2];
+  }
+  const q = getCurrentQuestion();
+  renderStarReconstructor(q);
+  renderOptionCards(q);
+}
+
+function removeStarSlot(slotIdx) {
+  if (isSubmitted) return;
+  starSlots[slotIdx] = null;
+  if (slotIdx === 2) selectedOptionIndex = null;
+  const q = getCurrentQuestion();
+  renderStarReconstructor(q);
+  renderOptionCards(q);
+}
+
+function resetStarSlots() {
+  if (isSubmitted) return;
+  starSlots = [null, null, null, null];
+  selectedOptionIndex = null;
+  const q = getCurrentQuestion();
+  renderStarReconstructor(q);
+  renderOptionCards(q);
+}
+
+/*************************************************************************
+ * POKA-YOKE PACING TIMER & SRL CONFIDENCE CALIBRATION
+ *************************************************************************/
+function startPacingTimer(targetSec) {
+  if (timerInterval) clearInterval(timerInterval);
+  elapsedSeconds = 0;
+  updateTimerUI(targetSec);
+  timerInterval = setInterval(() => {
+    if (!isSubmitted) {
+      elapsedSeconds++;
+      updateTimerUI(targetSec);
+    }
+  }, 1000);
+}
+
+function updateTimerUI(targetSec) {
+  const timerText = document.getElementById('timerText');
+  const timerDot = document.getElementById('timerDot');
+  const progressBar = document.getElementById('timerProgressBar');
+  if (!timerText || !timerDot || !progressBar) return;
+
+  const padSec = String(elapsedSeconds).padStart(2, '0');
+  timerText.textContent = `${padSec}s / ${targetSec}s`;
+  const ratio = Math.min(100, (elapsedSeconds / targetSec) * 100);
+  progressBar.style.width = `${ratio}%`;
+
+  if (elapsedSeconds <= targetSec * 0.75) {
+    timerText.className = 'font-mono text-xs font-bold text-emerald-400';
+    timerDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+    progressBar.className = 'bg-emerald-500 h-full transition-all duration-300';
+  } else if (elapsedSeconds <= targetSec) {
+    timerText.className = 'font-mono text-xs font-bold text-amber-400';
+    timerDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+    progressBar.className = 'bg-amber-500 h-full transition-all duration-300';
+  } else {
+    timerText.className = 'font-mono text-xs font-bold text-rose-400';
+    timerDot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
+    progressBar.className = 'bg-rose-500 h-full transition-all duration-300';
+  }
+}
+
+function updateConfidenceUI(val) {
+  currentConfidence = parseInt(val, 10);
+  const slider = document.getElementById('confidenceSlider');
+  if (slider) slider.value = currentConfidence;
+  const badge = document.getElementById('confidenceValBadge');
+  if (!badge) return;
+
+  let label = '頗有把握';
+  let colorClass = 'bg-sky-500/20 border-sky-500/40 text-sky-300';
+  if (currentConfidence < 40) {
+    label = '純猜測 / 直覺';
+    colorClass = 'bg-rose-500/20 border-rose-500/40 text-rose-300';
+  } else if (currentConfidence < 70) {
+    label = '二選一猶豫';
+    colorClass = 'bg-amber-500/20 border-amber-500/40 text-amber-300';
+  } else if (currentConfidence >= 90) {
+    label = '絕對篤定';
+    colorClass = 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300';
+  }
+
+  badge.className = `px-2.5 py-0.5 rounded-md border font-mono text-sm font-bold ${colorClass}`;
+  badge.textContent = `${currentConfidence}% ${label}`;
+}
+
+/*************************************************************************
+ * SUBMIT, SRL + FSRS v5 + 2PL-IRT DIAGNOSTIC & PEDAGOGICAL LENSES
+ *************************************************************************/
+function submitCurrentAnswer() {
+  if (selectedOptionIndex === null) {
+    showToast('請先點選一個答案選項（或按鍵盤 1 ~ 4）再提交批改！', 'amber');
+    return;
+  }
+
+  const q = getCurrentQuestion();
+  isSubmitted = true;
+  blindOptionsUnmasked = true;
+  if (timerInterval) clearInterval(timerInterval);
+
+  const isCorrect = selectedOptionIndex === q.correctIndex;
+  const usedScaffold = scriptPeeked || socraticHintUsed || eliminatedOptionIndex !== null;
+  const fsrsResult = computeFSRSUpdate(historyMap[q.id], isCorrect, currentConfidence, usedScaffold);
+
+  historyMap[q.id] = {
+    questionId: q.id,
+    level: q.level || currentLevel,
+    category: q.category,
+    officialCode: q.officialCode,
+    selectedIndex: selectedOptionIndex,
+    correctIndex: q.correctIndex,
+    isCorrect,
+    confidence: fsrsResult.effConf,
+    srlType: fsrsResult.srlType,
+    srlLabel: fsrsResult.srlLabel,
+    fsrsTag: fsrsResult.fsrsTag,
+    stability: fsrsResult.stability,
+    difficulty: fsrsResult.difficulty,
+    elapsedSec: elapsedSeconds,
+    timestamp: new Date().toLocaleTimeString()
+  };
+
+  savePersistedProgress();
+
+  // Unlock Listening Dialogue Script with Full Signal Highlights
+  if (q.category === 'LISTENING') {
+    document.getElementById('blindShieldBox').classList.add('hidden');
+    document.getElementById('blindOptionsNotice').classList.add('hidden');
+    renderDialogueTranscript(q, true);
+  }
+
+  renderOptionCards(q);
+  updateFuriganaHintVisibility(q);
+
+  // Populate Diagnostic Panel
+  const diagPanel = document.getElementById('diagnosticPanel');
+  diagPanel.classList.remove('hidden');
+
+  const iconBox = document.getElementById('resultIconBox');
+  const titleText = document.getElementById('resultTitleText');
+  if (isCorrect) {
+    iconBox.className = 'w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-xl font-bold';
+    iconBox.textContent = '✓';
+    titleText.className = 'text-base sm:text-lg font-bold text-emerald-400';
+    titleText.textContent = `回答正確！（作答耗時 ${elapsedSeconds} 秒）`;
+  } else {
+    iconBox.className = 'w-11 h-11 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center text-xl font-bold';
+    iconBox.textContent = '✗';
+    titleText.className = 'text-base sm:text-lg font-bold text-rose-400';
+    titleText.textContent = `誤入誘答陷阱！正解為選項 (${q.correctIndex + 1})`;
+  }
+
+  const srlBadge = document.getElementById('srlQuadrantBadge');
+  srlBadge.className = `px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${fsrsResult.srlBadgeClass}`;
+  srlBadge.textContent = fsrsResult.srlLabel;
+
+  document.getElementById('fsrsScheduleText').textContent =
+    `${fsrsResult.fsrsDesc}（記憶穩定度 S=${fsrsResult.stability}d, 難度 D=${fsrsResult.difficulty}）`;
+  document.getElementById('diagTranslation').textContent = q.translation;
+  document.getElementById('diagCoreRule').textContent = q.coreRule;
+
+  // Populate Odlin L1 Kanji Transfer Lens & Worked Example Grammar Chain
+  const l1Box = document.getElementById('diagL1Transfer');
+  if (l1Box) {
+    l1Box.textContent = q.l1TransferNote || '注意區分中文母語字義與日語實際共現搭配（Collocation）之差異。';
+  }
+  const chainBox = document.getElementById('diagGrammarChain');
+  const chainCard = document.getElementById('diagGrammarChainCard');
+  if (chainBox && chainCard) {
+    if (q.grammarChain) {
+      chainBox.textContent = q.grammarChain;
+      chainCard.classList.remove('hidden');
+    } else {
+      chainCard.classList.add('hidden');
+    }
+  }
+
+  // Render 4-Option Distractor Breakdown
+  const distractorList = document.getElementById('distractorList');
+  distractorList.innerHTML = q.options.map((optText, idx) => {
+    const isOptCorrect = idx === q.correctIndex;
+    const isUserPick = idx === selectedOptionIndex;
+    const expText = q.optionExplanations?.[idx] || '';
+
+    let boxClass = 'bg-slate-900/60 border-slate-700/70 text-slate-300';
+    let badgeHtml = '';
+
+    if (isOptCorrect) {
+      boxClass = 'bg-emerald-950/40 border-emerald-500/50 text-emerald-100';
+      badgeHtml = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">正解</span>`;
+    } else if (isUserPick && !isOptCorrect) {
+      boxClass = 'bg-rose-950/40 border-rose-500/50 text-rose-100';
+      badgeHtml = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] font-bold">您的誤選</span>`;
+    }
+
+    return `
+      <div class="p-3.5 rounded-xl border ${boxClass} space-y-1">
+        <div class="flex items-center justify-between gap-2">
+          <span class="jp-text font-bold text-sm">(${idx + 1}) ${optText}</span>
+          ${badgeHtml}
+        </div>
+        <p class="text-xs leading-relaxed opacity-95">${expText}</p>
+      </div>
+    `;
+  }).join('');
+
+  updateKPIsAndRadar();
+  updateLocalCoachPrescription(q, historyMap[q.id]);
+  renderQuestionQueue();
+
+  diagPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function highlightActiveTranscriptLine(activeIdx) {
+  const lines = document.querySelectorAll('[data-turn-idx]');
+  lines.forEach(el => {
+    const idx = parseInt(el.getAttribute('data-turn-idx'), 10);
+    if (idx === activeIdx) {
+      el.classList.add('ring-2', 'ring-sky-400');
+    } else {
+      el.classList.remove('ring-2', 'ring-sky-400');
+    }
+  });
+}
+
+function peekListeningTranscript() {
+  scriptPeeked = true;
+  const q = getCurrentQuestion();
+  document.getElementById('blindShieldBox').classList.add('hidden');
+  renderDialogueTranscript(q, false);
+  showToast('👁️ 已開啟對話逐字稿輔助（系統將自動把本題有效信心度上限設為 50%，排入 T+3d 鞏固複習）。', 'amber');
+}
+
+function renderDialogueTranscript(q, showFullSignalAnalysis = false) {
+  const box = document.getElementById('dialogueTranscriptBox');
+  if (!q || !Array.isArray(q.dialogue)) {
+    box.classList.add('hidden');
+    return;
+  }
+  box.classList.remove('hidden');
+
+  box.innerHTML = q.dialogue.map((turn, idx) => {
+    const isSignal = turn.isKeySignal;
+    const borderClass = isSignal
+      ? 'bg-amber-950/35 border-amber-500/60'
+      : 'bg-slate-900/90 border-slate-800';
+
+    return `
+      <div data-turn-idx="${idx}" class="p-3 rounded-xl border ${borderClass} transition space-y-1">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-xs font-bold ${
+              turn.role === 'FEMALE' ? 'text-pink-400' : (turn.role === 'MALE' || turn.role === 'MALE2') ? 'text-sky-400' : 'text-amber-300'
+            }">${turn.speakerLabel}</span>
+            ${isSignal ? `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">⚡ 轉折關鍵句</span>` : ''}
+          </div>
+          <button type="button" onclick="replayDialogueTurn(${idx})" class="px-2.5 py-0.5 rounded-lg bg-slate-800 hover:bg-sky-500/20 text-sky-300 border border-slate-700 text-[11px] font-mono transition">
+            🔊 單句重播
+          </button>
+        </div>
+        <p class="jp-text text-sm text-slate-100 font-medium">${turn.jp}</p>
+        ${showFullSignalAnalysis ? `<p class="text-xs text-slate-400">${turn.zh}</p>` : ''}
+        ${showFullSignalAnalysis && isSignal && turn.signalNote ? `<div class="mt-1 pt-1.5 border-t border-amber-500/30 text-xs text-amber-300 font-medium">${turn.signalNote}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function unmaskBlindOptions() {
+  blindOptionsUnmasked = true;
+  document.getElementById('blindOptionsNotice').classList.add('hidden');
+  document.getElementById('blindOptionsNotice').classList.remove('flex');
+  renderOptionCards(getCurrentQuestion());
+}
+
+function toggleMp3Drawer() {
+  const content = document.getElementById('mp3DrawerContent');
+  const arrow = document.getElementById('mp3DrawerArrow');
+  if (content.classList.contains('hidden')) {
+    content.classList.remove('hidden');
+    arrow.textContent = '▲';
+  } else {
+    content.classList.add('hidden');
+    arrow.textContent = '▼';
+  }
+}
+
+function loadLocalMp3File(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const player = document.getElementById('localMp3Player');
+  player.src = url;
+  player.playbackRate = listeningSpeed;
+  document.getElementById('localMp3FileName').textContent = `🎵 ${file.name}`;
+  showToast(`✅ 已成功載入音檔：${file.name}`, 'emerald');
+}
+
+function seekLocalMp3(deltaSec) {
+  const player = document.getElementById('localMp3Player');
+  if (!player || !player.src) return;
+  player.currentTime = Math.max(0, player.currentTime + deltaSec);
+}
+
+function prevQuestion() {
+  if (currentPos > 0) {
+    currentPos--;
+    loadCurrentQuestion();
+  }
+}
+
+function nextQuestion() {
+  if (currentPos < filteredIndices.length - 1) {
+    currentPos++;
+    loadCurrentQuestion();
+  } else {
+    showToast('已到達本篩選分類最後一題！可切換其他題型或點擊「✨ AI 針對弱點動態出題」。', 'sky');
+  }
+}
+
+function jumpToQuestionById(qId) {
+  const globalIdx = questions.findIndex(q => q.id === qId);
+  if (globalIdx === -1) return;
+
+  if (currentFilter !== 'ALL' && questions[globalIdx].category !== currentFilter) {
+    currentFilter = 'ALL';
+    currentOfficialSubfilter = 'ALL_SUB';
+    filteredIndices = questions.map((_, idx) => idx);
+    renderCategoryTabs();
+  }
+  currentPos = filteredIndices.indexOf(globalIdx);
+  if (currentPos === -1) currentPos = 0;
+  loadCurrentQuestion();
+}
+
+/*************************************************************************
+ * 6D HEXAGON SVG RADAR & 2PL-IRT SCORE ESTIMATOR
+ *************************************************************************/
+function getCurrentLevelRecords() {
+  return Object.values(historyMap).filter(r => (r.level || r.questionId?.split('-')[0]) === currentLevel);
+}
+
+function updateKPIsAndRadar() {
+  const records = getCurrentLevelRecords();
+  const totalAnswered = records.length;
+  const correctCount = records.filter(r => r.isCorrect).length;
+  const blindspotCount = records.filter(r => r.srlType === 'BLINDSPOT').length;
+  const weaknessCount = records.filter(r => !r.isCorrect || r.srlType === 'FRAGILE').length;
+
+  document.getElementById('weaknessCountBadge').textContent = weaknessCount;
+  document.getElementById('kpiAnswered').textContent = `${totalAnswered} / ${questions.length}`;
+  document.getElementById('kpiBlindspots').textContent = `${blindspotCount} 題`;
+
+  if (totalAnswered > 0) {
+    const accRate = Math.round((correctCount / totalAnswered) * 100);
+    const avgConf = Math.round(records.reduce((acc, r) => acc + r.confidence, 0) / totalAnswered);
+    const calGap = avgConf - accRate;
+
+    document.getElementById('kpiAccuracy').textContent = `${accRate}%`;
+    const gapSign = calGap > 0 ? `+${calGap}%` : `${calGap}%`;
+    document.getElementById('kpiCalibrationGap').textContent = gapSign;
+    document.getElementById('kpiCalibrationLabel').textContent =
+      calGap > 15 ? '⚠️ 過度自信傾向' : calGap < -15 ? '💡 信心偏保守' : '✅ 認知校準良好';
+  } else {
+    document.getElementById('kpiAccuracy').textContent = '--%';
+    document.getElementById('kpiCalibrationGap').textContent = '--%';
+  }
+
+  const dimKeys = ['KANJI', 'VOCAB', 'GRAMMAR', 'STAR', 'READING', 'LISTENING'];
+  const dimLabels = ['漢字表記', '語彙用法', '文法克漏', '星號重組★', '各類讀解', '🎧聽解'];
+
+  const dimData = dimKeys.map((key, idx) => {
+    const catRecords = records.filter(r => r.category === key);
+    if (catRecords.length === 0) {
+      return { key, label: dimLabels[idx], acc: 50, conf: 50, count: 0, rawAcc: null };
+    }
+    const acc = Math.round((catRecords.filter(r => r.isCorrect).length / catRecords.length) * 100);
+    const conf = Math.round(catRecords.reduce((s, r) => s + r.confidence, 0) / catRecords.length);
+    return { key, label: dimLabels[idx], acc, conf, count: catRecords.length, rawAcc: acc };
+  });
+
+  renderHexagonRadarSVG(dimData);
+  renderDimensionPills(dimData);
+  updateIRTScoreBanner(records);
+}
+
+function updateIRTScoreBanner(records) {
+  const irt = computeLevelIRTScores(currentLevel, records, questionMap);
+  const spec = irt.spec;
+
+  document.getElementById('irtHeaderTitle').textContent = `JLPT ${currentLevel} 量尺分數推估與過關機率`;
+  document.getElementById('irtTotalLabel').textContent = `預估總分 (合格 ≥${spec.passTotal})`;
+  document.getElementById('irtWrittenLabel').textContent = spec.combinedWrittenGate
+    ? '言語知識+讀解 (合併門檻 ≥38)'
+    : '言語知識+讀解 (各科 ≥19)';
+
+  const totalEl = document.getElementById('irtTotalScore');
+  const writtenEl = document.getElementById('irtWrittenScore');
+  const listenEl = document.getElementById('irtListeningScore');
+  const badgeEl = document.getElementById('irtPassBadge');
+  const vetoBox = document.getElementById('irtVetoAlertBox');
+
+  if (!irt.hasData) {
+    totalEl.textContent = '-- / 180';
+    writtenEl.textContent = '-- / 120';
+    listenEl.textContent = '-- / 60';
+    badgeEl.textContent = `待累積 ${currentLevel} 作答數據`;
+    badgeEl.className = 'px-2.5 py-0.5 rounded-full bg-slate-700 text-slate-300 font-mono text-xs font-bold';
+    if (vetoBox) vetoBox.classList.add('hidden');
+    return;
+  }
+
+  totalEl.textContent = `${irt.estTotal} / 180`;
+  writtenEl.textContent = spec.combinedWrittenGate
+    ? `${irt.estWritten} / 120`
+    : `${irt.estLang}+${irt.estRead} (${irt.estWritten}/120)`;
+  listenEl.textContent = `${irt.estListen} / 60`;
+
+  if (irt.vetoAlert && vetoBox) {
+    vetoBox.textContent = irt.vetoAlert;
+    vetoBox.classList.remove('hidden');
+  } else if (vetoBox) {
+    vetoBox.classList.add('hidden');
+  }
+
+  if (irt.passProb >= 70) {
+    badgeEl.textContent = `θ=${irt.theta} ｜ 過關機率 ${irt.passProb}% (安全圈)`;
+    badgeEl.className = 'px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono text-xs font-bold';
+  } else if (irt.passProb >= 45) {
+    badgeEl.textContent = `θ=${irt.theta} ｜ 過關機率 ${irt.passProb}% (臨界衝刺)`;
+    badgeEl.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono text-xs font-bold';
+  } else {
+    badgeEl.textContent = `θ=${irt.theta} ｜ 過關機率 ${irt.passProb}% (防單科淘汰)`;
+    badgeEl.className = 'px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-mono text-xs font-bold';
+  }
+}
+
+function renderHexagonRadarSVG(dimData) {
+  const svg = document.getElementById('radarSvg');
+  if (!svg) return;
+  const cx = 170;
+  const cy = 135;
+  const maxR = 90;
+  const N = 6;
+
+  const getPoint = (i, val) => {
+    const angle = (Math.PI * 2 * i) / N - Math.PI / 2;
+    const r = (val / 100) * maxR;
+    return {
+      x: (cx + r * Math.cos(angle)).toFixed(1),
+      y: (cy + r * Math.sin(angle)).toFixed(1)
+    };
+  };
+
+  const levels = [20, 40, 60, 80, 100];
+  const gridsHtml = levels.map(lvl => {
+    const pts = [0, 1, 2, 3, 4, 5].map(i => {
+      const p = getPoint(i, lvl);
+      return `${p.x},${p.y}`;
+    }).join(' ');
+    const strokeColor = lvl === 60 ? '#475569' : '#334155';
+    const dash = lvl === 60 ? 'stroke-dasharray="3,3"' : '';
+    return `<polygon points="${pts}" fill="none" stroke="${strokeColor}" stroke-width="1" ${dash} />`;
+  }).join('');
+
+  const axesHtml = dimData.map((d, i) => {
+    const endPt = getPoint(i, 100);
+    const lblPt = getPoint(i, 124);
+    const scoreStr = d.rawAcc !== null ? `${d.acc}%` : '未測';
+    const fillCol = d.key === 'LISTENING' ? '#38bdf8' : '#e2e8f0';
+    return `
+      <line x1="${cx}" y1="${cy}" x2="${endPt.x}" y2="${endPt.y}" stroke="#334155" stroke-width="1" />
+      <text x="${lblPt.x}" y="${lblPt.y}" fill="${fillCol}" font-size="11" font-weight="700" text-anchor="middle" dominant-baseline="middle">
+        ${d.label} (${scoreStr})
+      </text>
+    `;
+  }).join('');
+
+  const confPts = dimData.map((d, i) => {
+    const p = getPoint(i, Math.max(12, d.conf));
+    return `${p.x},${p.y}`;
+  }).join(' ');
+
+  const accPts = dimData.map((d, i) => {
+    const p = getPoint(i, Math.max(12, d.acc));
+    return `${p.x},${p.y}`;
+  }).join(' ');
+
+  const dotsHtml = dimData.map((d, i) => {
+    const pAcc = getPoint(i, Math.max(12, d.acc));
+    const pConf = getPoint(i, Math.max(12, d.conf));
+    return `
+      <circle cx="${pConf.x}" cy="${pConf.y}" r="3.5" fill="#f59e0b" />
+      <circle cx="${pAcc.x}" cy="${pAcc.y}" r="4" fill="#38bdf8" stroke="#0f172a" stroke-width="1.5" />
+    `;
+  }).join('');
+
+  svg.innerHTML = `
+    ${gridsHtml}
+    ${axesHtml}
+    <polygon points="${confPts}" fill="rgba(245, 158, 11, 0.16)" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,2" />
+    <polygon points="${accPts}" fill="rgba(56, 189, 248, 0.25)" stroke="#38bdf8" stroke-width="2.5" />
+    ${dotsHtml}
+  `;
+}
+
+function renderDimensionPills(dimData) {
+  const container = document.getElementById('dimensionStatsGrid');
+  if (!container) return;
+  container.innerHTML = dimData.map(d => {
+    const color = d.rawAcc === null
+      ? 'text-slate-400'
+      : d.acc >= 70
+      ? 'text-emerald-400'
+      : d.acc >= 50
+      ? 'text-amber-400'
+      : 'text-rose-400';
+    return `
+      <div onclick="applyCategoryFilter('${d.key}')" class="cursor-pointer bg-slate-900/90 hover:bg-slate-900 border border-slate-700/80 rounded-xl p-2 transition">
+        <div class="text-[10px] text-slate-400 truncate">${d.label}</div>
+        <div class="font-mono text-xs font-bold mt-0.5 ${color}">${d.rawAcc !== null ? d.acc + '%' : '--'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateLocalCoachPrescription(q, record) {
+  const box = document.getElementById('aiCoachContent');
+  if (!box) return;
+  const records = getCurrentLevelRecords();
+  const blindspots = records.filter(r => r.srlType === 'BLINDSPOT');
+
+  let adviceHtml = '';
+  if (record.srlType === 'BLINDSPOT') {
+    adviceHtml = `
+      <div class="text-rose-300 font-bold">🚨 偵測到「高信心盲點」(${q.id})：</div>
+      <p>您在本題設定了 <strong>${record.confidence}%</strong> 的高把握度卻落入誘答陷阱。請務必詳讀左側「🇹🇼⇄🇯🇵 台灣高中生漢字母語正負遷移透鏡」，矯正母語干擾（已排入 <code>FSRS T+1d 優先佇列</code>）。</p>
+    `;
+  } else if (record.srlType === 'FRAGILE') {
+    adviceHtml = `
+      <div class="text-amber-300 font-bold">⚠️ 偵測到「脆弱正確」(${q.id})：</div>
+      <p>您雖答對但把握度偏低（<strong>${record.confidence}%</strong>）。請檢視左側「🔗 語法接續鏈圖解」與四選項拆解，將直覺轉化為確定性規則（排入 <code>FSRS T+3d</code>）。</p>
+    `;
+  } else if (record.srlType === 'MASTERY') {
+    adviceHtml = `
+      <div class="text-emerald-300 font-bold">✅ 認知校準精準 (${q.id})：</div>
+      <p>作答耗時 <strong>${record.elapsedSec} 秒</strong>，高信心與正確率完美吻合！目前 ${currentLevel} 累計發現 <strong>${blindspots.length} 題</strong>高信心盲點，可隨時點擊「✨ 生成深度診斷」獲取衝刺處方。</p>
+    `;
+  } else {
+    adviceHtml = `
+      <div class="text-sky-300 font-bold">🔧 基礎觀念補強 (${q.id})：</div>
+      <p>此題屬於尚未熟悉的 ${currentLevel} 考點（${q.officialName}）。建議先切換至「🌱 教學鷹架模式」善用蘇格拉底提示，並匯出至 NotebookLM 複習。</p>
+    `;
+  }
+  box.innerHTML = adviceHtml;
+}
+
+function renderQuestionQueue() {
+  const container = document.getElementById('questionQueueList');
+  if (!container) return;
+  const currentQ = getCurrentQuestion();
+
+  container.innerHTML = questions.map((q) => {
+    const rec = historyMap[q.id];
+    const isCurrent = currentQ && currentQ.id === q.id;
+
+    let badgeHtml = `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-[10px]">未作答</span>`;
+    if (rec) {
+      if (rec.srlType === 'BLINDSPOT') {
+        badgeHtml = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-mono text-[10px] font-bold">🚨 ${rec.fsrsTag}</span>`;
+      } else if (rec.srlType === 'FRAGILE') {
+        badgeHtml = `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono text-[10px] font-bold">⚠️ ${rec.fsrsTag}</span>`;
+      } else if (rec.srlType === 'MASTERY') {
+        badgeHtml = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono text-[10px]">✅ ${rec.fsrsTag}</span>`;
+      } else {
+        badgeHtml = `<span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 font-mono text-[10px]">🔧 ${rec.fsrsTag}</span>`;
+      }
+    }
+
+    return `
+      <div onclick="jumpToQuestionById('${q.id}')"
+        class="cursor-pointer px-3 py-2 rounded-xl border transition flex items-center justify-between gap-2 ${
+          isCurrent
+            ? 'bg-amber-500/15 border-amber-400 text-white'
+            : 'bg-slate-900/70 hover:bg-slate-900 border-slate-800 text-slate-300'
+        }">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="font-mono text-xs text-amber-400 font-bold shrink-0">${q.id}</span>
+          <span class="text-[11px] text-sky-300 shrink-0">[${q.officialName || q.category}]</span>
+          <span class="text-xs truncate text-slate-200">${q.subtag}</span>
+        </div>
+        <div class="shrink-0">${badgeHtml}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/*************************************************************************
+ * PERSISTENCE (localStorage), WEAKNESS DRILL & MODALS
+ *************************************************************************/
+function savePersistedProgress() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(historyMap));
+  } catch (e) {}
+}
+
+function loadPersistedProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      historyMap = JSON.parse(raw) || {};
+    }
+  } catch (e) {
+    historyMap = {};
+  }
+}
+
+function speakQuestion(rate = 1.0) {
+  if (!('speechSynthesis' in window)) {
+    showToast('您的瀏覽器不支援 Web Speech 日語語音合成功能。', 'rose');
+    return;
+  }
+  const q = getCurrentQuestion();
+  if (!q) return;
+  window.speechSynthesis.cancel();
+  const cleanText = q.ttsText || q.stem.replace(/<[^>]*>/g, '');
+  const utter = new SpeechSynthesisUtterance(cleanText);
+  utter.lang = 'ja-JP';
+  utter.rate = rate;
+  window.speechSynthesis.speak(utter);
+  showToast(`🔊 正在以 ${rate}x 語速朗讀日文題目...`, 'sky');
+}
+
+function startWeaknessDrill() {
+  const weakIds = getCurrentLevelRecords()
+    .filter(r => !r.isCorrect || r.srlType === 'FRAGILE')
+    .map(r => r.questionId);
+
+  if (weakIds.length === 0) {
+    showToast(`目前 ${currentLevel} 尚無錯題或脆弱正確題目！請先作答幾題後再啟動錯題重練。`, 'amber');
+    return;
+  }
+
+  currentFilter = 'WEAKNESS';
+  filteredIndices = questions
+    .map((q, idx) => ({ q, idx }))
+    .filter(item => weakIds.includes(item.q.id))
+    .map(item => item.idx);
+
+  currentPos = 0;
+  renderCategoryTabs();
+  loadCurrentQuestion();
+  showToast(`🔄 已為您篩選出 ${filteredIndices.length} 題 ${currentLevel}「錯題與脆弱正確題」進行專項突破！`, 'emerald');
+}
+
+function resetAllProgress() {
+  if (typeof stopListeningDialogue === 'function') stopListeningDialogue();
+  Object.keys(historyMap).forEach(k => {
+    if (k.startsWith(currentLevel)) delete historyMap[k];
+  });
+  savePersistedProgress();
+  updateKPIsAndRadar();
+  loadCurrentQuestion();
+  showToast(`已重置 ${currentLevel} 所有作答與六維度雷達圖紀錄。`, 'sky');
+}
+
+function renderPedagogicalTheoryModalContent() {
+  const box = document.getElementById('pedagogyCardsContainer');
+  if (!box || typeof PEDAGOGICAL_THEORIES === 'undefined') return;
+  box.innerHTML = PEDAGOGICAL_THEORIES.map(t => `
+    <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 space-y-1.5">
+      <div class="flex items-center justify-between gap-2">
+        <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-xs font-bold">${t.code}</span>
+        <span class="text-[11px] font-mono text-sky-400">${t.scholar}</span>
+      </div>
+      <div class="text-sm font-bold text-white">${t.title}</div>
+      <p class="text-xs text-slate-300 leading-relaxed">${t.summary}</p>
+    </div>
+  `).join('');
+}
+
+function openPedagogyModal() {
+  document.getElementById('pedagogyModal')?.classList.remove('hidden');
+}
+function closePedagogyModal() {
+  document.getElementById('pedagogyModal')?.classList.add('hidden');
+}
+
+function openWorkflowModal() {
+  document.getElementById('workflowModal')?.classList.remove('hidden');
+}
+function closeWorkflowModal() {
+  document.getElementById('workflowModal')?.classList.add('hidden');
+}
+
+function jumpToLevelAndSubtype(lvl, officialCode) {
+  closeWorkflowModal();
+  switchLevel(lvl, false);
+  const select = document.getElementById('officialSubtypeSelect');
+  if (select && officialCode) {
+    select.value = officialCode;
+    applyOfficialSubfilter(officialCode);
+  }
+  showToast(`🎯 已切換至 JLPT ${lvl} 並鎖定題型：${officialCode}`, 'emerald');
+}
+
+function downloadProgressBackup() {
+  const payload = {
+    version: '3.0',
+    exportedAt: new Date().toISOString(),
+    historyMap
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `jlpt_ai_studio_backup_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 已下載學習進度與 FSRS 記憶排程備份檔 (.json)！', 'emerald');
+}
+
+function uploadProgressBackup(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const mapData = parsed.historyMap || parsed;
+      if (mapData && typeof mapData === 'object') {
+        historyMap = { ...historyMap, ...mapData };
+        savePersistedProgress();
+        updateKPIsAndRadar();
+        renderQuestionQueue();
+        showToast('✅ 成功還原並合併學習進度紀錄！', 'emerald');
+      }
+    } catch (err) {
+      showToast('備份檔格式無效，請確認上傳正確的 JSON 檔案。', 'rose');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function openCloudModal() {
+  document.getElementById('cloudSyncModal')?.classList.remove('hidden');
+}
+function closeCloudModal() {
+  document.getElementById('cloudSyncModal')?.classList.add('hidden');
+}
+
+function openByokModal() {
+  const input = document.getElementById('byokKeyInput');
+  if (input) input.value = sessionStorage.getItem(BYOK_STORAGE_KEY) || '';
+  document.getElementById('byokModal')?.classList.remove('hidden');
+}
+function closeByokModal() {
+  document.getElementById('byokModal')?.classList.add('hidden');
+}
+function saveByokKey() {
+  const val = document.getElementById('byokKeyInput')?.value.trim() || '';
+  if (val) {
+    sessionStorage.setItem(BYOK_STORAGE_KEY, val);
+    showToast('🔑 已將您的個人 Gemini API Key 安全儲存於瀏覽器 sessionStorage！', 'emerald');
+  } else {
+    sessionStorage.removeItem(BYOK_STORAGE_KEY);
+    showToast('已清除瀏覽器 sessionStorage 中的 API Key（系統將使用內建離線規則引擎）。', 'sky');
+  }
+  updateByokStatusUI();
+  closeByokModal();
+}
+function updateByokStatusUI() {
+  const hasKey = Boolean(sessionStorage.getItem(BYOK_STORAGE_KEY));
+  const dot = document.getElementById('byokStatusDot');
+  if (dot) {
+    dot.className = hasKey ? 'w-2 h-2 rounded-full bg-emerald-400' : 'w-2 h-2 rounded-full bg-amber-400';
+  }
+}
+
+function openExportModal() {
+  const records = getCurrentLevelRecords();
+  const targetQuestions = records.length > 0
+    ? questions.filter(q => historyMap[q.id])
+    : questions.slice(0, 15);
+
+  let md = `# JLPT ${currentLevel} 個人化聽讀錯題、母語遷移與 SRL 診斷知識庫 (NotebookLM 專用)\n`;
+  md += `> 匯出時間：${new Date().toLocaleString()} | 級別：${currentLevel} | 已診斷題數：${records.length} 題\n\n`;
+
+  targetQuestions.forEach((q, i) => {
+    const rec = historyMap[q.id];
+    const statusStr = rec
+      ? `${rec.srlLabel} | 信心度: ${rec.confidence}% | 排程: ${rec.fsrsTag}`
+      : '核心必考樣題（尚未作答）';
+    const cleanStem = q.stem.replace(/<[^>]*>/g, '');
+
+    md += `## ${i + 1}. [${q.id}] ${q.officialName} — ${q.subtag}\n`;
+    md += `- **SRL 診斷狀態**：${statusStr}\n`;
+    md += `- **布魯姆認知階層**：${q.bloomLabel}\n`;
+    md += `- **日文題幹**：${cleanStem}\n`;
+
+    if (Array.isArray(q.dialogue)) {
+      md += `- **🎧 聽解雙人對話逐字稿**：\n`;
+      q.dialogue.forEach(t => {
+        md += `  - **${t.speakerLabel}**：${t.jp} （${t.zh}）${t.isKeySignal ? ' ⚡[關鍵轉折句]' : ''}\n`;
+      });
+    }
+
+    md += `- **選項**：${q.options.map((o, idx) => `(${idx + 1}) ${o}`).join(' | ')}\n`;
+    md += `- **正確解答**：(${q.correctIndex + 1}) ${q.options[q.correctIndex]}\n`;
+    if (rec && !rec.isCorrect) {
+      md += `- **當時誤選**：(${rec.selectedIndex + 1}) ${q.options[rec.selectedIndex]}\n`;
+    }
+    md += `- **繁體中文翻譯**：${q.translation}\n`;
+    md += `- **核心考點規則**：${q.coreRule}\n`;
+    md += `- **🇹🇼⇄🇯🇵 台灣高中生漢字母語遷移透鏡**：${q.l1TransferNote}\n`;
+    if (q.grammarChain) {
+      md += `- **🔗 語法接續鏈**：\`${q.grammarChain}\`\n`;
+    }
+    md += `- **選項誘答拆解**：\n`;
+    q.options.forEach((opt, oIdx) => {
+      md += `  - (${oIdx + 1}) ${opt}：${q.optionExplanations[oIdx]}\n`;
+    });
+    md += `\n---\n\n`;
+  });
+
+  document.getElementById('exportMarkdownArea').value = md;
+  document.getElementById('exportModal').classList.remove('hidden');
+}
+
+function closeExportModal() {
+  document.getElementById('exportModal').classList.add('hidden');
+}
+
+function copyExportMarkdown() {
+  const area = document.getElementById('exportMarkdownArea');
+  area.select();
+  document.execCommand('copy');
+  showToast('✅ 已複製 Markdown 錯題與母語遷移筆記！可直接貼入 NotebookLM。', 'emerald');
+}
+
+async function syncFromGoogleSheet() {
+  const rawInput = document.getElementById('sheetUrlInput').value.trim();
+  if (!rawInput) {
+    showToast('請先輸入 Google Sheets 分享網址或試算表 ID！', 'amber');
+    return;
+  }
+  const match = rawInput.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  const sheetId = match ? match[1] : rawInput;
+  const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+
+  try {
+    showToast('☁️ 正在從 Google Sheets 讀取雲端題庫...', 'sky');
+    const res = await fetch(gvizUrl);
+    const text = await res.text();
+    const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+    const data = JSON.parse(jsonStr);
+    const rows = data?.table?.rows || [];
+    let added = 0;
+
+    rows.forEach((r, idx) => {
+      const cells = r.c || [];
+      const id = cells[0]?.v || `${currentLevel}-CLOUD-${idx + 1}`;
+      const category = cells[1]?.v || 'GRAMMAR';
+      const subtag = cells[2]?.v || '雲端同步題庫';
+      const stem = cells[3]?.v;
+      if (!stem) return;
+
+      let options = ['選択肢1', '選択肢2', '選択肢3', '選択肢4'];
+      try { options = JSON.parse(cells[4]?.v); } catch (e) {}
+      const correctIndex = Number(cells[5]?.v) || 0;
+      const translation = cells[6]?.v || '';
+      const coreRule = cells[7]?.v || '';
+      let optionExplanations = ['解析1', '解析2', '選択肢3', '選択肢4'];
+      try { optionExplanations = JSON.parse(cells[8]?.v); } catch (e) {}
+      let dialogue = undefined;
+      try { if (cells[9]?.v) dialogue = JSON.parse(cells[9]?.v); } catch (e) {}
+
+      if (!questions.some(q => q.id === id)) {
+        const newQ = {
+          id, level: currentLevel, section: 'BUNPOU_DOKKAI', category,
+          officialCode: 'G1_GRAMMAR_FORM', officialName: '雲端題庫',
+          subtag, targetSec: 45, irtA: 1.5, irtB: 0.2,
+          bloomLevel: 'L3_APPLY', bloomLabel: 'L3 應用',
+          instruction: '問題：最もよいものを、1・2・3・4から一つ選びなさい。',
+          stem, furiganaHint: '', socraticHint: coreRule, l1TransferNote: coreRule,
+          options, correctIndex, translation, coreRule, optionExplanations, dialogue
+        };
+        questions.push(newQ);
+        questionMap[id] = newQ;
+        added++;
+      }
+    });
+
+    renderCategoryTabs();
+    applyCategoryFilter('ALL');
+    updateKPIsAndRadar();
+    closeCloudModal();
+    showToast(`✅ 成功從 Google Sheets 同步新增 ${added} 道題目！`, 'emerald');
+  } catch (err) {
+    showToast('無法讀取該試算表，請確認權限已設為「知道連結的任何人可檢視」。', 'rose');
+  }
+}
+
+/*************************************************************************
+ * GEMINI API INTEGRATION (BYOK VAULT + PROCEDURAL FALLBACK)
+ *************************************************************************/
+async function callGeminiWithBackoff(payload) {
+  const userKey = sessionStorage.getItem(BYOK_STORAGE_KEY) || '';
+  if (!userKey) throw new Error('NO_BYOK_KEY');
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${userKey}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Empty response');
+  return text;
+}
+
+async function generateAIQuestions() {
+  const btn = document.getElementById('aiGenerateBtn');
+  const spinner = document.getElementById('aiGenSpinner');
+  const btnText = document.getElementById('aiGenBtnText');
+
+  btn.disabled = true;
+  spinner.classList.remove('hidden');
+  btnText.textContent = 'AI 命題中...';
+
+  let targetCat = currentFilter !== 'ALL' && currentFilter !== 'WEAKNESS' ? currentFilter : 'LISTENING';
+  const catMeta = CATEGORIES.find(c => c.id === targetCat) || CATEGORIES[6];
+
+  try {
+    const systemPrompt = `你是一位日本國際交流基金會 JLPT ${currentLevel} 權威命題委員與台灣高中日語教學專家。請設計 1 道極具鑑別度的 JLPT ${currentLevel} 考題，類別為「${catMeta.name} (${targetCat})」，包含繁體中文詳解與台灣高中生漢字母語遷移解析 (l1TransferNote)。`;
+    const userQuery = `請生成 1 道全新的 JLPT ${currentLevel}「${catMeta.name}」考題 JSON。`;
+    const rawJson = await callGeminiWithBackoff({
+      contents: [{ parts: [{ text: userQuery }] }],
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: { responseMimeType: 'application/json' }
+    });
+    const item = JSON.parse(rawJson);
+    const newId = `${currentLevel}-AI-${questions.length + 1}`;
+    const newQ = {
+      id: newId,
+      level: currentLevel,
+      section: targetCat === 'LISTENING' ? 'CHOUKAI' : 'BUNPOU_DOKKAI',
+      category: targetCat,
+      officialCode: 'AI_DYNAMIC',
+      officialName: `AI 動態命題 (${currentLevel})`,
+      subtag: item.subtag || `${currentLevel} AI 弱點強化命題`,
+      targetSec: catMeta.targetSec || 50,
+      irtA: 1.6,
+      irtB: 0.4,
+      bloomLevel: 'L3_APPLY',
+      bloomLabel: 'L3 應用・AI 動態生成',
+      instruction: item.instruction || '問題：最もよいものを、1・2・3・4から一つ選びなさい。',
+      stem: item.stem,
+      furiganaHint: item.furiganaHint || '',
+      socraticHint: item.socraticHint || item.coreRule || '',
+      l1TransferNote: item.l1TransferNote || item.coreRule || '',
+      grammarChain: item.grammarChain || '',
+      ttsText: (item.stem || '').replace(/<[^>]*>/g, ''),
+      options: item.options?.slice(0, 4) || ['選択肢1', '選択肢2', '選択肢3', '選択肢4'],
+      correctIndex: Math.min(3, Math.max(0, Number(item.correctIndex) || 0)),
+      translation: item.translation || '',
+      coreRule: item.coreRule || '',
+      optionExplanations: item.optionExplanations?.slice(0, 4) || ['解析1', '解析2', '解析3', '解析4'],
+      dialogue: Array.isArray(item.dialogue) && item.dialogue.length > 0 ? item.dialogue : undefined
+    };
+    questions.push(newQ);
+    questionMap[newId] = newQ;
+    applyCategoryFilter(targetCat);
+    currentPos = filteredIndices.length - 1;
+    loadCurrentQuestion();
+    updateKPIsAndRadar();
+    showToast(`✨ 成功由 Gemini AI 即時生成全新 ${currentLevel} 實戰題！`, 'emerald');
+  } catch (err) {
+    // Intelligent Adaptive Selection from Unanswered Weakest Items in Bank
+    const unanswered = questions
+      .map((q, idx) => ({ q, idx }))
+      .filter(x => !historyMap[x.q.id]);
+    if (unanswered.length > 0) {
+      const pick = unanswered[Math.floor(Math.random() * unanswered.length)];
+      jumpToQuestionById(pick.q.id);
+      showToast(`✨ 已由本地 IRT 2PL 引擎為您精準抽樣未測高鑑別度題目 (${pick.q.id})！（若需無限即時生成可點擊右上角 🔑 設定個人免費 Gemini Key）`, 'sky');
+    } else {
+      openByokModal();
+    }
+  } finally {
+    btn.disabled = false;
+    spinner.classList.add('hidden');
+    btnText.textContent = '✨ AI 弱點動態出題';
+  }
+}
+
+async function askAITutorQuick(promptText) {
+  document.getElementById('aiTutorInput').value = promptText;
+  await askAITutorCustom();
+}
+
+async function askAITutorCustom() {
+  const inputEl = document.getElementById('aiTutorInput');
+  const query = inputEl.value.trim();
+  if (!query) return;
+
+  const q = getCurrentQuestion();
+  const respBox = document.getElementById('aiTutorResponseBox');
+  const btn = document.getElementById('aiTutorBtn');
+
+  respBox.classList.remove('hidden');
+  respBox.textContent = '🤖 AI 日檢家教正在拆解語法接續、台日漢字遷移與聽力轉折信號...';
+  btn.disabled = true;
+
+  const dialogueContext = Array.isArray(q.dialogue)
+    ? q.dialogue.map(t => `${t.speakerLabel}: ${t.jp}`).join('\n')
+    : '';
+
+  const userPrompt = `【級別】：JLPT ${currentLevel}\n【題目】：${q.stem.replace(/<[^>]*>/g, '')}\n${dialogueContext ? `【聽力對話】：\n${dialogueContext}\n` : ''}【選項】：1.${q.options[0]} / 2.${q.options[1]} / 3.${q.options[2]} / 4.${q.options[3]}\n【正解】：(${q.correctIndex + 1})\n【核心考點】：${q.coreRule}\n【學生提問】：${query}`;
+
+  try {
+    const answer = await callGeminiWithBackoff({
+      contents: [{ parts: [{ text: userPrompt }] }],
+      systemInstruction: { parts: [{ text: `你是專精台灣高中生 JLPT ${currentLevel} 指導的日語名師，請用繁體中文精準回答。` }] }
+    });
+    respBox.textContent = answer;
+  } catch (e) {
+    respBox.textContent =
+      `💡 【名師深度解析（離線神經符號知識庫）】\n` +
+      `1. 🎯 核心法則：${q.coreRule}\n` +
+      `2. 🇹🇼⇄🇯🇵 高中生母語遷移關鍵：${q.l1TransferNote || '注意避免以中文母語字面直譯，需鎖定日語助詞格關係與共現搭配。'}\n` +
+      (q.grammarChain ? `3. 🔗 語法結構拆解：${q.grammarChain}\n` : '') +
+      `4. 💬 完整翻譯對照：${q.translation}\n` +
+      `（提示：如需針對自由提問進行無限輪即時對話，可點擊頂部「🔑 BYOK 金鑰」填入免費 Gemini API Key）`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function generateAICoachReport() {
+  const box = document.getElementById('aiCoachContent');
+  const btn = document.getElementById('aiCoachBtn');
+  const records = getCurrentLevelRecords();
+
+  if (records.length === 0) {
+    showToast(`請先在 ${currentLevel} 作答至少 1 ~ 3 題，讓系統收集您的六維度表現與信心校準數據！`, 'amber');
+    return;
+  }
+
+  btn.disabled = true;
+  box.innerHTML = `<p class="text-amber-300 animate-pulse">🧠 AI 教練正在分析您的 ${currentLevel} 六維度雷達落點、SRL 盲點與 IRT 過關機率...</p>`;
+
+  try {
+    const summaryStr = records.map(r => {
+      const q = questionMap[r.questionId];
+      return `- [${r.category}] ${q?.subtag}: ${r.isCorrect ? '答對' : '答錯'} (信心度 ${r.confidence}%, 耗時 ${r.elapsedSec}s, 狀態 ${r.srlType})`;
+    }).join('\n');
+
+    const report = await callGeminiWithBackoff({
+      contents: [{ parts: [{ text: `考生在 JLPT ${currentLevel} 實測數據：\n${summaryStr}\n請用繁體中文給出 3 點具體衝刺處方箋（180字內）。` }] }]
+    });
+    box.innerHTML = `<div class="whitespace-pre-wrap text-slate-100">${report}</div>`;
+  } catch (e) {
+    const irt = computeLevelIRTScores(currentLevel, records, questionMap);
+    const acc = Math.round((records.filter(r => r.isCorrect).length / records.length) * 100);
+    const blindspots = records.filter(r => r.srlType === 'BLINDSPOT').length;
+    box.innerHTML = `
+      <div class="space-y-1.5">
+        <div class="text-amber-300 font-bold">📊 JLPT ${currentLevel} 認知科學診斷報告（正確率 ${acc}% ｜ 預估 ${irt.estTotal}/180 分）：</div>
+        <p>1. <strong>SRL 盲點矯正</strong>：目前偵測到 <strong>${blindspots} 題高信心盲點</strong>，請優先點擊上方「🔄 錯題與脆弱重練」消除母語負遷移。</p>
+        <p>2. <strong>單科防線</strong>：${irt.vetoAlert || '目前各科預估皆高於 19 分底線，請持續維持跨題型交錯練習（Interleaving）。'}</p>
+        <p>3. <strong>聽解與星號特訓</strong>：利用 1.0x/1.15x 雙聲道音訊訓練對「実は／それより」的瞬間反射，並善用星號沙盒逆向推導助詞接續。</p>
+      </div>
+    `;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function showToast(msg, color = 'amber') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const toast = document.createElement('div');
+  const colorMap = {
+    amber: 'bg-slate-900 border-amber-500 text-amber-300',
+    emerald: 'bg-slate-900 border-emerald-500 text-emerald-300',
+    rose: 'bg-slate-900 border-rose-500 text-rose-300',
+    sky: 'bg-slate-900 border-sky-500 text-sky-300'
+  };
+  toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl border-l-4 shadow-2xl text-xs font-semibold transition-all duration-300 ${colorMap[color] || colorMap.amber}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3400);
+}
