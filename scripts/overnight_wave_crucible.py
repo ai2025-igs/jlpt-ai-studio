@@ -530,6 +530,22 @@ def apply_wave_18_blind_red_audit():
     print(f"[B.L.I.N.D.-R.E.D. Audit] Correct-Index Distribution across 2,405 items: {pos_counts} (fixed={fixed})")
 
 
+def apply_wave_19_n1_n2_audit():
+    for lvl, exp_total, exp_mock in [("N1", 520, 104), ("N2", 530, 106)]:
+        p = DATA_DIR / f"{lvl.lower()}_bank.json"
+        items = json.loads(p.read_text(encoding="utf-8"))
+        assert len(items) == exp_total, f"{lvl} expected {exp_total}, got {len(items)}"
+        mock_cnt = sum(1 for q in items if q.get("inMock100"))
+        assert mock_cnt == exp_mock, f"{lvl} expected mock {exp_mock}, got {mock_cnt}"
+        listen_items = [q for q in items if q.get("category") == "LISTENING"]
+        for q in listen_items:
+            af = BASE_DIR / q.get("audioFile", "")
+            assert af.exists() and af.stat().st_size > 10000, f"Missing/invalid MP3 for {q['id']}: {af}"
+            dlg = q.get("dialogue", [])
+            assert len(dlg) >= 2 and any(t.get("isKeySignal") for t in dlg), f"Missing key signal in {q['id']}"
+        print(f"[Wave 19 Audit] {lvl}: {len(items)} pool / {mock_cnt} mock / {len(listen_items)} listening MP3s 100% verified.")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -555,6 +571,8 @@ def run_wave(target_wave: int | None = None):
         apply_wave_17_notebooklm_exporter()
     if next_wave >= 18:
         apply_wave_18_blind_red_audit()
+    if next_wave >= 19:
+        apply_wave_19_n1_n2_audit()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [
