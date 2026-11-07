@@ -100,22 +100,23 @@ def validate_level(lvl: str, min_q: int, check_furigana: bool, check_audio: bool
     if missing_cats:
         errors.append(f"[{lvl}] Missing radar categories: {missing_cats}")
 
-    if check_furigana and lvl.upper() in ("N3", "N4") and ruby_count == 0:
+    if check_furigana and lvl.upper() in ("N3", "N4", "N5") and ruby_count == 0:
         errors.append(f"[{lvl}] Grade-Aware Furigana check failed: 0 <ruby> tags found in {lvl}")
 
-    print(f"[{lvl.upper()}] Audited {len(items)} items | Categories: {len(categories)}/6 | Official Subtypes: {len(official_codes)} | <ruby> items: {ruby_count} | Errors: {len(errors)}")
+    mock100_cnt = sum(1 for q in items if q.get("inMock100"))
+    print(f"[{lvl.upper()}] Audited {len(items)} items (Mock100: {mock100_cnt}) | Categories: {len(categories)}/6 | Official Subtypes: {len(official_codes)} | <ruby> items: {ruby_count} | Errors: {len(errors)}")
     return errors
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--level", default="ALL", help="N2, N3,N4, N1, or ALL")
-    parser.add_argument("--min-questions", type=int, default=24)
+    parser.add_argument("--level", default="ALL", help="N1, N2, N3, N4, N5, or ALL")
+    parser.add_argument("--min-questions", type=int, default=240)
     parser.add_argument("--check-furigana", action="store_true")
     parser.add_argument("--check-audio", action="store_true")
     parser.add_argument("--strict-aqe", action="store_true")
     args = parser.parse_args()
 
-    levels = ["N2", "N3", "N4", "N1"] if args.level.upper() == "ALL" else [x.strip().upper() for x in args.level.split(",")]
+    levels = ["N1", "N2", "N3", "N4", "N5"] if args.level.upper() == "ALL" else [x.strip().upper() for x in args.level.split(",")]
     all_errors = []
     for lvl in levels:
         min_q = 35 if (lvl == "N2" and args.min_questions <= 24) else args.min_questions

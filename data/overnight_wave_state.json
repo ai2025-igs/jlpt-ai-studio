@@ -1,0 +1,46 @@
+{
+  "startedAt": "2026-11-07T16:58:35.567805+00:00",
+  "currentWave": 1,
+  "maxWaves": 24,
+  "intervalMinutes": 20,
+  "history": [
+    {
+      "wave": 1,
+      "timestamp": "2026-11-07T16:58:35.843451+00:00",
+      "phase": "Phase I",
+      "focus": "v4.0 1080P 3-Tab Official JLPT Sample UI + 300% Pool (1,443 items) & 100% Mock (481 items)",
+      "totalPool_N1_N5": 1443,
+      "totalPool_N1_N4": 1203,
+      "totalMock_N1_N4": 401
+    }
+  ],
+  "lastUpdatedAt": "2026-11-07T16:58:35.843451+00:00",
+  "summary": {
+    "totalPool_N1_N5": 1443,
+    "totalMock_N1_N5": 481,
+    "totalPool_N1_N4": 1203,
+    "totalMock_N1_N4": 401,
+    "countsByLevel": {
+      "N1": {
+        "pool": 312,
+        "mock100": 104
+      },
+      "N2": {
+        "pool": 318,
+        "mock100": 106
+      },
+      "N3": {
+        "pool": 306,
+        "mock100": 102
+      },
+      "N4": {
+        "pool": 267,
+        "mock100": 89
+      },
+      "N5": {
+        "pool": 240,
+        "mock100": 80
+      }
+    }
+  }
+}

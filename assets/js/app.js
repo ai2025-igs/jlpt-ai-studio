@@ -24,7 +24,10 @@ const CATEGORIES = [
 const STORAGE_KEY = 'jlpt_ai_studio_v3_progress';
 const BYOK_STORAGE_KEY = 'jlpt_ai_studio_gemini_key';
 
-let allBanks = { N1: [], N2: [], N3: [], N4: [] };
+let allBanks = { N1: [], N2: [], N3: [], N4: [], N5: [] };
+let currentPoolScope = 'POOL_300'; // 'POOL_300' | 'MOCK_100'
+let currentWorkspaceTab = 'TAB_MAIN_GUI';
+const OFFICIAL_HEX = { N1: '#00a383', N2: '#f39c42', N3: '#8c6bb1', N4: '#ef6c67', N5: '#1e78b4' };
 let currentLevel = 'N2';
 let questions = [];
 let questionMap = {};
@@ -97,7 +100,7 @@ async function loadAllQuestionBanks() {
   }
 
   // Try fetching fresh JSON banks from ./data/n{1..4}_bank.json
-  const levels = ['N1', 'N2', 'N3', 'N4'];
+  const levels = ['N1', 'N2', 'N3', 'N4', 'N5'];
   await Promise.all(levels.map(async (lvl) => {
     try {
       const res = await fetch(`data/${lvl.toLowerCase()}_bank.json`);
@@ -124,34 +127,128 @@ async function loadAllQuestionBanks() {
 }
 
 function updateLevelSwitcherCounts() {
-  ['N1', 'N2', 'N3', 'N4'].forEach(lvl => {
+  let totalPool = 0;
+  ['N1', 'N2', 'N3', 'N4', 'N5'].forEach(lvl => {
     const cntEl = document.getElementById(`lvlCount_${lvl}`);
-    if (cntEl && allBanks[lvl]) {
-      cntEl.textContent = `${allBanks[lvl].length}題`;
+    const arr = allBanks[lvl] || [];
+    totalPool += arr.length;
+    const mockCnt = arr.filter(q => q.inMock100).length || (LEVEL_SPECS[lvl]?.mock100Count || 80);
+    if (cntEl && arr.length > 0) {
+      cntEl.textContent = `${arr.length}題(模${mockCnt})`;
     }
   });
+  const qBadge = document.getElementById('tab3QueueBadge');
+  if (qBadge) qBadge.textContent = `${totalPool.toLocaleString()}題`;
+}
+
+function getScopedBank(lvl) {
+  const raw = allBanks[lvl] || [];
+  if (currentPoolScope === 'MOCK_100') {
+    const mockItems = raw.filter(q => q.inMock100);
+    return mockItems.length > 0 ? mockItems : raw;
+  }
+  return raw;
+}
+
+function setQuestionPoolScope(scope) {
+  currentPoolScope = scope;
+  const b300 = document.getElementById('poolBtn300');
+  const b100 = document.getElementById('poolBtn100');
+  const tagEl = document.getElementById('officialExamPoolTag');
+  if (scope === 'POOL_300') {
+    if (b300) b300.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-sky-500 text-slate-950 transition';
+    if (b100) b100.className = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition';
+    if (tagEl) tagEl.textContent = '300%池';
+  } else {
+    if (b100) b100.className = 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500 text-white transition';
+    if (b300) b300.className = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition';
+    if (tagEl) tagEl.textContent = '100%模考';
+  }
+  questions = [...getScopedBank(currentLevel)];
+  populateOfficialSubfilterDropdown();
+  renderCategoryTabs();
+  filterQuestionsList();
+  renderQuestionQueue();
+  showToast(scope === 'MOCK_100'
+    ? `⏱️ 已切換至 JLPT ${currentLevel}「100% 正式檢定標準題量」（共 ${questions.length} 題）！`
+    : `🏋️ 已切換至 JLPT ${currentLevel}「300% 擴充實戰鍛鍊池」（共 ${questions.length} 題）！`, 'sky');
+}
+
+function switchWorkspaceTab(tabId) {
+  currentWorkspaceTab = tabId;
+  const panes = {
+    TAB_MAIN_GUI: document.getElementById('tabPane_1'),
+    TAB_IRT_COACH: document.getElementById('tabPane_2'),
+    TAB_FSRS_OTHERS: document.getElementById('tabPane_3')
+  };
+  const btns = {
+    TAB_MAIN_GUI: document.getElementById('mainTabBtn_1'),
+    TAB_IRT_COACH: document.getElementById('mainTabBtn_2'),
+    TAB_FSRS_OTHERS: document.getElementById('mainTabBtn_3')
+  };
+  Object.keys(panes).forEach(k => {
+    if (!panes[k] || !btns[k]) return;
+    if (k === tabId) {
+      panes[k].classList.remove('hidden');
+      btns[k].className = 'px-3.5 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition flex items-center gap-1.5';
+    } else {
+      panes[k].classList.add('hidden');
+      btns[k].className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5';
+    }
+  });
+  if (tabId === 'TAB_IRT_COACH') updateKPIsAndRadar();
+  if (tabId === 'TAB_FSRS_OTHERS') renderQuestionQueue();
 }
 
 function switchLevel(lvl, showNotification = true) {
   if (typeof stopListeningDialogue === 'function') stopListeningDialogue();
   currentLevel = lvl;
-  questions = [...(allBanks[lvl] || [])];
+  const hex = OFFICIAL_HEX[lvl] || '#f39c42';
+  document.documentElement.style.setProperty('--jlpt-active-theme', hex);
+
+  const rawArr = allBanks[lvl] || [];
+  const mockCnt = rawArr.filter(q => q.inMock100).length || (LEVEL_SPECS[lvl]?.mock100Count || 80);
+  const pool300El = document.getElementById('pool300CountText');
+  const mock100El = document.getElementById('mock100CountText');
+  if (pool300El) pool300El.textContent = rawArr.length;
+  if (mock100El) mock100El.textContent = mockCnt;
+
+  const sbMock = document.getElementById('standbyMock100Val');
+  const sbPool300 = document.getElementById('standbyPool300Val');
+  const sbPool500 = document.getElementById('standbyPool500Val');
+  if (sbMock) sbMock.textContent = `${mockCnt} 題`;
+  if (sbPool300) sbPool300.textContent = `${rawArr.length} 題`;
+  if (sbPool500) sbPool500.textContent = `${mockCnt * 5} 題`;
+
+  questions = [...getScopedBank(lvl)];
   currentFilter = 'ALL';
   currentOfficialSubfilter = 'ALL_SUB';
 
-  // Update Level Switcher Pills UI (Ordered N1 -> N2 -> N3 -> N4 with High-Contrast Count Badge)
-  ['N1', 'N2', 'N3', 'N4'].forEach(code => {
+  // Update 5-Level Switcher Pills UI (Ordered N1 -> N2 -> N3 -> N4 -> N5 with Official JLPT Hex Colors)
+  ['N1', 'N2', 'N3', 'N4', 'N5'].forEach(code => {
     const btn = document.getElementById(`lvlBtn_${code}`);
     const cnt = document.getElementById(`lvlCount_${code}`);
     if (!btn) return;
     if (code === lvl) {
-      btn.className = 'px-3.5 py-2 rounded-xl font-bold text-xs transition flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 border border-amber-300';
-      if (cnt) cnt.className = 'px-1.5 py-0.5 rounded-md bg-slate-950 text-amber-300 border border-amber-300/40 font-mono text-[10px] font-bold shadow-inner';
+      btn.className = 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition flex items-center gap-1.5 text-white shadow-lg border-2 border-white';
+      btn.style.backgroundColor = OFFICIAL_HEX[code];
+      if (cnt) cnt.className = 'px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 border border-white/40 font-mono text-[10px] font-bold';
     } else {
-      btn.className = 'px-3.5 py-2 rounded-xl font-semibold text-xs transition flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700';
-      if (cnt) cnt.className = 'px-1.5 py-0.5 rounded-md bg-slate-950 text-slate-300 border border-slate-700/80 font-mono text-[10px]';
+      btn.className = 'px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700';
+      btn.style.backgroundColor = '';
+      if (cnt) cnt.className = 'px-1.5 py-0.5 rounded bg-slate-950 text-slate-300 border border-slate-700 font-mono text-[10px]';
     }
   });
+
+  // Update Official Exam Frame Header Colors
+  const examBox = document.getElementById('officialExamLevelBox');
+  const examTxt = document.getElementById('officialExamLevelText');
+  const examBanner = document.getElementById('officialMondaiBanner');
+  if (examBox) examBox.style.backgroundColor = hex;
+  if (examTxt) examTxt.textContent = lvl;
+  if (examBanner) examBanner.style.backgroundColor = hex;
+  const brandBadge = document.getElementById('headerLevelBadge');
+  if (brandBadge) brandBadge.style.backgroundColor = hex;
 
   // Update Header Brand Badge & Exam Gate Info
   const spec = LEVEL_SPECS[lvl] || LEVEL_SPECS.N2;
@@ -160,14 +257,14 @@ function switchLevel(lvl, showNotification = true) {
   const brandTitle = document.getElementById('headerLevelTitle');
   const brandSub = document.getElementById('headerLevelDesc');
   if (brandBadge) brandBadge.textContent = lvl;
-  if (brandTitle) brandTitle.textContent = `JLPT ${lvl} 互動式 AI 刷題與認知診斷系統 v3.1`;
+  if (brandTitle) brandTitle.textContent = `JLPT ${lvl} 互動式 AI 刷題與認知診斷系統 v4.0`;
   if (brandSub) {
     const timeGuide = bp ? ` ｜ ⏳ 黃金配速：${bp.timeAllocationGuide}` : '';
     brandSub.textContent = `${spec.desc} ｜ 📚 ${spec.vocabScale}${timeGuide}`;
   }
 
   // Auto-enable Furigana for N3/N4 in Scaffolding mode
-  if ((lvl === 'N3' || lvl === 'N4') && pedagogicalMode === 'SCAFFOLD') {
+  if ((lvl === 'N3' || lvl === 'N4' || lvl === 'N5') && pedagogicalMode === 'SCAFFOLD') {
     showFurigana = true;
   }
   syncFuriganaUI();
@@ -319,6 +416,7 @@ function loadCurrentQuestion() {
   starSlots = [null, null, null, null];
 
   document.getElementById('diagnosticPanel')?.classList.add('hidden');
+  document.getElementById('preAnswerStandbyCard')?.classList.remove('hidden');
   document.getElementById('aiTutorResponseBox')?.classList.add('hidden');
   document.getElementById('socraticHintBanner')?.classList.add('hidden');
   const tutorInput = document.getElementById('aiTutorInput');
@@ -334,15 +432,21 @@ function loadCurrentQuestion() {
   document.getElementById('qInstruction').textContent = q.instruction;
   document.getElementById('qStemText').innerHTML = q.stem;
 
-  // Render Situational SVG Card (for N3/N4 Utterance Expressions L4_UTTERANCE)
+  // Render Official Top Mondai Numbered Bar (1..14 Written + 🔊15..19 Listening)
+  renderOfficialMondaiNumberBar(q);
+
+  // Render Situational SVG Card (with Click-to-Zoom wrapper)
   const svgBox = document.getElementById('situationSvgBox');
+  const svgWrap = document.getElementById('situationSvgWrapper');
   if (svgBox) {
     if (q.situationSvg) {
       svgBox.innerHTML = q.situationSvg;
       svgBox.classList.remove('hidden');
+      if (svgWrap) svgWrap.classList.remove('hidden');
     } else {
       svgBox.innerHTML = '';
       svgBox.classList.add('hidden');
+      if (svgWrap) svgWrap.classList.add('hidden');
     }
   }
 
@@ -510,15 +614,15 @@ function renderOptionCards(q) {
 
     return `
       <button type="button" onclick="selectOption(${idx})" ${isEliminated ? 'disabled' : ''}
-        class="w-full text-left p-4 rounded-xl border transition-all flex items-start gap-3 group ${cardStyle}">
-        <span class="w-7 h-7 rounded-lg font-mono text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${
+        class="jlpt-capsule-option w-full text-left px-4 py-3 border-2 transition-all flex items-center gap-3 group ${cardStyle}">
+        <span class="w-7 h-7 rounded-full font-mono text-xs font-black flex items-center justify-center shrink-0 ${
           isSelected
-            ? 'bg-amber-400 text-slate-950'
-            : 'bg-slate-800 text-slate-300 group-hover:bg-slate-700'
+            ? 'bg-amber-400 text-slate-950 shadow'
+            : 'bg-slate-800 text-slate-200 border border-slate-600 group-hover:bg-slate-700'
         }">
           ${idx + 1}
         </span>
-        <span class="jp-text text-base font-medium flex-1 ${isMasked ? 'text-slate-500 italic text-xs' : ''}">${displayLabel}</span>
+        <span class="jp-text text-sm sm:text-base font-bold flex-1 ${isMasked ? 'text-slate-500 italic text-xs' : ''}">${displayLabel}</span>
       </button>
     `;
   }).join('');
@@ -723,7 +827,8 @@ function submitCurrentAnswer() {
   renderOptionCards(q);
   updateFuriganaHintVisibility(q);
 
-  // Populate Diagnostic Panel
+  // Populate Diagnostic Panel in Right-Hand 1080P Dock
+  document.getElementById('preAnswerStandbyCard')?.classList.add('hidden');
   const diagPanel = document.getElementById('diagnosticPanel');
   diagPanel.classList.remove('hidden');
 
@@ -910,6 +1015,7 @@ function nextQuestion() {
 }
 
 function jumpToQuestionById(qId) {
+  if (currentWorkspaceTab !== 'TAB_MAIN_GUI') switchWorkspaceTab('TAB_MAIN_GUI');
   const globalIdx = questions.findIndex(q => q.id === qId);
   if (globalIdx === -1) return;
 
@@ -991,7 +1097,9 @@ function updateIRTScoreBanner(records) {
   const badgeEl = document.getElementById('irtPassBadge');
   const vetoBox = document.getElementById('irtVetoAlertBox');
 
+  const miniBadge = document.getElementById('tab2MiniScoreBadge');
   if (!irt.hasData) {
+    if (miniBadge) miniBadge.textContent = '--/180';
     totalEl.textContent = '-- / 180';
     writtenEl.textContent = '-- / 120';
     listenEl.textContent = '-- / 60';
@@ -1001,6 +1109,7 @@ function updateIRTScoreBanner(records) {
     return;
   }
 
+  if (miniBadge) miniBadge.textContent = `${irt.estTotal}/180 (${irt.passProb}%)`;
   totalEl.textContent = `${irt.estTotal} / 180`;
   writtenEl.textContent = spec.combinedWrittenGate
     ? `${irt.estWritten} / 120`
@@ -1298,7 +1407,7 @@ function renderBlueprintModalContent(lvl) {
   const spec = OFFICIAL_BLUEPRINT.levels[lvl] || OFFICIAL_BLUEPRINT.levels.N2;
   const bankArr = allBanks[lvl] || [];
 
-  ['N1', 'N2', 'N3', 'N4'].forEach(code => {
+  ['N1', 'N2', 'N3', 'N4', 'N5'].forEach(code => {
     const b = document.getElementById(`bpTab_${code}`);
     if (b) {
       b.className = code === lvl

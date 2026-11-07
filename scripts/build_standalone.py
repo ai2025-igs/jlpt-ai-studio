@@ -57,7 +57,7 @@ def main():
     print("DOM ID Audit PASSED: 0 missing IDs between JS controllers and index.html.")
 
     banks = {}
-    for lvl in ["N1", "N2", "N3", "N4"]:
+    for lvl in ["N1", "N2", "N3", "N4", "N5"]:
         bpath = os.path.join(ROOT, "data", f"{lvl.lower()}_bank.json")
         with open(bpath, "r", encoding="utf-8") as f:
             banks[lvl] = json.load(f)

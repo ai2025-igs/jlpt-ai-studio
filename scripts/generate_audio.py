@@ -45,12 +45,10 @@ async def synthesize_turn_bytes(text: str, role: str) -> bytes:
 
 async def process_question(q: dict, lvl: str, sem: asyncio.Semaphore) -> str:
     qid = q["id"]
-    out_dir = AUDIO_DIR / lvl.lower()
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / f"{qid}.mp3"
-
-    # Update audioFile relative path in question object
-    q["audioFile"] = f"audio/{lvl.lower()}/{qid}.mp3"
+    rel_audio = q.get("audioFile") or f"audio/{lvl.lower()}/{qid}.mp3"
+    q["audioFile"] = rel_audio
+    out_file = BASE_DIR / rel_audio
+    out_file.parent.mkdir(parents=True, exist_ok=True)
 
     if out_file.exists() and out_file.stat().st_size > 2048:
         return f"CACHED {out_file.name} ({out_file.stat().st_size} B)"
@@ -78,27 +76,25 @@ async def process_question(q: dict, lvl: str, sem: asyncio.Semaphore) -> str:
 async def main():
     sem = asyncio.Semaphore(6)
     tasks = []
-    banks = {}
+    seen_audio_files = set()
 
-    for lvl in ["n2", "n3", "n4", "n1"]:
+    for lvl in ["n1", "n2", "n3", "n4", "n5"]:
         bank_path = DATA_DIR / f"{lvl}_bank.json"
         if not bank_path.exists():
             continue
         data = json.loads(bank_path.read_text(encoding="utf-8"))
-        banks[lvl] = (bank_path, data)
         for q in data:
             if q.get("category") == "LISTENING":
-                tasks.append(process_question(q, lvl, sem))
+                rel_audio = q.get("audioFile") or f"audio/{lvl.lower()}/{q['id']}.mp3"
+                if rel_audio not in seen_audio_files:
+                    seen_audio_files.add(rel_audio)
+                    tasks.append(process_question(q, lvl, sem))
 
     results = await asyncio.gather(*tasks)
     for r in results:
         print(r)
 
-    # Save updated audioFile paths back to JSON banks
-    for lvl, (bank_path, data) in banks.items():
-        bank_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-
-    print(f"Total Choukai MP3 files ready: {len(results)}")
+    print(f"Total unique Choukai MP3 files ready: {len(results)}")
 
 if __name__ == "__main__":
     asyncio.run(main())

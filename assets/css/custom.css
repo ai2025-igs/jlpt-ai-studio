@@ -6,7 +6,7 @@ body {
 }
 .jp-text {
   font-family: 'Noto Sans JP', sans-serif;
-  line-height: 1.9;
+  line-height: 1.85;
 }
 ruby {
   ruby-align: center;
@@ -21,6 +21,72 @@ rt {
 }
 body.hide-inline-ruby rt {
   display: none;
+}
+/* 1080P Viewport Ergonomics (1920x1080 Default Display Target) */
+@media (min-width: 1280px) {
+  .viewport-1080p-pane {
+    max-height: calc(100vh - 148px);
+    overflow-y: auto;
+  }
+}
+/* Official JLPT Sample Website Theme Colors (from jlpt.jp/tw/samples/) */
+:root {
+  --jlpt-n1: #00a383;
+  --jlpt-n2: #f39c42;
+  --jlpt-n3: #8c6bb1;
+  --jlpt-n4: #ef6c67;
+  --jlpt-n5: #1e78b4;
+  --jlpt-active-theme: #f39c42;
+}
+.jlpt-theme-bg {
+  background-color: var(--jlpt-active-theme);
+}
+.jlpt-theme-border {
+  border-color: var(--jlpt-active-theme);
+}
+.jlpt-theme-text {
+  color: var(--jlpt-active-theme);
+}
+/* Official JLPT Mondai Number Bar (Screenshots #4 & #5) */
+.jlpt-mondai-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #cbd5e1;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(71, 85, 105, 0.6);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.jlpt-mondai-btn:hover {
+  color: #ffffff;
+  border-color: var(--jlpt-active-theme);
+}
+.jlpt-mondai-btn.active {
+  background-color: var(--jlpt-active-theme);
+  color: #ffffff;
+  border-color: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
+}
+/* Official JLPT 2x2 Capsule Option Pills (Screenshots #4 & #5) */
+.jlpt-capsule-option {
+  border-radius: 9999px;
+  transition: all 0.16s ease;
+}
+.jlpt-capsule-option:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+/* Official Choukai 4-Step 答え方 Chevron Box (Screenshot #5) */
+.kotaekata-step {
+  position: relative;
+  transition: all 0.2s ease;
 }
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
@@ -49,14 +115,14 @@ input[type=range]::-webkit-slider-runnable-track {
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  height: 22px;
-  width: 22px;
+  height: 20px;
+  width: 20px;
   border-radius: 50%;
   background: #f8fafc;
   border: 3px solid #f59e0b;
   cursor: pointer;
-  margin-top: -7px;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.7);
+  margin-top: -6px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
   transition: transform 0.15s ease;
 }
 input[type=range]::-webkit-slider-thumb:hover {
