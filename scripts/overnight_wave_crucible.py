@@ -475,6 +475,33 @@ function renderQuestionQueue() {"""
         p_app.write_text(atxt, encoding="utf-8")
 
 
+def apply_wave_17_notebooklm_exporter():
+    p_app = BASE_DIR / "assets" / "js" / "app.js"
+    atxt = p_app.read_text(encoding="utf-8").replace("\r\n", "\n")
+    if "function downloadExportMarkdownFile()" not in atxt:
+        old_hdr = "  let md = `# JLPT ${currentLevel} 個人化聽讀錯題、母語遷移與 SRL 診斷知識庫 (NotebookLM 專用)\\n`;"
+        new_hdr = """  let md = `# JLPT ${currentLevel} 個人化聽讀錯題、母語遷移與 SRL 診斷知識庫 (NotebookLM 雙人 Podcast 專用)\\n`;
+  md += `> 🎙️ **NotebookLM Audio Overview 導讀指令**：請兩位主持人針對下方台灣高中生在 JLPT ${currentLevel} 的「高信心盲點」、「台日同形異義漢字陷阱」與「聽解轉折信號」進行生動的雙語對談教學！\\n`;"""
+        atxt = atxt.replace(old_hdr, new_hdr, 1)
+        addon = """
+
+function downloadExportMarkdownFile() {
+  const area = document.getElementById('exportMarkdownArea');
+  const content = area?.value || '';
+  if (!content) return;
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `JLPT_${currentLevel}_NotebookLM_StudyPack_${new Date().toISOString().slice(0, 10)}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('⬇️ 已下載 NotebookLM 專屬 .md 學習包檔案！', 'emerald');
+}
+"""
+        p_app.write_text(atxt + addon, encoding="utf-8")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -496,6 +523,8 @@ def run_wave(target_wave: int | None = None):
         apply_wave_15_flagged_and_blindspot_drill()
     if next_wave >= 16:
         apply_wave_16_queue_keyword_search()
+    if next_wave >= 17:
+        apply_wave_17_notebooklm_exporter()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [

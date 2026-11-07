@@ -1779,7 +1779,8 @@ function openExportModal() {
     ? questions.filter(q => historyMap[q.id])
     : questions.slice(0, 15);
 
-  let md = `# JLPT ${currentLevel} 個人化聽讀錯題、母語遷移與 SRL 診斷知識庫 (NotebookLM 專用)\n`;
+  let md = `# JLPT ${currentLevel} 個人化聽讀錯題、母語遷移與 SRL 診斷知識庫 (NotebookLM 雙人 Podcast 專用)\n`;
+  md += `> 🎙️ **NotebookLM Audio Overview 導讀指令**：請兩位主持人針對下方台灣高中生在 JLPT ${currentLevel} 的「高信心盲點」、「台日同形異義漢字陷阱」與「聽解轉折信號」進行生動的雙語對談教學！\n`;
   md += `> 匯出時間：${new Date().toLocaleString()} | 級別：${currentLevel} | 已診斷題數：${records.length} 題\n\n`;
 
   targetQuestions.forEach((q, i) => {
@@ -2139,4 +2140,19 @@ function startFlaggedDrill() {
   currentPos = 0;
   loadCurrentQuestion();
   showToast(`🚩 已啟動「標記待查專項複習」（共 ${flaggedIndices.length} 題）！`, 'amber');
+}
+
+
+function downloadExportMarkdownFile() {
+  const area = document.getElementById('exportMarkdownArea');
+  const content = area?.value || '';
+  if (!content) return;
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `JLPT_${currentLevel}_NotebookLM_StudyPack_${new Date().toISOString().slice(0, 10)}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('⬇️ 已下載 NotebookLM 專屬 .md 學習包檔案！', 'emerald');
 }
