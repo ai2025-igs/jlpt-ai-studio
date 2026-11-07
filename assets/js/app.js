@@ -2078,3 +2078,33 @@ function showToast(msg, color = 'amber') {
     setTimeout(() => toast.remove(), 300);
   }, 3400);
 }
+
+
+function printScoreReportCard() {
+  const records = getCurrentLevelRecords();
+  const irt = computeLevelIRTScores(currentLevel, records, questionMap);
+  const spec = irt.spec || LEVEL_SPECS[currentLevel];
+  const totalStr = irt.hasData ? `${irt.estTotal} / 180` : '尚未完成測驗';
+  const writtenStr = irt.hasData ? `${irt.estWritten} / 120` : '-- / 120';
+  const listenStr = irt.hasData ? `${irt.estListen} / 60` : '-- / 60';
+  const passStr = irt.hasData ? (irt.estTotal >= spec.passTotal && !irt.vetoAlert?.includes('🚨') ? '合 格 (PASSED)' : '不合格・需強化 (NEEDS WORK)') : '診斷進行中';
+  const win = window.open('', '_blank', 'width=820,height=640');
+  if (!win) {
+    window.print();
+    return;
+  }
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>JLPT ${currentLevel} 合否結果通知書・AI認知診斷成績單</title>
+    <style>body{font-family:"Noto Sans TC","Noto Sans JP",sans-serif;padding:32px;color:#0f172a;background:#f8fafc;}
+    .card{border:3px solid #1e293b;border-radius:16px;padding:28px;background:#fff;max-width:720px;margin:0 auto;}
+    h1{margin:0 0 8px;font-size:22px;}table{width:100%;border-collapse:collapse;margin-top:18px;}
+    th,td{border:1px solid #94a3b8;padding:10px 12px;text-align:center;font-size:14px;}th{background:#f1f5f9;}</style></head>
+    <body><div class="card"><h1>日本語能力試験 (JLPT ${currentLevel}) 模擬合否結果通知書 & AI 認知診斷單</h1>
+    <p>測驗級別：<strong>${spec.title}</strong> ｜ 診斷時間：${new Date().toLocaleString()} ｜ 已作答題數：${records.length} 題</p>
+    <table><thead><tr><th>得點區分</th><th>預估量尺得分</th><th>合格門檻</th><th>2PL-IRT 能力值 θ</th><th>判定結果</th></tr></thead>
+    <tbody><tr><td>言語知識・讀解</td><td><strong>${writtenStr}</strong></td><td>各 ≥19 (N4/N5合併 ≥38)</td><td rowspan="3"><strong>${irt.theta}</strong></td><td rowspan="3"><strong>${passStr}</strong><br/>(過關率 ${irt.passProb || '--'}%)</td></tr>
+    <tr><td>聴解 (Choukai)</td><td><strong>${listenStr}</strong></td><td>≥ 19 / 60</td></tr>
+    <tr><td><strong>綜合得點 (Total)</strong></td><td><strong>${totalStr}</strong></td><td><strong>≥ ${spec.passTotal} / 180</strong></td></tr></tbody></table>
+    <p style="margin-top:18px;font-size:12px;color:#475569;">註：本成績單由 JLPT N1–N5 互動式 AI 刷題與認知診斷系統 v4.0 (2PL-IRT + FSRS v5) 自動生成。</p>
+    </div><script>window.onload=()=>window.print();</script></body></html>`);
+  win.document.close();
+}

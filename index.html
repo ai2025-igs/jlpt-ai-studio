@@ -658,9 +658,14 @@
               基於 2PL-IRT 能力參數 $\hat{\theta}$ 與官方單科 19 分淘汰紅線動態預警
             </p>
           </div>
-          <span id="irtPassBadge" class="px-3 py-1 rounded-full bg-slate-700 text-slate-300 font-mono text-xs font-bold">
-            待累積作答數據
-          </span>
+          <div class="flex items-center gap-2">
+            <span id="irtPassBadge" class="px-3 py-1 rounded-full bg-slate-700 text-slate-300 font-mono text-xs font-bold">
+              待累積作答數據
+            </span>
+            <button type="button" onclick="printScoreReportCard()" class="px-3 py-1 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold transition" title="列印或匯出 JLPT 官方格式合否結果通知書">
+              🖨️ 列印成績單
+            </button>
+          </div>
         </div>
 
         <div id="irtVetoAlertBox" class="hidden p-3 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-200 text-xs font-bold"></div>
