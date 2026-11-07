@@ -1,6 +1,6 @@
 {
   "startedAt": "2026-11-07T16:58:35.567805+00:00",
-  "currentWave": 11,
+  "currentWave": 12,
   "maxWaves": 24,
   "intervalMinutes": 20,
   "history": [
@@ -111,9 +111,18 @@
       "totalPool_N1_N5": 2405,
       "totalPool_N1_N4": 2005,
       "totalMock_N1_N4": 401
+    },
+    {
+      "wave": 12,
+      "timestamp": "2026-11-07T20:20:40.541210+00:00",
+      "phase": "Phase II",
+      "focus": "Mid-Night /study5 Psychometric Calibration (2PL-IRT Theta & FSRS v5 Stability Audit)",
+      "totalPool_N1_N5": 2405,
+      "totalPool_N1_N4": 2005,
+      "totalMock_N1_N4": 401
     }
   ],
-  "lastUpdatedAt": "2026-11-07T20:00:50.725352+00:00",
+  "lastUpdatedAt": "2026-11-07T20:20:40.541210+00:00",
   "summary": {
     "totalPool_N1_N5": 2405,
     "totalMock_N1_N5": 481,

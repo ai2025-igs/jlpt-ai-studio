@@ -324,6 +324,33 @@ function triggerSocraticHint() {"""
             p_app.write_text(atxt.replace(target, addon, 1), encoding="utf-8")
 
 
+def apply_wave_12_psychometric_calibration():
+    bounds = {
+        "N1": (0.80, 2.20, 1.25, 2.10),
+        "N2": (0.10, 1.45, 1.15, 1.95),
+        "N3": (-0.75, 0.65, 1.05, 1.85),
+        "N4": (-1.50, -0.15, 0.95, 1.75),
+        "N5": (-2.20, -0.80, 0.85, 1.60),
+    }
+    for lvl, (b_min, b_max, a_min, a_max) in bounds.items():
+        p = DATA_DIR / f"{lvl.lower()}_bank.json"
+        if not p.exists():
+            continue
+        items = json.loads(p.read_text(encoding="utf-8"))
+        changed = False
+        for idx, q in enumerate(items):
+            cur_b = float(q.get("irtB", 0.0))
+            cur_a = float(q.get("irtA", 1.3))
+            new_b = round(max(b_min, min(b_max, cur_b)), 2)
+            new_a = round(max(a_min, min(a_max, cur_a)), 2)
+            if new_b != cur_b or new_a != cur_a:
+                q["irtB"] = new_b
+                q["irtA"] = new_a
+                changed = True
+        if changed:
+            p.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -335,6 +362,8 @@ def run_wave(target_wave: int | None = None):
         apply_wave_8_star_anchor()
     if next_wave >= 9:
         apply_wave_9_discourse_highlighter()
+    if next_wave >= 12:
+        apply_wave_12_psychometric_calibration()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [
