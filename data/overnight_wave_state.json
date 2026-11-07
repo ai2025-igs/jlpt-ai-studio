@@ -1,6 +1,6 @@
 {
   "startedAt": "2026-11-07T16:58:35.567805+00:00",
-  "currentWave": 17,
+  "currentWave": 18,
   "maxWaves": 24,
   "intervalMinutes": 20,
   "history": [
@@ -165,9 +165,18 @@
       "totalPool_N1_N5": 2405,
       "totalPool_N1_N4": 2005,
       "totalMock_N1_N4": 401
+    },
+    {
+      "wave": 18,
+      "timestamp": "2026-11-07T22:20:44.586942+00:00",
+      "phase": "Phase III",
+      "focus": "/study5 B.L.I.N.D.-R.E.D. Distractor Quality & Schema Gate Audit",
+      "totalPool_N1_N5": 2405,
+      "totalPool_N1_N4": 2005,
+      "totalMock_N1_N4": 401
     }
   ],
-  "lastUpdatedAt": "2026-11-07T22:01:00.578179+00:00",
+  "lastUpdatedAt": "2026-11-07T22:20:44.586942+00:00",
   "summary": {
     "totalPool_N1_N5": 2405,
     "totalMock_N1_N5": 481,

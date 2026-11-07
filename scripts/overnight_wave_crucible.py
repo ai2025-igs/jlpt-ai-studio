@@ -502,6 +502,34 @@ function downloadExportMarkdownFile() {
         p_app.write_text(atxt + addon, encoding="utf-8")
 
 
+def apply_wave_18_blind_red_audit():
+    pos_counts = {0: 0, 1: 0, 2: 0, 3: 0}
+    fixed = 0
+    for lvl in ["N1", "N2", "N3", "N4", "N5"]:
+        p = DATA_DIR / f"{lvl.lower()}_bank.json"
+        if not p.exists():
+            continue
+        items = json.loads(p.read_text(encoding="utf-8"))
+        changed = False
+        for q in items:
+            cidx = int(q.get("correctIndex", 0))
+            pos_counts[cidx] = pos_counts.get(cidx, 0) + 1
+            exps = q.get("optionExplanations", ["", "", "", ""])
+            for i in range(4):
+                if i == cidx and not str(exps[i]).startswith("✅"):
+                    exps[i] = f"✅ 正確解答：{exps[i]}"
+                    changed = True
+                    fixed += 1
+                elif i != cidx and not str(exps[i]).startswith("❌"):
+                    exps[i] = f"❌ 誘答陷阱：{exps[i]}"
+                    changed = True
+                    fixed += 1
+            q["optionExplanations"] = exps
+        if changed:
+            p.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[B.L.I.N.D.-R.E.D. Audit] Correct-Index Distribution across 2,405 items: {pos_counts} (fixed={fixed})")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -525,6 +553,8 @@ def run_wave(target_wave: int | None = None):
         apply_wave_16_queue_keyword_search()
     if next_wave >= 17:
         apply_wave_17_notebooklm_exporter()
+    if next_wave >= 18:
+        apply_wave_18_blind_red_audit()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [
