@@ -1531,16 +1531,22 @@ function startOfficialMockExam(mode = 'MINI_18') {
 function renderTrapCardsModalContent() {
   const box = document.getElementById('trapCardsContainer');
   if (!box || typeof OFFICIAL_BLUEPRINT === 'undefined' || !OFFICIAL_BLUEPRINT.taiwanHighSchoolTrapCards) return;
-  box.innerHTML = OFFICIAL_BLUEPRINT.taiwanHighSchoolTrapCards.map(c => `
-    <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 transition space-y-1.5">
-      <div class="flex items-center justify-between gap-2">
-        <span class="jp-text text-base font-extrabold text-amber-300">${c.kanji}</span>
-        <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[11px] font-bold">${c.lvl}</span>
+  box.innerHTML = OFFICIAL_BLUEPRINT.taiwanHighSchoolTrapCards.map(c => {
+    const cleanTts = (c.tts || c.kanji.split(' ')[0]).replace(/'/g, '');
+    return `
+      <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 transition space-y-1.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="jp-text text-sm sm:text-base font-extrabold text-amber-300">${c.kanji}</span>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="speakSingleUtterance('${cleanTts}', 'FEMALE')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-mono text-[10px] border border-slate-700">🔊 朗讀</button>
+            <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[11px] font-bold">${c.lvl}</span>
+          </div>
+        </div>
+        <div class="text-xs font-bold text-emerald-300">🇯🇵 日文正解：${c.jpMeaning}</div>
+        <div class="text-xs text-rose-300/90 leading-relaxed">${c.twTrap}</div>
       </div>
-      <div class="text-xs font-bold text-emerald-300">🇯🇵 日文正解：${c.jpMeaning}</div>
-      <div class="text-xs text-rose-300/90 leading-relaxed">${c.twTrap}</div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function openTrapCardsModal() {

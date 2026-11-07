@@ -113,10 +113,155 @@ def expand_level_toward_500(lvl: str, target_total: int) -> tuple[int, int]:
     return (len(items), mock_cnt)
 
 
+def apply_wave_7_trap_cards():
+    p_psy = BASE_DIR / "assets" / "js" / "psychometric.js"
+    txt = p_psy.read_text(encoding="utf-8")
+    if "新聞 (しんぶん) [0]" not in txt:
+        old_tail = """    {
+      "kanji": "橋 (はし [2]) vs 箸 (はし [1])",
+      "lvl": "N3",
+      "jpMeaning": "橋 [2] 尾高型 (低高+低) vs 箸 [1] 頭高型 (高低)",
+      "twTrap": "🎵 高低音調 (Pitch Accent) 最小對立組：雨 (あめ [1]) vs 飴 (あめ [0])"
+    }
+  ]
+};"""
+        new_tail = """    {
+      "kanji": "橋 (はし [2]) vs 箸 (はし [1])",
+      "tts": "はし",
+      "lvl": "N3",
+      "jpMeaning": "橋 [2] 尾高型 (低高+が低) vs 箸 [1] 頭高型 (高低)",
+      "twTrap": "🎵 高低音調 (Pitch Accent) 最小對立組：助詞「が」接在橋後會下降，接在端(はし [0])後不下降"
+    },
+    {
+      "kanji": "新聞 (しんぶん) [0]",
+      "tts": "しんぶんをよむ",
+      "lvl": "N5",
+      "jpMeaning": "報紙（Newspaper）",
+      "twTrap": "❌ 台灣母語誤以為是「電視新聞 (News)」（日文電視新聞為 ニュース）"
+    },
+    {
+      "kanji": "走 (はしる) [2]",
+      "tts": "こうえんをはしる",
+      "lvl": "N5",
+      "jpMeaning": "跑步、奔跑（Run）",
+      "twTrap": "❌ 台灣母語受中文「走路」影響誤以為是步行（日文走路為 歩く あるく [2]）"
+    },
+    {
+      "kanji": "娘 (むすめ) [3]",
+      "tts": "むすめさん",
+      "lvl": "N4",
+      "jpMeaning": "女兒、年輕女孩（Daughter）",
+      "twTrap": "❌ 台灣母語誤以為是「母親/娘親」（日文自己的母親為 母 はは [1]）"
+    },
+    {
+      "kanji": "湯 (ゆ / おゆ) [1]/[0]",
+      "tts": "おゆをわかす",
+      "lvl": "N4",
+      "jpMeaning": "熱水、溫泉澡堂（Hot water）",
+      "twTrap": "❌ 台灣母語誤以為是「喝的湯 (Soup)」（日文湯品為 スープ / 味噌汁）"
+    },
+    {
+      "kanji": "人参 (にんじん) [0]",
+      "tts": "にんじん",
+      "lvl": "N4",
+      "jpMeaning": "紅蘿蔔、胡蘿蔔（Carrot）",
+      "twTrap": "❌ 台灣母語誤以為是「高麗人參」（日文藥用人參為 朝鮮人参 ちょうせんにんじん）"
+    },
+    {
+      "kanji": "怪我 (けが) [2]",
+      "tts": "けがをする",
+      "lvl": "N3",
+      "jpMeaning": "受傷、外傷（Injury）",
+      "twTrap": "❌ 台灣母語誤以為是「責怪我 (Blame me)」（けがをする 為受傷之意）"
+    },
+    {
+      "kanji": "遠慮 (えんりょ) [0]",
+      "tts": "えんりょしないでください",
+      "lvl": "N3",
+      "jpMeaning": "客氣、推辭、節制（禁止吸菸：タバコはご遠慮ください）",
+      "twTrap": "❌ 台灣母語誤以為是「深謀遠慮」；告示牌寫「ご遠慮ください」實為委婉禁止！"
+    },
+    {
+      "kanji": "看病 (かんびょう) [1]",
+      "tts": "かんびょうする",
+      "lvl": "N2",
+      "jpMeaning": "照顧病人、護理（Nursing a patient）",
+      "twTrap": "❌ 台灣母語誤以為是「找醫生看病」（日文給醫生看診為 診てもらう / 受診する）"
+    },
+    {
+      "kanji": "結束 (けっそく) [0]",
+      "tts": "けっそくをかためる",
+      "lvl": "N2",
+      "jpMeaning": "團結、凝聚力（Solidarity / Unity）",
+      "twTrap": "❌ 台灣母語誤以為是「會議結束 (End)」（日文結束為 終了 しゅうりょう / 終わる）"
+    },
+    {
+      "kanji": "油断 (ゆだん) [0]",
+      "tts": "ゆだんたいてき",
+      "lvl": "N2",
+      "jpMeaning": "粗心大意、疏忽懈怠（Negligence）",
+      "twTrap": "❌ 台灣母語誤以為是「切斷供油」；「油断するな」指千萬別掉以輕心"
+    },
+    {
+      "kanji": "雨 (あめ [1]) vs 飴 (あめ [0])",
+      "tts": "あめがふる、あめをなめる",
+      "lvl": "N4",
+      "jpMeaning": "雨 [1] 頭高型 (高低) vs 飴 [0] 平板型 (低高)",
+      "twTrap": "🎵 東京方言必考聽解高低音調對比：首拍高音後急降為「下雨」，平升不降為「糖果」"
+    }
+  ]
+};"""
+        norm = txt.replace("\r\n", "\n")
+        if old_tail in norm:
+            p_psy.write_text(norm.replace(old_tail, new_tail), encoding="utf-8")
+
+    p_app = BASE_DIR / "assets" / "js" / "app.js"
+    atxt = p_app.read_text(encoding="utf-8").replace("\r\n", "\n")
+    old_fn = """function renderTrapCardsModalContent() {
+  const box = document.getElementById('trapCardsContainer');
+  if (!box || typeof OFFICIAL_BLUEPRINT === 'undefined' || !OFFICIAL_BLUEPRINT.taiwanHighSchoolTrapCards) return;
+  box.innerHTML = OFFICIAL_BLUEPRINT.taiwanHighSchoolTrapCards.map(c => `
+    <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 transition space-y-1.5">
+      <div class="flex items-center justify-between gap-2">
+        <span class="jp-text text-base font-extrabold text-amber-300">${c.kanji}</span>
+        <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[11px] font-bold">${c.lvl}</span>
+      </div>
+      <div class="text-xs font-bold text-emerald-300">🇯🇵 日文正解：${c.jpMeaning}</div>
+      <div class="text-xs text-rose-300/90 leading-relaxed">${c.twTrap}</div>
+    </div>
+  `).join('');
+}"""
+    new_fn = """function renderTrapCardsModalContent() {
+  const box = document.getElementById('trapCardsContainer');
+  if (!box || typeof OFFICIAL_BLUEPRINT === 'undefined' || !OFFICIAL_BLUEPRINT.taiwanHighSchoolTrapCards) return;
+  box.innerHTML = OFFICIAL_BLUEPRINT.taiwanHighSchoolTrapCards.map(c => {
+    const cleanTts = (c.tts || c.kanji.split(' ')[0]).replace(/'/g, '');
+    return `
+      <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 transition space-y-1.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="jp-text text-sm sm:text-base font-extrabold text-amber-300">${c.kanji}</span>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="speakSingleUtterance('${cleanTts}', 'FEMALE')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-mono text-[10px] border border-slate-700">🔊 朗讀</button>
+            <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[11px] font-bold">${c.lvl}</span>
+          </div>
+        </div>
+        <div class="text-xs font-bold text-emerald-300">🇯🇵 日文正解：${c.jpMeaning}</div>
+        <div class="text-xs text-rose-300/90 leading-relaxed">${c.twTrap}</div>
+      </div>
+    `;
+  }).join('');
+}"""
+    if old_fn in atxt:
+        p_app.write_text(atxt.replace(old_fn, new_fn), encoding="utf-8")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
     roadmap_entry = WAVE_ROADMAP[min(next_wave - 1, len(WAVE_ROADMAP) - 1)]
+
+    if next_wave >= 7:
+        apply_wave_7_trap_cards()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [
