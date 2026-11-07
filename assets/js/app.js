@@ -89,6 +89,16 @@ window.addEventListener('DOMContentLoaded', async () => {
       } else {
         nextQuestion();
       }
+    } else if (e.key === 'ArrowRight') {
+      nextQuestion();
+    } else if (e.key === 'ArrowLeft') {
+      prevQuestion();
+    } else if (e.key === 'r' || e.key === 'R') {
+      toggleFurigana();
+    } else if (e.key === 'h' || e.key === 'H') {
+      triggerSocraticHint();
+    } else if (e.key === 'f' || e.key === 'F') {
+      toggleFlagQuestion();
     }
   });
 });

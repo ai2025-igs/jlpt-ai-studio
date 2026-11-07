@@ -351,6 +351,39 @@ def apply_wave_12_psychometric_calibration():
             p.write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def apply_wave_13_hotkeys():
+    p_app = BASE_DIR / "assets" / "js" / "app.js"
+    atxt = p_app.read_text(encoding="utf-8").replace("\r\n", "\n")
+    old_kb = """    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!isSubmitted) {
+        submitCurrentAnswer();
+      } else {
+        nextQuestion();
+      }
+    }"""
+    new_kb = """    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!isSubmitted) {
+        submitCurrentAnswer();
+      } else {
+        nextQuestion();
+      }
+    } else if (e.key === 'ArrowRight') {
+      nextQuestion();
+    } else if (e.key === 'ArrowLeft') {
+      prevQuestion();
+    } else if (e.key === 'r' || e.key === 'R') {
+      toggleFurigana();
+    } else if (e.key === 'h' || e.key === 'H') {
+      triggerSocraticHint();
+    } else if (e.key === 'f' || e.key === 'F') {
+      toggleFlagQuestion();
+    }"""
+    if "e.key === 'ArrowRight'" not in atxt and old_kb in atxt:
+        p_app.write_text(atxt.replace(old_kb, new_kb, 1), encoding="utf-8")
+
+
 def run_wave(target_wave: int | None = None):
     state = load_state()
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
@@ -364,6 +397,8 @@ def run_wave(target_wave: int | None = None):
         apply_wave_9_discourse_highlighter()
     if next_wave >= 12:
         apply_wave_12_psychometric_calibration()
+    if next_wave >= 13:
+        apply_wave_13_hotkeys()
 
     # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
     level_Target_map = [
