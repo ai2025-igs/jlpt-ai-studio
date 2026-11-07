@@ -1,6 +1,6 @@
 {
   "startedAt": "2026-11-07T16:58:35.567805+00:00",
-  "currentWave": 2,
+  "currentWave": 3,
   "maxWaves": 24,
   "intervalMinutes": 20,
   "history": [
@@ -21,13 +21,22 @@
       "totalPool_N1_N5": 1651,
       "totalPool_N1_N4": 1411,
       "totalMock_N1_N4": 401
+    },
+    {
+      "wave": 3,
+      "timestamp": "2026-11-07T17:22:40.535521+00:00",
+      "phase": "Phase I",
+      "focus": "N2 Pool Expansion & Word-Formation (問題3・語形成) / Business Reading Enrichment (toward 500% = 530 items)",
+      "totalPool_N1_N5": 1863,
+      "totalPool_N1_N4": 1623,
+      "totalMock_N1_N4": 401
     }
   ],
-  "lastUpdatedAt": "2026-11-07T17:00:27.298740+00:00",
+  "lastUpdatedAt": "2026-11-07T17:22:40.535521+00:00",
   "summary": {
-    "totalPool_N1_N5": 1651,
+    "totalPool_N1_N5": 1863,
     "totalMock_N1_N5": 481,
-    "totalPool_N1_N4": 1411,
+    "totalPool_N1_N4": 1623,
     "totalMock_N1_N4": 401,
     "countsByLevel": {
       "N1": {
@@ -35,7 +44,7 @@
         "mock100": 104
       },
       "N2": {
-        "pool": 318,
+        "pool": 530,
         "mock100": 106
       },
       "N3": {

@@ -118,17 +118,17 @@ def run_wave(target_wave: int | None = None):
     next_wave = target_wave if target_wave is not None else min(24, state["currentWave"] + 1)
     roadmap_entry = WAVE_ROADMAP[min(next_wave - 1, len(WAVE_ROADMAP) - 1)]
 
-    # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6
-    level_Target_map = {
-        2: ("N1", 520),
-        3: ("N2", 530),
-        4: ("N3", 510),
-        5: ("N4", 445),
-        6: ("N5", 400),
-    }
-    if next_wave in level_Target_map:
-        lvl, tgt = level_Target_map[next_wave]
-        expand_level_toward_500(lvl, tgt)
+    # Progressively scale pools from 300% (1,443) to 500% (2,405) across Waves 2..6 (cumulative idempotent)
+    level_Target_map = [
+        (2, "N1", 520),
+        (3, "N2", 530),
+        (4, "N3", 510),
+        (5, "N4", 445),
+        (6, "N5", 400),
+    ]
+    for w_gate, lvl, tgt in level_Target_map:
+        if next_wave >= w_gate:
+            expand_level_toward_500(lvl, tgt)
 
     # Collect current counts
     counts = {}

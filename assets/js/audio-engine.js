@@ -132,6 +132,18 @@ function speakSingleUtterance(text, role) {
   });
 }
 
+function setActiveKotaekataStep(activeStep) {
+  for (let s = 1; s <= 4; s++) {
+    const el = document.getElementById(`kotaeStep${s}`);
+    if (!el) continue;
+    if (s === activeStep) {
+      el.className = 'kotaekata-step p-2 rounded-lg bg-emerald-900/60 border-2 border-emerald-400 text-center shadow-lg scale-[1.02] transition-all';
+    } else {
+      el.className = 'kotaekata-step p-2 rounded-lg bg-slate-900/90 border border-slate-700 text-center opacity-80 transition-all';
+    }
+  }
+}
+
 function tryPlayPreRenderedMp3(audioFileUrl, totalTurns) {
   return new Promise((resolve) => {
     if (!audioFileUrl || window.location.protocol === 'file:') {
@@ -159,6 +171,7 @@ function tryPlayPreRenderedMp3(audioFileUrl, totalTurns) {
         if (typeof highlightActiveTranscriptLine === 'function') {
           highlightActiveTranscriptLine(estTurn - 1);
         }
+        setActiveKotaekataStep(estTurn === 1 ? 1 : (estTurn === totalTurns ? 3 : 2));
       }
     };
 
@@ -197,6 +210,7 @@ async function playListeningDialogue() {
   statusDot.className = 'w-3 h-3 rounded-full bg-emerald-400 animate-ping';
 
   // 1. Play Authentic JLPT Exam Intro Chime ("Pin-Pon")
+  setActiveKotaekataStep(1);
   speakerBadge.textContent = '🔔 考場提示鐘聲 (チャイム 880Hz→698Hz)...';
   await playExamChime();
 
@@ -221,6 +235,7 @@ async function playListeningDialogue() {
       if (typeof highlightActiveTranscriptLine === 'function') {
         highlightActiveTranscriptLine(i);
       }
+      setActiveKotaekataStep(i === 0 ? 1 : (turn.role === 'QUESTION' || i === totalTurns - 1 ? 3 : 2));
 
       if (turn.role === 'QUESTION' && i > 0) {
         await new Promise(r => setTimeout(r, 350));
@@ -276,6 +291,7 @@ function resetChoukaiPlayerUI() {
   if (typeof highlightActiveTranscriptLine === 'function') {
     highlightActiveTranscriptLine(-1);
   }
+  setActiveKotaekataStep(4);
 }
 
 async function replayDialogueTurn(turnIdx) {
