@@ -1,0 +1,73 @@
+{
+  "goal": "Optimize JLPT N2 AI Studio (https://ai2025-igs.github.io/jlpt-ai-studio/ | D:/MuseAcademy_50_25C16/jlpt-ai-studio) from 69 Live DOM / 66 Static Impeccable findings to 0 findings (exit 0) via 10 Impeccable Skill Context Prompts",
+  "mode": "full",
+  "nodes": [
+    {
+      "id": "N0",
+      "title": "Read-Only SSOT & Live URL Detector Probe: Scan https://ai2025-igs.github.io/jlpt-ai-studio/ (69 live findings) & D:/MuseAcademy_50_25C16/jlpt-ai-studio (66 source findings)",
+      "deps": [],
+      "type": 2,
+      "est_min": 5,
+      "gate": "python -c \"import os; assert os.path.exists('D:/MuseAcademy_50_25C16/jlpt-ai-studio/index.html')\""
+    },
+    {
+      "id": "N1",
+      "title": "Golden Baseline Snapshot: Backup index.html, custom.css, and app.js + verify 530 N2 questions via validate_jlpt_studio.py",
+      "deps": ["N0"],
+      "type": 2,
+      "est_min": 5,
+      "gate": "python D:/MuseAcademy_50_25C16/jlpt-ai-studio/scripts/validate_jlpt_studio.py --min-questions 400"
+    },
+    {
+      "id": "N2",
+      "title": "CP-01 & CP-02 (/impeccable init + /impeccable document): Establish PRODUCT.md (N2 Operate Mode SSOT) & DESIGN.md (OKLCH N2 Amber-Ink Token Ramp fixing 2.2:1 #ffffff-on-#f39c42 low-contrast)",
+      "deps": ["N1"],
+      "type": 2,
+      "est_min": 10,
+      "gate": "python -c \"import os; d='D:/MuseAcademy_50_25C16/jlpt-ai-studio'; assert os.path.exists(d+'/PRODUCT.md') and os.path.exists(d+'/DESIGN.md')\"",
+      "parallel_agent": "Pod A: Product & Design Token Architect"
+    },
+    {
+      "id": "N3",
+      "title": "CP-03 & CP-04 (/impeccable colorize + /impeccable typeset): Fix 11 low-contrast N2 badge hits (#f39c42 with dark ink #0f172a = 9.4:1), 36 undersized-ui-text (<11px), 11 tiny-text (<12px), flat-type-hierarchy (1.00:1 -> >=1.25:1) & skipped-heading (h1->h2->h3)",
+      "deps": ["N2"],
+      "type": 2,
+      "est_min": 15,
+      "gate": "pwsh -NoProfile -Command \"& 'C:/Users/horac/.gemini/config/skills/impeccable/scripts/impeccable.cmd' detect D:/MuseAcademy_50_25C16/jlpt-ai-studio/index.html\"",
+      "parallel_agent": "Pod B: Typography & Contrast Surgeon"
+    },
+    {
+      "id": "N4",
+      "title": "CP-05 & CP-06 (/impeccable distill + /impeccable layout): Flatten 55 static / 8 live nested-cards in N2 Exam Console & Right Dock, fix 2 cramped-padding containers, and remove side-tab border-l-4 in app.js:2198",
+      "deps": ["N2"],
+      "type": 2,
+      "est_min": 15,
+      "gate": "python -c \"txt=open('D:/MuseAcademy_50_25C16/jlpt-ai-studio/assets/js/app.js',encoding='utf-8').read(); assert 'border-l-4' not in txt\"",
+      "parallel_agent": "Pod C: Spatial Layout & Anti-Slop Distiller"
+    },
+    {
+      "id": "N5",
+      "title": "CP-07, CP-08 & CP-09 (/impeccable animate + /impeccable quieter + /impeccable harden): Replace eqBounce bounce-easing in custom.css:157, remove decorative pulsing-dot & #submitBtn dark-glow, and harden N2 Choukai/Dokkai/Star-Sandbox states",
+      "deps": ["N2"],
+      "type": 2,
+      "est_min": 12,
+      "gate": "pwsh -NoProfile -Command \"& 'C:/Users/horac/.gemini/config/skills/impeccable/scripts/impeccable.cmd' detect D:/MuseAcademy_50_25C16/jlpt-ai-studio/assets/css/custom.css\"",
+      "parallel_agent": "Pod D: Motion Physics & Hardening Engineer"
+    },
+    {
+      "id": "N6",
+      "title": "Type-1 CP-10 (/impeccable audit + /impeccable polish + GitHub Pages Deploy): Rebuild standalone bundle, verify 0 Impeccable findings on index.html/custom.css/app.js, and push to ai2025-igs.github.io/jlpt-ai-studio",
+      "deps": ["N3", "N4", "N5"],
+      "type": 1,
+      "est_min": 10,
+      "gate": "pwsh -NoProfile -Command \"& 'C:/Users/horac/.gemini/config/skills/impeccable/scripts/impeccable.cmd' detect D:/MuseAcademy_50_25C16/jlpt-ai-studio/index.html D:/MuseAcademy_50_25C16/jlpt-ai-studio/assets/css/custom.css D:/MuseAcademy_50_25C16/jlpt-ai-studio/assets/js/app.js\"",
+      "rollback": "git -C D:/MuseAcademy_50_25C16/jlpt-ai-studio revert HEAD && git push origin main (restores previous GitHub Pages deployment in <45s)",
+      "approval": "Type-1 Approval: Execute all 10 Impeccable Context Prompts on D:/MuseAcademy_50_25C16/jlpt-ai-studio (reducing 69 live / 66 static findings to 0 while preserving 100% of N2 530-question functionality) and optionally deploy to GitHub Pages"
+    }
+  ],
+  "premortem": [
+    "Cause 1: Official JLPT N2 theme color #f39c42 (amber-orange) has only 2.1:1-2.2:1 contrast with white text (#ffffff), triggering 11 low-contrast errors -> Mitigated in CP-02/CP-03 by switching foreground ink on #f39c42 surfaces to deep slate ink (#0f172a, 9.4:1 WCAG AAA) or using #f39c42 as a dark-surface accent with light amber text (#fde68a on #451a03, 10.2:1).",
+    "Cause 2: Increasing 36 undersized-ui-text (10px) and 11 tiny-text (11px) badges to >=12px/14px could break the 1080P zero-scroll viewport budget (max-height: calc(100vh - 148px)) -> Mitigated in CP-04/CP-06 by flattening 55 nested-cards (saving ~64px of vertical card-in-card padding/borders) while raising font floors to 12px UI / 14px body.",
+    "Cause 3: Flattening nested-cards or modifying DOM classes breaks DOM IDs expected by assets/js/app.js or scripts/build_standalone.py -> Mitigated in N1 & N6 by preserving all element IDs (#officialMondaiBanner, #scaffoldingActionStrip, #standardTtsBar, #srlConfidenceCard, etc.) and running validate_jlpt_studio.py + build_standalone.py."
+  ]
+}

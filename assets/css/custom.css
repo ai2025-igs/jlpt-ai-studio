@@ -2,8 +2,37 @@ body {
   background-color: #0f172a;
   color: #f8fafc;
   font-family: 'Noto Sans TC', 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
   overflow-x: hidden;
 }
+
+/* Explicit Typographic Hierarchy (>= 1.25x step ratio for static & live DOM) */
+h1 {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+h2 {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+h3 {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+h4 {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
 .jp-text {
   font-family: 'Noto Sans JP', sans-serif;
   line-height: 1.85;
@@ -13,7 +42,7 @@ ruby {
 }
 rt {
   font-family: 'Noto Sans JP', sans-serif;
-  font-size: 0.62em;
+  font-size: 0.65em;
   color: #38bdf8;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -22,6 +51,7 @@ rt {
 body.hide-inline-ruby rt {
   display: none;
 }
+
 /* 1080P Viewport Ergonomics (1920x1080 Default Display Target) */
 @media (min-width: 1280px) {
   .viewport-1080p-pane {
@@ -29,6 +59,7 @@ body.hide-inline-ruby rt {
     overflow-y: auto;
   }
 }
+
 /* Official JLPT Sample Website Theme Colors (from jlpt.jp/tw/samples/) */
 :root {
   --jlpt-n1: #00a383;
@@ -37,9 +68,11 @@ body.hide-inline-ruby rt {
   --jlpt-n4: #ef6c67;
   --jlpt-n5: #1e78b4;
   --jlpt-active-theme: #f39c42;
+  --jlpt-active-ink: #020617;
 }
 .jlpt-theme-bg {
   background-color: var(--jlpt-active-theme);
+  color: var(--jlpt-active-ink);
 }
 .jlpt-theme-border {
   border-color: var(--jlpt-active-theme);
@@ -47,21 +80,22 @@ body.hide-inline-ruby rt {
 .jlpt-theme-text {
   color: var(--jlpt-active-theme);
 }
+
 /* Official JLPT Mondai Number Bar (Screenshots #4 & #5) */
 .jlpt-mondai-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 26px;
-  height: 24px;
-  padding: 0 5px;
-  border-radius: 4px;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 700;
-  color: #cbd5e1;
-  background: rgba(30, 41, 59, 0.85);
+  color: #e2e8f0;
+  background: rgba(30, 41, 59, 0.9);
   border: 1px solid rgba(71, 85, 105, 0.6);
-  transition: all 0.15s ease;
+  transition: background-color 0.15s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s cubic-bezier(0.22, 1, 0.36, 1);
   cursor: pointer;
 }
 .jlpt-mondai-btn:hover {
@@ -70,25 +104,31 @@ body.hide-inline-ruby rt {
 }
 .jlpt-mondai-btn.active {
   background-color: var(--jlpt-active-theme);
-  color: #ffffff;
-  border-color: #ffffff;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
+  color: #020617;
+  border-color: #020617;
 }
+
 /* Official JLPT 2x2 Capsule Option Pills (Screenshots #4 & #5) */
 .jlpt-capsule-option {
   border-radius: 9999px;
-  transition: all 0.16s ease;
+  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.16s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .jlpt-capsule-option:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
+
 /* Official Choukai 4-Step 答え方 Chevron Box (Screenshot #5) */
 .kotaekata-step {
   position: relative;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
-/* Custom Scrollbar */
+
+/* Browser Surfaces: Focus Rings & Custom Scrollbars */
+:focus-visible {
+  outline: 2px solid #f39c42;
+  outline-offset: 2px;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -103,6 +143,7 @@ body.hide-inline-ruby rt {
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
 /* Range Slider Styling */
 input[type=range] {
   -webkit-appearance: none;
@@ -122,12 +163,13 @@ input[type=range]::-webkit-slider-thumb {
   border: 3px solid #f59e0b;
   cursor: pointer;
   margin-top: -6px;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
-  transition: transform 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
 }
 input[type=range]::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
+  transform: scale(1.12);
 }
+
 .target-word {
   text-decoration: underline;
   text-decoration-color: #f59e0b;
@@ -136,26 +178,38 @@ input[type=range]::-webkit-slider-thumb:hover {
   color: #fbbf24;
   font-weight: 700;
 }
+
 @keyframes pulseBorder {
   0%, 100% { border-color: rgba(245, 158, 11, 0.45); }
   50% { border-color: rgba(245, 158, 11, 1); }
 }
 .star-slot-active {
-  animation: pulseBorder 2s infinite;
+  animation: pulseBorder 2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
-/* Audio Equalizer Bars Animation */
-@keyframes eqBounce {
-  0%, 100% { transform: scaleY(0.2); }
+
+/* Audio Equalizer Bars Animation — Exponential Deceleration (Zero Bounce Easing) */
+@keyframes eqWave {
+  0%, 100% { transform: scaleY(0.22); }
   50% { transform: scaleY(1); }
 }
 .eq-bar {
   transform-origin: bottom;
   transform: scaleY(0.22);
-  transition: transform 0.15s ease;
+  transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .eq-playing .eq-bar {
-  animation: eqBounce 0.65s ease-in-out infinite;
+  animation: eqWave 0.65s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

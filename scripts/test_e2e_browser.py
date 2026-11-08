@@ -91,6 +91,20 @@ def run_e2e():
             page.wait_for_timeout(150)
             assert page.is_visible("#diagnosticPanel"), "Diagnostic panel should be visible after submitting answer"
 
+            # 5. Test 100% Neural MP3 Audio Triggers (Written Stem, Listening Turn, Trap Card)
+            mp3_requests = []
+            page.on("response", lambda res: mp3_requests.append((res.url, res.status)) if ".mp3" in res.url else None)
+            page.evaluate("speakQuestion(1.0);")
+            page.wait_for_timeout(200)
+            page.evaluate("jumpToMondaiCode('L1_TASK');")
+            page.wait_for_timeout(150)
+            page.evaluate("replayDialogueTurn(0);")
+            page.wait_for_timeout(200)
+            page.evaluate("speakSingleUtterance('てがみをかく', 'FEMALE');")
+            page.wait_for_timeout(200)
+            assert len(mp3_requests) >= 3 and all(status in (200, 206) for _, status in mp3_requests), f"Expected HTTP 200/206 on Neural MP3 requests, got: {mp3_requests}"
+            print(f"[E2E PASS] Neural MP3 Audio Triggers verified ({len(mp3_requests)} MP3 streams fetched with HTTP 200/206)!")
+
             assert len(page_errors) == 0, f"Runtime page errors detected: {page_errors}"
             browser.close()
             print("[E2E ALL CHECKS PASSED] Zero pageerror, N2 530/318/106 fully interactive!")

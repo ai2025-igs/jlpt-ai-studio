@@ -29,7 +29,7 @@
   </script>
 
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="assets/css/custom.css?v=4.2" />
+  <link rel="stylesheet" href="assets/css/custom.css?v=4.3" />
 </head>
 
 <body class="min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950 hide-inline-ruby">
@@ -42,73 +42,73 @@
       <div class="flex flex-wrap items-center justify-between gap-2">
         <!-- Brand Identity -->
         <div class="flex items-center gap-2.5">
-          <div id="headerLevelBadge" class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-mono font-black text-base shadow-lg" style="background-color: #f39c42;">
+          <div id="headerLevelBadge" class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-950 font-mono font-black text-base" style="background-color: #f39c42; color: #020617;">
             N2
           </div>
           <div>
             <div class="flex items-center gap-2 flex-wrap">
-              <h1 id="headerLevelTitle" class="text-sm sm:text-base font-extrabold tracking-tight text-white">
+              <h1 id="headerLevelTitle" class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
                 JLPT N2 互動式 AI 刷題與認知診斷系統 v4.2
               </h1>
-              <span id="headerSubBadge" class="px-2 py-0.5 text-[10px] font-mono font-semibold rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              <span id="headerSubBadge" class="px-2 py-0.5 text-xs font-mono font-semibold rounded-full bg-amber-500/15 text-amber-300">
                 🎯 專注 N2 主力衝刺版 ｜ 1080P 官方樣題 UI × 530題(500%) × 318題(300%) × 106題(100%模考)
               </span>
             </div>
-            <p id="headerLevelDesc" class="text-[11px] text-slate-400 hidden xl:block">
+            <p id="headerLevelDesc" class="text-xs text-slate-400 hidden xl:block">
               二節制測驗（總分 ≥90/180，三科皆須 ≥19/60） ｜ 正式模考 106題 / 300%鍛鍊池 318題 / 500%旗艦池 530題（N1/N3/N4/N5 鎖定待開放）
             </p>
           </div>
         </div>
 
         <!-- 5-Level Switcher Pills (N2 Active Flagship Focus; N1, N3, N4, N5 Disabled until N2 Acceptance) -->
-        <div id="levelSwitcherGroup" class="flex flex-wrap items-center gap-1.5 bg-slate-900/95 p-1 rounded-2xl border border-slate-800 transition-all">
-          <button id="lvlBtn_N1" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N1）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-500 border border-slate-800 opacity-45 cursor-not-allowed">
+        <div id="levelSwitcherGroup" class="flex flex-wrap items-center gap-1.5 p-1 transition-all">
+          <button id="lvlBtn_N1" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N1）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
             <span>🔒 N1</span>
-            <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-500 border border-slate-800 font-mono text-[10px]">待開放</span>
+            <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
           </button>
-          <button id="lvlBtn_N2" onclick="switchLevel('N2')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition flex items-center gap-1.5 text-white shadow-lg border-2 border-white" style="background-color: #f39c42;">
+          <button id="lvlBtn_N2" onclick="switchLevel('N2')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition flex items-center gap-1.5 text-slate-950" style="background-color: #f39c42; color: #020617;">
             <span>🏆 N2 (主力焦點)</span>
-            <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 border border-white/40 font-mono text-[10px] font-bold">530題(模106)</span>
+            <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs font-bold">530題(模106)</span>
           </button>
-          <button id="lvlBtn_N3" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N3）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-500 border border-slate-800 opacity-45 cursor-not-allowed">
+          <button id="lvlBtn_N3" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N3）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
             <span>🔒 N3</span>
-            <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-500 border border-slate-800 font-mono text-[10px]">待開放</span>
+            <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
           </button>
-          <button id="lvlBtn_N4" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N4）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-500 border border-slate-800 opacity-45 cursor-not-allowed">
+          <button id="lvlBtn_N4" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N4）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
             <span>🔒 N4</span>
-            <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-500 border border-slate-800 font-mono text-[10px]">待開放</span>
+            <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
           </button>
-          <button id="lvlBtn_N5" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N5）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-500 border border-slate-800 opacity-45 cursor-not-allowed">
+          <button id="lvlBtn_N5" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N5）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
             <span>🔒 N5</span>
-            <span id="lvlCount_N5" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-500 border border-slate-800 font-mono text-[10px]">待開放</span>
+            <span id="lvlCount_N5" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
           </button>
         </div>
 
         <!-- Global Quick Action Toolbar -->
         <div class="flex flex-wrap items-center gap-1">
-          <button onclick="startGuidedTour()" class="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[11px] font-extrabold border border-emerald-400/50 transition">
+          <button onclick="startGuidedTour()" class="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-extrabold transition">
             🧭 30秒導覽
           </button>
-          <button onclick="openBlueprintModal()" class="px-2.5 py-1 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-[11px] font-bold border border-indigo-400/50 transition">
+          <button onclick="openBlueprintModal()" class="px-2.5 py-1 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-xs font-bold transition">
             📊 100%/300%題量表
           </button>
-          <button onclick="openWorkflowModal()" class="px-2.5 py-1 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 text-[11px] font-bold border border-sky-500/40 transition">
+          <button onclick="openWorkflowModal()" class="px-2.5 py-1 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 text-xs font-bold transition">
             🗺️ 題型矩陣
           </button>
-          <button onclick="openTrapCardsModal()" class="px-2.5 py-1 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-[11px] font-bold border border-rose-500/40 transition">
+          <button onclick="openTrapCardsModal()" class="px-2.5 py-1 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-xs font-bold transition">
             🃏 假朋友&音調
           </button>
-          <button onclick="openConjugationModal()" class="px-2.5 py-1 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 text-[11px] font-bold border border-purple-500/40 transition">
+          <button onclick="openConjugationModal()" class="px-2.5 py-1 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 text-xs font-bold transition">
             🔤 動詞活用表
           </button>
-          <button onclick="openPedagogyModal()" class="px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-[11px] font-bold border border-amber-500/40 transition">
+          <button onclick="openPedagogyModal()" class="px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold transition">
             🧠 8大教學法
           </button>
-          <button id="aiGenerateBtn" onclick="generateAIQuestions()" class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-[11px] shadow transition flex items-center gap-1">
-            <span id="aiGenSpinner" class="hidden w-3 h-3 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+          <button id="aiGenerateBtn" onclick="generateAIQuestions()" class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-xs transition flex items-center gap-1">
+            <span id="aiGenSpinner" class="hidden w-3 h-3 border-t-transparent rounded-full animate-spin"></span>
             <span id="aiGenBtnText">✨ AI生題</span>
           </button>
-          <button onclick="openByokModal()" class="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200 border border-slate-700 transition flex items-center gap-1">
+          <button onclick="openByokModal()" class="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition flex items-center gap-1">
             <span id="byokStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
             <span>🔑</span>
           </button>
@@ -118,60 +118,60 @@
       <!-- Row 2: 3-Tab Main Workspace Switcher (Feedback #4) + Pool Mode (100% Mock vs 300% Pool) + Scaffolding Controls -->
       <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-800/90">
         <!-- 3 Main Workspace Tabs -->
-        <div class="flex flex-wrap items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800">
-          <button id="mainTabBtn_1" onclick="switchWorkspaceTab('TAB_MAIN_GUI')" class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition flex items-center gap-1.5">
+        <div class="flex flex-wrap items-center gap-1.5 bg-slate-900 p-1 rounded-xl">
+          <button id="mainTabBtn_1" onclick="switchWorkspaceTab('TAB_MAIN_GUI')" class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 transition flex items-center gap-1.5">
             <span>🎯 Tab 1：互動式 AI 刷題與認知診斷系統 (官方樣題 UI)</span>
           </button>
           <button id="mainTabBtn_2" onclick="switchWorkspaceTab('TAB_IRT_COACH')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
             <span>📊 Tab 2：量尺分數推估與過關機率 & AI 弱點處方箋</span>
-            <span id="tab2MiniScoreBadge" class="px-1.5 py-0.2 rounded bg-slate-950 text-amber-300 font-mono text-[10px]">--/180</span>
+            <span id="tab2MiniScoreBadge" class="px-1.5 py-0.2 rounded bg-slate-950 text-amber-300 font-mono text-xs">--/180</span>
           </button>
           <button id="mainTabBtn_3" onclick="switchWorkspaceTab('TAB_FSRS_OTHERS')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
             <span>📋 Tab 3：記憶排程與題庫導覽佇列 & 考綱百寶箱</span>
-            <span id="tab3QueueBadge" class="px-1.5 py-0.2 rounded bg-slate-950 text-sky-300 font-mono text-[10px]">1,443題</span>
+            <span id="tab3QueueBadge" class="px-1.5 py-0.2 rounded bg-slate-950 text-sky-300 font-mono text-xs">1,443題</span>
           </button>
         </div>
 
         <!-- Right Controls: 300% Pool vs 100% Official Mock Toggle + Category Filter + Scaffolding Mode + Furigana -->
         <div class="flex flex-wrap items-center gap-1.5">
           <!-- 500% Flagship Pool vs 300% Practice Pool vs 100% Official Mock Switcher -->
-          <div class="flex items-center bg-slate-900 p-0.5 rounded-xl border border-slate-700">
-            <button id="poolBtn500" onclick="setQuestionPoolScope('POOL_500')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition" title="旗艦 500% 全題庫池 (N1:520 / N2:530 / N3:510 / N4:445 / N5:400，N1-N4合計 2,005題 / 全五級 2,405題)">
+          <div class="flex items-center bg-slate-900 p-0.5 rounded-xl">
+            <button id="poolBtn500" onclick="setQuestionPoolScope('POOL_500')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition" title="旗艦 500% 全題庫池 (N1:520 / N2:530 / N3:510 / N4:445 / N5:400，N1-N4合計 2,005題 / 全五級 2,405題)">
               🔥 500% 旗艦池 (<span id="pool500CountText">530</span>題)
             </button>
-            <button id="poolBtn300" onclick="setQuestionPoolScope('POOL_300')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition" title="日常 300% 擴充鍛鍊池 (N1:312 / N2:318 / N3:306 / N4:267 / N5:240，N1-N4合計 1,203題 / 全五級 1,443題)">
+            <button id="poolBtn300" onclick="setQuestionPoolScope('POOL_300')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition" title="日常 300% 擴充鍛鍊池 (N1:312 / N2:318 / N3:306 / N4:267 / N5:240，N1-N4合計 1,203題 / 全五級 1,443題)">
               🏋️ 300% 鍛鍊池 (<span id="pool300CountText">318</span>題)
             </button>
-            <button id="poolBtn100" onclick="setQuestionPoolScope('MOCK_100')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition" title="JEES 官方 100% 正式檢定題量 (N1:104 / N2:106 / N3:102 / N4:89 / N5:80，N1-N4合計 401題 / 全五級 481題)">
+            <button id="poolBtn100" onclick="setQuestionPoolScope('MOCK_100')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition" title="JEES 官方 100% 正式檢定題量 (N1:104 / N2:106 / N3:102 / N4:89 / N5:80，N1-N4合計 401題 / 全五級 481題)">
               ⏱️ 100% 正式模考 (<span id="mock100CountText">106</span>題)
             </button>
           </div>
 
           <select id="officialSubtypeSelect" onchange="applyOfficialSubfilter(this.value)"
-            class="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-700 text-[11px] text-slate-200 font-medium focus:outline-none focus:border-amber-400">
+            class="px-2.5 py-1 rounded-xl bg-slate-900 text-xs text-slate-200 font-medium focus:outline-none">
             <option value="ALL_SUB">📑 官方大題：全部題型</option>
           </select>
 
-          <div class="flex items-center bg-slate-900 p-0.5 rounded-xl border border-slate-700">
-            <button id="modeBtnScaffold" onclick="setPedagogicalMode('SCAFFOLD')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500 text-slate-950 transition">
+          <div class="flex items-center bg-slate-900 p-0.5 rounded-xl">
+            <button id="modeBtnScaffold" onclick="setPedagogicalMode('SCAFFOLD')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500 text-slate-950 transition">
               🌱 教學鷹架
             </button>
-            <button id="modeBtnExam" onclick="setPedagogicalMode('EXAM')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-white transition">
+            <button id="modeBtnExam" onclick="setPedagogicalMode('EXAM')" class="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-400 hover:text-white transition">
               ⚔️ 考場實戰
             </button>
           </div>
 
-          <button id="furiganaToggleBtn" onclick="toggleFurigana()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-medium text-slate-200 border border-slate-700 transition flex items-center gap-1">
+          <button id="furiganaToggleBtn" onclick="toggleFurigana()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition flex items-center gap-1">
             <span>あ 振假名:</span>
             <span id="furiganaStatusText" class="font-mono text-emerald-400 font-bold">OFF</span>
           </button>
 
-          <button onclick="startWeaknessDrill()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-200 border border-slate-700 transition flex items-center gap-1" title="優先抽取高信心盲點題與錯題">
+          <button onclick="startWeaknessDrill()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition flex items-center gap-1" title="優先抽取高信心盲點題與錯題">
             <span>🔄 錯題</span>
-            <span id="weaknessCountBadge" class="px-1.5 rounded-full bg-rose-500/20 text-rose-300 font-mono text-[10px]">0</span>
+            <span id="weaknessCountBadge" class="px-1.5 rounded-full bg-rose-500/20 text-rose-300 font-mono text-xs">0</span>
           </button>
 
-          <button onclick="startFlaggedDrill()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-amber-300 border border-slate-700 transition flex items-center gap-1" title="專刷已標記待查 (🚩) 的題目">
+          <button onclick="startFlaggedDrill()" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-amber-300 transition flex items-center gap-1" title="專刷已標記待查 (🚩) 的題目">
             <span>🚩 待查</span>
           </button>
         </div>
@@ -184,19 +184,19 @@
 
   <!-- ================= INTERACTIVE 4-STEP SPOTLIGHT GUIDED TOUR BANNER ================= -->
   <div id="guidedTourBanner" class="hidden max-w-[1860px] w-full mx-auto px-4 pt-3">
-    <div class="bg-gradient-to-r from-emerald-950/90 via-slate-900 to-amber-950/80 border-2 border-amber-400 rounded-2xl p-3.5 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+    <div class="bg-gradient-to-r from-emerald-950/90 via-slate-900 to-amber-950/80 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-4">
       <div class="space-y-1 flex-1 min-w-[260px]">
         <div class="flex items-center gap-2">
           <span class="px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-mono text-xs font-black">🧭 互動式新手導覽</span>
-          <h3 id="tourStepTitle" class="text-sm font-extrabold text-amber-300">Step 1 / 4</h3>
+          <h2 id="tourStepTitle" class="text-base sm:text-lg font-extrabold text-amber-300">Step 1 / 4</h2>
         </div>
         <p id="tourStepDesc" class="text-xs text-slate-200 leading-relaxed"></p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <button type="button" onclick="closeGuidedTour()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700">
+        <button type="button" onclick="closeGuidedTour()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">
           略過導覽
         </button>
-        <button type="button" id="tourNextBtn" onclick="nextTourStep()" class="px-4 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs shadow-lg">
+        <button type="button" id="tourNextBtn" onclick="nextTourStep()" class="px-4 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs">
           下一步 ➔
         </button>
       </div>
@@ -211,33 +211,33 @@
     <!-- LEFT 7 COLUMNS: AUTHENTIC OFFICIAL JLPT SAMPLE WEB EXAM FRAME (Screenshots #3, #4, #5) -->
     <section class="lg:col-span-7 viewport-1080p-pane pr-0.5 space-y-3">
 
-      <div class="bg-slate-800/95 border-2 border-slate-700/90 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div class="bg-slate-800/95 rounded-2xl overflow-hidden flex flex-col">
 
         <!-- 1. OFFICIAL JLPT SAMPLE TOP HEADER FRAME (Matches Screenshots #4 & #5 from jlpt.jp/tw/samples/) -->
         <div class="bg-slate-900 border-b border-slate-700">
           <div class="flex items-stretch">
             <!-- Big Level Square Block (Left) -->
-            <div id="officialExamLevelBox" class="w-16 sm:w-20 shrink-0 flex flex-col items-center justify-center text-white font-black tracking-tight shadow-inner" style="background-color: #f39c42;">
+            <div id="officialExamLevelBox" class="w-20 sm:w-24 p-2.5 shrink-0 flex flex-col items-center justify-center text-slate-950 font-black tracking-tight" style="background-color: #f39c42; color: #020617; padding: 10px 12px;">
               <span id="officialExamLevelText" class="text-2xl sm:text-3xl leading-none">N2</span>
-              <span id="officialExamPoolTag" class="text-[9px] font-mono uppercase mt-0.5 px-1 rounded bg-black/25">500%池</span>
+              <span id="officialExamPoolTag" class="text-xs font-mono uppercase mt-0.5 px-1.5 py-0.5 rounded bg-slate-950 text-amber-300">500%池</span>
             </div>
 
             <!-- Two-Tier Official Mondai Number Selector Table (Center) -->
             <div class="flex-1 grid grid-cols-1 sm:grid-cols-12 divide-y sm:divide-y-0 sm:divide-x divide-slate-700/90 text-xs">
               <!-- Written Section Mondai Numbers (1..14) -->
               <div class="sm:col-span-8 p-2 flex flex-col justify-between bg-slate-900/90">
-                <div class="flex items-center justify-between text-[11px] font-bold text-slate-300 mb-1">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-300 mb-1">
                   <span id="officialWrittenHeaderLabel">言語知識（文字・語彙・文法）・読解</span>
-                  <span class="text-[10px] font-mono text-slate-400">點選題號跳轉大題</span>
+                  <span class="text-xs font-mono text-slate-400">點選題號跳轉大題</span>
                 </div>
                 <div id="officialMondaiWrittenBar" class="flex flex-wrap items-center gap-1"></div>
               </div>
 
               <!-- Listening Section Mondai Numbers (🔊15..19) -->
               <div class="sm:col-span-4 p-2 flex flex-col justify-between bg-slate-900/95">
-                <div class="flex items-center justify-between text-[11px] font-bold text-sky-300 mb-1">
+                <div class="flex items-center justify-between text-xs font-bold text-sky-300 mb-1">
                   <span>🔊 聴解 (Choukai)</span>
-                  <span class="text-[10px] font-mono text-sky-400/80">雙聲道</span>
+                  <span class="text-xs font-mono text-sky-400/80">雙聲道</span>
                 </div>
                 <div id="officialMondaiListeningBar" class="flex flex-wrap items-center gap-1"></div>
               </div>
@@ -245,28 +245,28 @@
 
             <!-- Blue [?] Official Help Button (Right) -->
             <button type="button" onclick="openWorkflowModal()" title="使い方・官方題型與考綱指引"
-              class="w-11 sm:w-12 shrink-0 bg-sky-600 hover:bg-sky-500 text-white font-black text-lg flex flex-col items-center justify-center border-l border-slate-700 transition">
+              class="w-11 sm:w-12 shrink-0 bg-sky-800 hover:bg-sky-700 text-white font-black text-lg flex flex-col items-center justify-center border-l border-slate-700 transition">
               <span>?</span>
-              <span class="text-[9px] font-normal">指引</span>
+              <span class="text-xs font-normal">指引</span>
             </button>
           </div>
 
           <!-- Official Colored Sub-Banner: Current Section + Mondai Number + Bracketed Subtype Name + Timer -->
-          <div id="officialMondaiBanner" class="px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 text-white font-bold text-xs sm:text-sm shadow-sm" style="background-color: #f39c42;">
+          <div id="officialMondaiBanner" class="p-3 flex flex-wrap items-center justify-between gap-2 text-slate-950 font-bold text-xs sm:text-sm" style="background-color: #f39c42; color: #020617; padding: 10px 16px;">
             <div class="flex items-center gap-2 flex-wrap">
-              <span id="qCategoryBadge" class="px-2 py-0.5 rounded bg-black/25 text-white font-mono text-xs">言語知識</span>
+              <span id="qCategoryBadge" class="px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs">言語知識</span>
               <span id="qSubtagBadge" class="font-extrabold tracking-wide jp-text">問題1 [漢字読み]</span>
-              <span id="qBloomBadge" class="px-2 py-0.5 rounded bg-black/20 text-white font-mono text-[11px]">L1 記憶</span>
-              <span id="qIrtBadge" class="px-1.5 py-0.5 rounded bg-black/20 text-white/90 font-mono text-[10px]">IRT b=0.0</span>
+              <span id="qBloomBadge" class="px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs">L1 記憶</span>
+              <span id="qIrtBadge" class="px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs">IRT b=0.0</span>
             </div>
             <div class="flex items-center gap-2">
-              <span id="qProgressText" class="font-mono text-xs bg-black/25 px-2 py-0.5 rounded">題號 #1 / 318</span>
+              <span id="qProgressText" class="font-mono text-xs bg-slate-950 text-amber-300 px-2 py-0.5 rounded">題號 #1 / 318</span>
               <button type="button" id="flagQuestionBtn" onclick="toggleFlagQuestion()"
                 class="px-2 py-0.5 rounded bg-black/25 hover:bg-black/40 text-white text-xs font-semibold transition">
                 🏳️ 標記待查
               </button>
               <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-slate-950/85 text-white">
-                <span id="timerDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="timerDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
                 <span id="timerText" class="font-mono text-xs font-bold text-emerald-400">00s / 30s</span>
               </div>
             </div>
@@ -282,119 +282,119 @@
         <div class="p-4 sm:p-5 space-y-3.5 flex-1">
 
           <!-- Sweller & Socratic Scaffolding Strip -->
-          <div id="scaffoldingActionStrip" class="flex flex-wrap items-center justify-between gap-2 bg-emerald-950/30 border border-emerald-500/30 rounded-xl px-3 py-1.5">
-            <span class="text-[11px] text-emerald-300 font-medium">
+          <div id="scaffoldingActionStrip" class="flex flex-wrap items-center justify-between gap-2 bg-emerald-950/30 rounded-xl px-3 py-1.5">
+            <span class="text-xs text-emerald-300 font-medium">
               🌱 <strong>教學鷹架輔助</strong>：卡關時可先請求蘇格拉底提示或排除 1 個誘答選項
             </span>
             <div class="flex items-center gap-1.5">
-              <button type="button" onclick="highlightDiscourseMarkers()" class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-[11px] font-bold transition" title="自動標記讀解與題幹中的轉折詞(しかし/だが)、結論詞(つまり/要するに)與對比詞(一方で)">
+              <button type="button" onclick="highlightDiscourseMarkers()" class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 text-xs font-bold transition" title="自動標記讀解與題幹中的轉折詞(しかし/だが)、結論詞(つまり/要するに)與對比詞(一方で)">
                 🖍️ 標記轉折與主張詞
               </button>
-              <button type="button" onclick="triggerSocraticHint()" class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition">
+              <button type="button" onclick="triggerSocraticHint()" class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold transition">
                 💡 蘇格拉底提示
               </button>
-              <button type="button" onclick="eliminateOneDistractor()" class="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-[11px] font-bold transition">
+              <button type="button" onclick="eliminateOneDistractor()" class="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-bold transition">
                 ✂️ 排除 1 個誘答 (50/50)
               </button>
             </div>
           </div>
 
           <!-- Socratic Hint Banner -->
-          <div id="socraticHintBanner" class="hidden p-3 rounded-xl bg-amber-500/15 border border-amber-400/50 text-amber-200 text-xs leading-relaxed">
+          <div id="socraticHintBanner" class="hidden p-3 rounded-xl bg-amber-500/15 text-amber-200 text-xs leading-relaxed">
             <div class="font-bold text-amber-300 mb-0.5">🏛️ 蘇格拉底產婆引導提示：</div>
             <div id="socraticHintText"></div>
           </div>
 
           <!-- Official Mondai Instruction Bar + Stem Audio Button -->
-          <div id="standardTtsBar" class="flex flex-wrap items-center justify-between gap-2 bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-700/80">
+          <div id="standardTtsBar" class="flex flex-wrap items-center justify-between gap-2 bg-slate-900/80 px-3.5 py-2 rounded-xl">
             <p id="qInstruction" class="text-xs sm:text-sm font-bold text-slate-200 jp-text">
               問題：次の文の（　）に入れるのに最もよいものを、1・2・3・4から一つ選びなさい。
             </p>
             <div class="flex items-center gap-1 shrink-0">
-              <button type="button" onclick="speakQuestion(1.0)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-sky-300 border border-slate-700 transition">
+              <button type="button" onclick="speakQuestion(1.0)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-sky-300 transition">
                 🔊 朗讀題幹 (1.0x)
               </button>
-              <button type="button" onclick="speakQuestion(0.8)" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-mono text-slate-300 border border-slate-700 transition">
+              <button type="button" onclick="speakQuestion(0.8)" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-300 transition">
                 🐢 0.8x
               </button>
             </div>
           </div>
 
           <!-- ================= LISTENING (CHOUKAI) OFFICIAL SAMPLE CONSOLE (Screenshot #5 Alignment) ================= -->
-          <div id="listeningConsoleBox" class="hidden bg-slate-900/95 border-2 border-sky-500/40 rounded-2xl p-3.5 sm:p-4 space-y-3 shadow-inner">
+          <div id="listeningConsoleBox" class="hidden bg-slate-900/95 rounded-2xl p-3.5 sm:p-4 space-y-3">
             <!-- Top Audio Player Row (Mimics Official JLPT Audio Bar + Dual-Voice Controls) -->
-            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950 border border-slate-800 rounded-xl p-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-950 rounded-xl p-2.5">
               <div class="flex items-center gap-2">
-                <span id="choukaiStatusDot" class="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse"></span>
+                <span id="choukaiStatusDot" class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
                 <button type="button" id="playChoukaiBtn" onclick="playListeningDialogue()"
-                  class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-sky-400 hover:from-sky-400 hover:to-sky-300 text-slate-950 font-extrabold text-xs shadow transition flex items-center gap-1.5">
+                  class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-sky-400 hover:from-sky-400 hover:to-sky-300 text-slate-950 font-extrabold text-xs transition flex items-center gap-1.5">
                   <span id="playChoukaiIcon">▶</span>
                   <span id="playChoukaiText">播放考場音源 (含鐘聲)</span>
                 </button>
                 <button type="button" onclick="stopListeningDialogue()"
-                  class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition">
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
                   ⏹ 停止
                 </button>
                 <div id="eqVisualizer" class="hidden sm:flex items-end gap-0.5 h-6 px-1.5"></div>
               </div>
 
               <div class="flex flex-wrap items-center gap-1.5">
-                <span id="activeSpeakerBadge" class="text-[11px] font-mono font-bold text-amber-300">待機中</span>
-                <span id="turnCounterText" class="text-[10px] font-mono text-slate-400">(0/0)</span>
-                <select id="audioEngineModeSelect" class="px-2 py-1 rounded bg-slate-900 border border-slate-700 text-[10px] font-mono text-sky-300">
+                <span id="activeSpeakerBadge" class="text-xs font-mono font-bold text-amber-300">待機中</span>
+                <span id="turnCounterText" class="text-xs font-mono text-slate-400">(0/0)</span>
+                <select id="audioEngineModeSelect" class="px-2 py-1 rounded bg-slate-900 text-xs font-mono text-sky-300">
                   <option value="STATIC_FIRST">🎙️ edge-tts MP3</option>
                   <option value="WEBSPEECH">🔊 WebSpeech</option>
                 </select>
-                <div class="flex items-center gap-0.5 bg-slate-900 px-1.5 py-0.5 rounded-lg border border-slate-800">
-                  <button type="button" onclick="setListeningSpeed(0.85)" id="spdBtn085" class="px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-400">0.85x</button>
-                  <button type="button" onclick="setListeningSpeed(1.0)" id="spdBtn100" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-sky-500 text-slate-950 font-bold">1.0x</button>
-                  <button type="button" onclick="setListeningSpeed(1.15)" id="spdBtn115" class="px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-400">1.15x</button>
-                  <button type="button" onclick="setListeningSpeed(1.25)" id="spdBtn125" class="px-1.5 py-0.5 rounded text-[10px] font-mono text-amber-400" title="1.25x 超速聽解抗體訓練">1.25x⚡</button>
+                <div class="flex items-center gap-0.5 bg-slate-900 px-1.5 py-0.5 rounded-lg">
+                  <button type="button" onclick="setListeningSpeed(0.85)" id="spdBtn085" class="px-1.5 py-0.5 rounded text-xs font-mono text-slate-400">0.85x</button>
+                  <button type="button" onclick="setListeningSpeed(1.0)" id="spdBtn100" class="px-1.5 py-0.5 rounded text-xs font-mono bg-sky-500 text-slate-950 font-bold">1.0x</button>
+                  <button type="button" onclick="setListeningSpeed(1.15)" id="spdBtn115" class="px-1.5 py-0.5 rounded text-xs font-mono text-slate-400">1.15x</button>
+                  <button type="button" onclick="setListeningSpeed(1.25)" id="spdBtn125" class="px-1.5 py-0.5 rounded text-xs font-mono text-amber-400" title="1.25x 超速聽解抗體訓練">1.25x⚡</button>
                 </div>
               </div>
             </div>
 
             <!-- Official JLPT Sample 4-Step 答え方 (How to Answer) Green Chevron Box (From Screenshot #5!) -->
-            <div class="rounded-xl border-2 border-emerald-600/70 bg-emerald-950/20 overflow-hidden">
+            <div class="rounded-xl bg-emerald-950/20 overflow-hidden">
               <div class="bg-emerald-700/80 px-3 py-1 text-white font-bold text-xs flex items-center justify-between">
                 <span class="jp-text">答え方（聴解の４ステップ・官方聽解標準作答流程）</span>
-                <span id="choukaiConsoleTitle" class="text-[11px] font-mono text-emerald-100">🎧 雙聲道考場模擬</span>
+                <span id="choukaiConsoleTitle" class="text-xs font-mono text-emerald-100">🎧 雙聲道考場模擬</span>
               </div>
-              <div class="p-2.5 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-                <div id="kotaeStep1" onclick="triggerKotaekataStep(1)" class="kotaekata-step cursor-pointer hover:border-emerald-400 p-2 rounded-lg bg-slate-900/90 border border-emerald-500/40 text-center transition" title="點擊單獨重播：情境與問題導讀">
+              <div class="p-2.5 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div id="kotaeStep1" onclick="triggerKotaekataStep(1)" class="kotaekata-step cursor-pointer p-2 rounded-lg bg-slate-900/90 text-center transition" title="點擊單獨重播：情境與問題導讀">
                   <div class="font-mono font-bold text-emerald-300">STEP ① 🔊</div>
                   <div class="jp-text font-bold text-white">説明と質問を聞く</div>
-                  <div class="text-[10px] text-slate-400">點此重聽情境與問題</div>
+                  <div class="text-xs text-slate-400">點此重聽情境與問題</div>
                 </div>
-                <div id="kotaeStep2" onclick="triggerKotaekataStep(2)" class="kotaekata-step cursor-pointer hover:border-sky-400 p-2 rounded-lg bg-slate-900/90 border border-slate-700 text-center transition" title="點擊單獨重播：關鍵轉折句 (でも・実は)">
+                <div id="kotaeStep2" onclick="triggerKotaekataStep(2)" class="kotaekata-step cursor-pointer p-2 rounded-lg bg-slate-900/90 text-center transition" title="點擊單獨重播：關鍵轉折句 (でも・実は)">
                   <div class="font-mono font-bold text-sky-300">STEP ② ⚡</div>
                   <div class="jp-text font-bold text-white">話を聞く</div>
-                  <div class="text-[10px] text-slate-400">點此精聽關鍵轉折句</div>
+                  <div class="text-xs text-slate-400">點此精聽關鍵轉折句</div>
                 </div>
-                <div id="kotaeStep3" onclick="triggerKotaekataStep(3)" class="kotaekata-step cursor-pointer hover:border-amber-400 p-2 rounded-lg bg-slate-900/90 border border-slate-700 text-center transition" title="點擊單獨重播：最終提問句">
+                <div id="kotaeStep3" onclick="triggerKotaekataStep(3)" class="kotaekata-step cursor-pointer p-2 rounded-lg bg-slate-900/90 text-center transition" title="點擊單獨重播：最終提問句">
                   <div class="font-mono font-bold text-amber-300">STEP ③ ❓</div>
                   <div class="jp-text font-bold text-white">もう一度質問を聞く</div>
-                  <div class="text-[10px] text-slate-400">點此重聽最終提問</div>
+                  <div class="text-xs text-slate-400">點此重聽最終提問</div>
                 </div>
-                <div id="kotaeStep4" onclick="triggerKotaekataStep(4)" class="kotaekata-step cursor-pointer hover:border-rose-400 p-2 rounded-lg bg-slate-900/90 border border-slate-700 text-center transition" title="點擊解鎖盲聽選項並聚焦作答區">
+                <div id="kotaeStep4" onclick="triggerKotaekataStep(4)" class="kotaekata-step cursor-pointer p-2 rounded-lg bg-slate-900/90 text-center transition" title="點擊解鎖盲聽選項並聚焦作答區">
                   <div class="font-mono font-bold text-rose-300">STEP ④ 🎯</div>
                   <div class="jp-text font-bold text-white">答えを選ぶ</div>
-                  <div class="text-[10px] text-slate-400">點此解鎖選項作答</div>
+                  <div class="text-xs text-slate-400">點此解鎖選項作答</div>
                 </div>
               </div>
             </div>
 
             <!-- Blind-Listening Poka-Yoke Shield & Transcript Drawer -->
-            <div id="blindShieldBox" class="p-2.5 rounded-xl bg-slate-950/70 border border-dashed border-slate-700 flex flex-wrap items-center justify-between gap-2">
+            <div id="blindShieldBox" class="p-2.5 rounded-xl bg-slate-950/70 flex flex-wrap items-center justify-between gap-2">
               <span class="text-xs text-slate-300">
                 🙈 <strong>考場盲聽遮罩</strong>：請先憑聽覺作答（作答後自動解鎖逐字稿與轉折信號）
               </span>
               <div class="flex items-center gap-1.5">
                 <button type="button" id="peekScriptBtn" onclick="peekListeningTranscript()"
-                  class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-[11px] font-semibold transition">
+                  class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold transition">
                   👁️ 偷看對話逐字稿
                 </button>
-                <button type="button" onclick="toggleMp3Drawer()" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-mono">
+                <button type="button" onclick="toggleMp3Drawer()" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono">
                   📂 外部MP3 <span id="mp3DrawerArrow">▼</span>
                 </button>
               </div>
@@ -402,7 +402,7 @@
 
             <div id="dialogueTranscriptBox" class="hidden space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
 
-            <div id="mp3DrawerContent" class="hidden p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div id="mp3DrawerContent" class="hidden p-2.5 rounded-xl bg-slate-950 space-y-2">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <input type="file" id="localMp3Input" accept="audio/*" onchange="loadLocalMp3File(event)"
                   class="text-xs text-slate-300 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-sky-500/20 file:text-sky-300" />
@@ -412,7 +412,7 @@
                 </div>
               </div>
               <audio id="localMp3Player" controls class="w-full h-8 rounded-lg"></audio>
-              <p id="localMp3FileName" class="text-[10px] font-mono text-slate-400">預設使用內建 edge-tts 真人雙聲道音源</p>
+              <p id="localMp3FileName" class="text-xs font-mono text-slate-400">預設使用內建 edge-tts 真人雙聲道音源</p>
             </div>
           </div>
 
@@ -420,15 +420,15 @@
           <div id="situationSvgWrapper" class="hidden space-y-1">
             <div class="flex items-center justify-between text-xs text-sky-300 px-1">
               <span>🖼️ <strong>発話表現・情境插圖</strong>（注意箭頭指向的發話者）：</span>
-              <button type="button" onclick="openSvgZoomModal()" class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-[11px] font-bold">
+              <button type="button" onclick="openSvgZoomModal()" class="px-2.5 py-0.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 text-xs font-bold">
                 🔍 クリックで拡大 (點圖放大)
               </button>
             </div>
-            <div id="situationSvgBox" onclick="openSvgZoomModal()" class="cursor-zoom-in p-3 rounded-2xl bg-slate-950/90 border border-sky-500/30 flex items-center justify-center"></div>
+            <div id="situationSvgBox" onclick="openSvgZoomModal()" class="cursor-zoom-in p-3 rounded-2xl bg-slate-950/90 flex items-center justify-center"></div>
           </div>
 
           <!-- Question Stem Display -->
-          <div class="p-4 rounded-xl bg-slate-900/95 border border-slate-700/90 space-y-2 shadow-inner">
+          <div class="p-4 rounded-xl bg-slate-900/95 space-y-2">
             <div id="qStemText" class="jp-text text-base sm:text-lg font-bold leading-relaxed text-white tracking-wide">
               題目載入中...
             </div>
@@ -436,16 +436,16 @@
           </div>
 
           <!-- Interactive Star (★) Reconstructor Sandbox -->
-          <div id="starReconstructorBox" class="hidden p-3.5 rounded-xl bg-slate-900/85 border border-amber-500/40 space-y-2.5">
+          <div id="starReconstructorBox" class="hidden p-3.5 rounded-xl bg-slate-900/85 space-y-2.5">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <span class="text-xs font-bold text-amber-300">
                 🧩 星號重組 (★) 互動語塊沙盒：點擊下方語塊排入 4 格，自動鎖定第 3 格 (★) 為答案
               </span>
               <div class="flex items-center gap-1.5">
-                <button type="button" onclick="anchorStarFirstLastSlots()" class="px-2.5 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-[11px] font-bold text-emerald-300 border border-emerald-500/40 transition" title="逆向接續法：先鎖定第1格(前接)與第4格(句尾述語)，專注推論第2、3(★)格！">
+                <button type="button" onclick="anchorStarFirstLastSlots()" class="px-2.5 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-xs font-bold text-emerald-300 transition" title="逆向接續法：先鎖定第1格(前接)與第4格(句尾述語)，專注推論第2、3(★)格！">
                   🔗 鎖定首尾錨點 (第1&4格)
                 </button>
-                <button type="button" onclick="resetStarSlots()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700">
+                <button type="button" onclick="resetStarSlots()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300">
                   清空重排
                 </button>
               </div>
@@ -455,7 +455,7 @@
           </div>
 
           <!-- Blind Options Mask Notice -->
-          <div id="blindOptionsNotice" class="hidden p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 items-center justify-between gap-2">
+          <div id="blindOptionsNotice" class="hidden p-2.5 rounded-xl bg-amber-500/10 text-xs text-amber-200 items-center justify-between gap-2">
             <span>🔒 <strong>考場無印字盲聽模式</strong>：正式試卷上本大題無印出選項，請先聽音訊（或點擊右側顯示文字）。</span>
             <button type="button" onclick="unmaskBlindOptions()" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold shrink-0">
               顯示選項文字
@@ -466,17 +466,17 @@
           <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
 
           <!-- Compact SRL Confidence Calibration Strip -->
-          <div id="srlConfidenceCard" class="px-3.5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700/80 space-y-1.5">
+          <div id="srlConfidenceCard" class="px-3.5 py-2.5 rounded-xl bg-slate-900/90 space-y-1.5">
             <div class="flex flex-wrap items-center justify-between gap-2">
               <label for="confidenceSlider" class="text-xs font-semibold text-slate-300">
                 🎯 SRL 信心度校準 <span class="text-slate-400 font-normal">(作答前評估把握度，攔截高信心盲點)</span>
               </label>
               <div class="flex items-center gap-1.5">
-                <button type="button" onclick="updateConfidenceUI(25)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-mono text-rose-300">25%猜測</button>
-                <button type="button" onclick="updateConfidenceUI(50)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-mono text-amber-300">50%猶豫</button>
-                <button type="button" onclick="updateConfidenceUI(75)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-mono text-sky-300">75%有把握</button>
-                <button type="button" onclick="updateConfidenceUI(100)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-mono text-emerald-300">100%篤定</button>
-                <span id="confidenceValBadge" class="px-2 py-0.5 rounded bg-sky-500/20 border border-sky-500/40 font-mono text-xs font-bold text-sky-300">
+                <button type="button" onclick="updateConfidenceUI(25)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs font-mono text-rose-300">25%猜測</button>
+                <button type="button" onclick="updateConfidenceUI(50)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs font-mono text-amber-300">50%猶豫</button>
+                <button type="button" onclick="updateConfidenceUI(75)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs font-mono text-sky-300">75%有把握</button>
+                <button type="button" onclick="updateConfidenceUI(100)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs font-mono text-emerald-300">100%篤定</button>
+                <span id="confidenceValBadge" class="px-2 py-0.5 rounded bg-sky-500/20 font-mono text-xs font-bold text-sky-300">
                   75% 頗有把握
                 </span>
               </div>
@@ -490,21 +490,21 @@
         <div class="bg-slate-900/95 border-t border-slate-700 px-5 py-2.5 space-y-1.5">
           <div class="flex items-center justify-between gap-3">
             <button type="button" id="prevBtn" onclick="prevQuestion()"
-              class="px-5 py-2 rounded-full bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm font-bold text-slate-200 border border-slate-600 transition disabled:opacity-40 jp-text">
+              class="px-5 py-2 rounded-full bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm font-bold text-slate-200 transition disabled:opacity-40 jp-text">
               ◀ まえへ (←)
             </button>
 
             <button type="button" id="submitBtn" onclick="submitCurrentAnswer()"
-              class="px-7 py-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-500/20 transition">
+              class="px-7 py-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm transition">
               ✔ 解答・AI診断 (Enter)
             </button>
 
             <button type="button" id="nextBtn" onclick="nextQuestion()"
-              class="px-5 py-2 rounded-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs sm:text-sm shadow-lg shadow-sky-500/20 transition jp-text">
+              class="px-5 py-2 rounded-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs sm:text-sm transition jp-text">
               つぎへ (→) ▶
             </button>
           </div>
-          <div class="hidden sm:flex items-center justify-center gap-3 text-[10px] font-mono text-slate-400 pt-0.5">
+          <div class="hidden sm:flex items-center justify-center gap-3 text-xs font-mono text-slate-400 pt-0.5">
             <span>⌨️ 1080P 極速鍵盤熱鍵：</span>
             <span><kbd class="px-1 rounded bg-slate-800 text-amber-300">1~4</kbd> 選答</span>
             <span><kbd class="px-1 rounded bg-slate-800 text-amber-300">Enter</kbd> 提交/下一題</span>
@@ -525,37 +525,37 @@
       <div id="preAnswerStandbyCard" class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
         <div class="flex items-center justify-between border-b border-slate-700/80 pb-3">
           <div>
-            <h2 class="text-sm font-extrabold text-white flex items-center gap-2">
+            <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
               <span>🧭 1080P 即時認知鷹架與雙軌題庫遙測中心</span>
             </h2>
-            <p class="text-[11px] text-slate-400">作答左側題目後，此區將自動切換為「四選項誘答拆解 × 台日漢字遷移 × AI 家教」</p>
+            <p class="text-xs text-slate-400">作答左側題目後，此區將自動切換為「四選項誘答拆解 × 台日漢字遷移 × AI 家教」</p>
           </div>
-          <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[11px] font-bold">1080P 零捲動視窗</span>
+          <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold">1080P 零捲動視窗</span>
         </div>
 
         <!-- Live Level Quota & Pool Summary Box -->
         <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-            <div class="text-[10px] text-slate-400">100% 正式模考題量</div>
+          <div class="p-2.5 rounded-xl bg-slate-900">
+            <div class="text-xs text-slate-400">100% 正式模考題量</div>
             <div id="standbyMock100Val" class="font-mono text-base font-black text-amber-400 mt-0.5">106 題</div>
-            <div class="text-[10px] text-slate-500">JEES 官方標準</div>
+            <div class="text-xs text-slate-400">JEES 官方標準</div>
           </div>
-          <div class="p-2.5 rounded-xl bg-slate-900 border border-sky-500/30">
-            <div class="text-[10px] text-sky-300">300% 實戰鍛鍊池</div>
+          <div class="p-2.5 rounded-xl bg-slate-900">
+            <div class="text-xs text-sky-300">300% 實戰鍛鍊池</div>
             <div id="standbyPool300Val" class="font-mono text-base font-black text-sky-400 mt-0.5">318 題</div>
-            <div class="text-[10px] text-slate-500">已預編譯就緒</div>
+            <div class="text-xs text-slate-400">已預編譯就緒</div>
           </div>
-          <div class="p-2.5 rounded-xl bg-slate-900 border border-emerald-500/30">
-            <div class="text-[10px] text-emerald-300">500% 終極擴充目標</div>
+          <div class="p-2.5 rounded-xl bg-slate-900">
+            <div class="text-xs text-emerald-300">500% 終極擴充目標</div>
             <div id="standbyPool500Val" class="font-mono text-base font-black text-emerald-400 mt-0.5">530 題</div>
-            <div class="text-[10px] text-slate-500">支援一鍵倍增</div>
+            <div class="text-xs text-slate-400">支援一鍵倍增</div>
           </div>
         </div>
 
         <!-- Quick Jump to Tab 2 / Tab 3 Summary Cards -->
-        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+        <div class="p-3.5 rounded-xl bg-slate-900/90 space-y-2 text-xs">
           <div class="font-bold text-amber-300">💡 1080P 三分頁 (3-Tab) 高效特訓秘訣：</div>
-          <ul class="space-y-1.5 text-slate-300 text-[11px] leading-relaxed">
+          <ul class="space-y-1.5 text-slate-300 text-xs leading-relaxed">
             <li>• <strong>上方紅/橘/紫/紅/藍題號列 (1~19)</strong>：對齊日本官方樣題網站，點擊任一數字可直接跳至該大題（如 <code>🔊15</code> 課題理解、<code>🔊18</code> 即時應答）。</li>
             <li>• <strong>切換「🏋️ 300% 鍛鍊池」與「⏱️ 100% 正式模考」</strong>：右上角可一鍵切換日常大題量刷題（五級合計 <code>1,443</code> 題）或正式檢定標準題量（五級合計 <code>481</code> 題）。</li>
             <li>• 想查看 <strong>2PL-IRT 量尺分數、六維度雷達圖與 AI 弱點處方箋</strong>？請點擊上方 <strong>📊 Tab 2</strong>。</li>
@@ -574,59 +574,59 @@
             <div>
               <div class="flex items-center gap-2 flex-wrap">
                 <h2 id="resultTitleText" class="text-sm sm:text-base font-bold text-white">診斷結果</h2>
-                <span id="srlQuadrantBadge" class="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold"></span>
+                <span id="srlQuadrantBadge" class="px-2 py-0.5 rounded-full text-xs font-mono font-bold"></span>
               </div>
-              <p id="fsrsScheduleText" class="text-[11px] text-slate-300 mt-0.5 font-mono"></p>
+              <p id="fsrsScheduleText" class="text-xs text-slate-300 mt-0.5 font-mono"></p>
             </div>
           </div>
-          <button type="button" onclick="speakQuestion(0.95)" class="px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-700 text-[11px] font-medium text-sky-300 border border-slate-700 transition">
+          <button type="button" onclick="speakQuestion(0.95)" class="px-2.5 py-1 rounded-xl bg-slate-900 hover:bg-slate-700 text-xs font-medium text-sky-300 transition">
             🔊 跟讀 (Shadowing)
           </button>
         </div>
 
         <!-- Translation & Core Rule -->
         <div class="grid grid-cols-1 gap-2.5">
-          <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 space-y-1">
-            <div class="text-[11px] font-mono font-semibold text-sky-400">🇹🇼 繁體中文精準翻譯</div>
+          <div class="p-3 rounded-xl bg-slate-900/90 space-y-1">
+            <div class="text-xs font-mono font-semibold text-sky-400">🇹🇼 繁體中文精準翻譯</div>
             <p id="diagTranslation" class="text-xs sm:text-sm text-slate-100 leading-relaxed font-medium"></p>
           </div>
-          <div class="p-3 rounded-xl bg-slate-900/90 border border-amber-500/30 space-y-1">
-            <div class="text-[11px] font-mono font-semibold text-amber-400">⚡ 核心文法・語彙・聽解轉折規則</div>
+          <div class="p-3 rounded-xl bg-slate-900/90 space-y-1">
+            <div class="text-xs font-mono font-semibold text-amber-400">⚡ 核心文法・語彙・聽解轉折規則</div>
             <p id="diagCoreRule" class="text-xs sm:text-sm text-slate-100 leading-relaxed font-medium"></p>
           </div>
         </div>
 
         <!-- Odlin L1 Kanji Transfer Lens & Worked-Example Syntactic Chain -->
         <div class="grid grid-cols-1 gap-2.5">
-          <div class="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/40 space-y-1">
-            <div class="text-[11px] font-mono font-bold text-indigo-300">🇹🇼⇄🇯🇵 台灣高中生漢字母語正負遷移透鏡 (Odlin L1 Transfer)</div>
+          <div class="p-3 rounded-xl bg-indigo-950/30 space-y-1">
+            <div class="text-xs font-mono font-bold text-indigo-300">🇹🇼⇄🇯🇵 台灣高中生漢字母語正負遷移透鏡 (Odlin L1 Transfer)</div>
             <p id="diagL1Transfer" class="text-xs text-slate-200 leading-relaxed"></p>
           </div>
-          <div id="diagGrammarChainCard" class="p-3 rounded-xl bg-emerald-950/25 border border-emerald-500/40 space-y-1">
-            <div class="text-[11px] font-mono font-bold text-emerald-300">🔗 工作範例與語塊接續鏈圖解 (Worked Example Chunking)</div>
+          <div id="diagGrammarChainCard" class="p-3 rounded-xl bg-emerald-950/25 space-y-1">
+            <div class="text-xs font-mono font-bold text-emerald-300">🔗 工作範例與語塊接續鏈圖解 (Worked Example Chunking)</div>
             <p id="diagGrammarChain" class="text-xs font-mono text-emerald-100 leading-relaxed"></p>
           </div>
         </div>
 
         <!-- 4-Option Distractor Breakdown -->
         <div class="space-y-1.5">
-          <div class="text-[11px] font-mono font-semibold text-slate-300 uppercase tracking-wider">
+          <div class="text-xs font-mono font-semibold text-slate-300 uppercase tracking-wider">
             🔍 四個選項誘答陷阱全拆解 (Distractor Forensics)
           </div>
           <div id="distractorList" class="grid grid-cols-1 gap-2"></div>
         </div>
 
         <!-- Interactive Gemini AI Tutor Box -->
-        <div class="p-3.5 rounded-xl bg-slate-900 border border-sky-500/30 space-y-2.5">
+        <div class="p-3.5 rounded-xl bg-slate-900 space-y-2.5">
           <div class="flex flex-wrap items-center justify-between gap-1.5">
-            <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[11px] font-bold">🤖 Gemini AI 專屬日檢家教</span>
+            <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-xs font-bold">🤖 Gemini AI 專屬日檢家教</span>
             <div class="flex flex-wrap gap-1">
               <button type="button" onclick="askAITutorQuick('請用台灣高中生最好懂的方式，比較這題四個選項的語感差異與記憶口訣！')"
-                class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-sky-300 border border-slate-700 transition">
+                class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs text-sky-300 transition">
                 💡 比較語感與口訣
               </button>
               <button type="button" onclick="askAITutorQuick('請用這題的正解語法或單字，再幫我造 2 個日本高中校園或動漫常見的實用短句（附中譯）。')"
-                class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-amber-300 border border-slate-700 transition">
+                class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-xs text-amber-300 transition">
                 ✍️ 延伸校園例句
               </button>
             </div>
@@ -634,14 +634,14 @@
 
           <div class="flex gap-1.5">
             <input id="aiTutorInput" type="text" placeholder="輸入問題（如：為什麼不能選 2？）"
-              class="flex-1 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-sky-400" />
+              class="flex-1 px-3 py-1.5 rounded-xl bg-slate-950 text-xs text-white focus:outline-none" />
             <button type="button" id="aiTutorBtn" onclick="askAITutorCustom()"
               class="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition shrink-0">
               發問
             </button>
           </div>
 
-          <div id="aiTutorResponseBox" class="hidden p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 leading-relaxed whitespace-pre-wrap"></div>
+          <div id="aiTutorResponseBox" class="hidden p-3 rounded-xl bg-slate-950 text-xs text-slate-200 leading-relaxed whitespace-pre-wrap"></div>
         </div>
 
       </div>
@@ -669,24 +669,24 @@
             <span id="irtPassBadge" class="px-3 py-1 rounded-full bg-slate-700 text-slate-300 font-mono text-xs font-bold">
               待累積作答數據
             </span>
-            <button type="button" onclick="printScoreReportCard()" class="px-3 py-1 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 text-xs font-bold transition" title="列印或匯出 JLPT 官方格式合否結果通知書">
+            <button type="button" onclick="printScoreReportCard()" class="px-3 py-1 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 text-xs font-bold transition" title="列印或匯出 JLPT 官方格式合否結果通知書">
               🖨️ 列印成績單
             </button>
           </div>
         </div>
 
-        <div id="irtVetoAlertBox" class="hidden p-3 rounded-xl bg-rose-500/20 border border-rose-500/50 text-rose-200 text-xs font-bold"></div>
+        <div id="irtVetoAlertBox" class="hidden p-3 rounded-xl bg-rose-500/20 text-rose-200 text-xs font-bold"></div>
 
         <div class="grid grid-cols-3 gap-3 text-center">
-          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="p-3 rounded-xl bg-slate-900">
             <div id="irtTotalLabel" class="text-xs text-slate-400">預估總分 (合格 ≥90)</div>
             <div id="irtTotalScore" class="font-mono text-xl font-extrabold text-amber-400 mt-1">-- / 180</div>
           </div>
-          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="p-3 rounded-xl bg-slate-900">
             <div id="irtWrittenLabel" class="text-xs text-slate-400">言語知識+讀解 (各 ≥19)</div>
             <div id="irtWrittenScore" class="font-mono text-lg font-bold text-slate-200 mt-1">-- / 120</div>
           </div>
-          <div class="p-3 rounded-xl bg-slate-900 border border-sky-500/30">
+          <div class="p-3 rounded-xl bg-slate-900">
             <div class="text-xs text-sky-300">🎧 聽解量尺 (門檻 ≥19)</div>
             <div id="irtListeningScore" class="font-mono text-lg font-bold text-sky-400 mt-1">-- / 60</div>
           </div>
@@ -695,41 +695,41 @@
 
       <!-- 4 KPI Metrics -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-lg">
+        <div class="bg-slate-800/90 rounded-2xl p-4">
           <div class="text-xs text-slate-400 font-medium">本級已測進度</div>
           <div id="kpiAnswered" class="text-xl font-mono font-extrabold text-white mt-1">0 / 318</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">涵蓋 6 大維度</div>
+          <div class="text-xs text-slate-400 mt-0.5">涵蓋 6 大維度</div>
         </div>
-        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-lg">
+        <div class="bg-slate-800/90 rounded-2xl p-4">
           <div class="text-xs text-slate-400 font-medium">客觀正確率</div>
           <div id="kpiAccuracy" class="text-xl font-mono font-extrabold text-emerald-400 mt-1">--%</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">目標安全線 ≥ 70%</div>
+          <div class="text-xs text-slate-400 mt-0.5">目標安全線 ≥ 70%</div>
         </div>
-        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-lg">
+        <div class="bg-slate-800/90 rounded-2xl p-4">
           <div class="text-xs text-slate-400 font-medium">信心校準差</div>
           <div id="kpiCalibrationGap" class="text-xl font-mono font-extrabold text-sky-400 mt-1">--%</div>
-          <div id="kpiCalibrationLabel" class="text-[11px] text-slate-400 mt-0.5">主觀信心 - 正確率</div>
+          <div id="kpiCalibrationLabel" class="text-xs text-slate-400 mt-0.5">主觀信心 - 正確率</div>
         </div>
-        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-lg">
+        <div class="bg-slate-800/90 rounded-2xl p-4">
           <div class="text-xs text-slate-400 font-medium">高信心盲點</div>
           <div id="kpiBlindspots" class="text-xl font-mono font-extrabold text-rose-400 mt-1">0 題</div>
-          <div class="text-[11px] text-rose-300/80 mt-0.5">FSRS T+1d 優先佇列</div>
+          <div class="text-xs text-rose-300/80 mt-0.5">FSRS T+1d 優先佇列</div>
         </div>
       </div>
 
       <!-- AI Diagnostic Coach Prescription -->
-      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3">
+      <div class="bg-slate-800/90 rounded-2xl p-5 space-y-3">
         <div class="flex items-center justify-between gap-2">
           <div>
             <h2 class="text-base font-bold text-white">🩺 AI 弱點處方箋與衝刺建議</h2>
             <p class="text-xs text-slate-400">結合 SRL 盲點象限、台日漢字遷移與聽解轉折信號</p>
           </div>
           <button type="button" id="aiCoachBtn" onclick="generateAICoachReport()"
-            class="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold transition shrink-0">
+            class="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold transition shrink-0">
             ✨ 生成深度診斷
           </button>
         </div>
-        <div id="aiCoachContent" class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 text-xs sm:text-sm text-slate-300 leading-relaxed space-y-1.5">
+        <div id="aiCoachContent" class="p-4 rounded-xl bg-slate-900/90 text-xs sm:text-sm text-slate-300 leading-relaxed space-y-1.5">
           <p>👋 歡迎來到 <strong>JLPT N1–N5 互動式 AI 刷題與認知診斷系統 v4.0</strong>！</p>
           <p>• 完成數題作答後，此處將自動計算您的六維度落點與高信心盲點處方箋。</p>
         </div>
@@ -738,37 +738,37 @@
 
     <!-- Right 6 Cols: 6D Hexagon SVG Radar Chart -->
     <div class="lg:col-span-6 space-y-4">
-      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4">
+      <div class="bg-slate-800/90 rounded-2xl p-5 space-y-4">
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-base font-bold text-white">🕸️ 六維度聽讀能力雷達圖 (6D Cognitive Radar)</h2>
             <p class="text-xs text-slate-400">實線為「實際正確率」，虛線為「主觀信心度」</p>
           </div>
           <div class="flex items-center gap-1.5">
-            <button type="button" onclick="downloadProgressBackup()" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-700 text-xs text-emerald-300 border border-slate-700 transition">
+            <button type="button" onclick="downloadProgressBackup()" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-700 text-xs text-emerald-300 transition">
               💾 備份進度
             </button>
-            <label class="cursor-pointer px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-700 text-xs text-sky-300 border border-slate-700 transition">
+            <label class="cursor-pointer px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-700 text-xs text-sky-300 transition">
               📂 還原進度
               <input type="file" accept=".json" onchange="uploadProgressBackup(event)" class="hidden" />
             </label>
-            <button type="button" onclick="resetAllProgress()" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-700 text-xs text-slate-400 border border-slate-700 transition">
+            <button type="button" onclick="resetAllProgress()" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-700 text-xs text-slate-400 transition">
               重置本級
             </button>
           </div>
         </div>
 
-        <div class="flex justify-center items-center bg-slate-900/90 rounded-xl p-4 border border-slate-800">
+        <div class="flex justify-center items-center bg-slate-900/90 rounded-xl p-4">
           <svg id="radarSvg" viewBox="0 0 340 270" class="w-full max-w-[360px] h-auto overflow-visible"></svg>
         </div>
 
         <div class="flex items-center justify-center gap-6 text-xs">
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-sm bg-sky-400/50 border border-sky-400 inline-block"></span>
+            <span class="w-3 h-3 rounded-sm bg-sky-400/50 inline-block"></span>
             <span class="text-slate-300">實際正確率 (Accuracy)</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-3 h-3 rounded-sm bg-amber-400/30 border border-amber-400 border-dashed inline-block"></span>
+            <span class="w-3 h-3 rounded-sm bg-amber-400/30 inline-block"></span>
             <span class="text-slate-300">主觀信心度 (Confidence)</span>
           </div>
         </div>
@@ -784,7 +784,7 @@
   <section id="tabPane_3" class="hidden flex-1 max-w-[1860px] w-full mx-auto px-3 sm:px-5 py-4 grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
     <!-- Left 7 Cols: FSRS v5 Spaced Repetition Queue & Full Pool Navigator -->
-    <div class="lg:col-span-7 bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3">
+    <div class="lg:col-span-7 bg-slate-800/90 rounded-2xl p-5 space-y-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 class="text-base font-bold text-white">📋 FSRS v5 記憶排程與題庫導覽佇列 (點擊題目直接跳轉至 Tab 1 作答)</h2>
@@ -792,11 +792,11 @@
         </div>
         <div class="flex flex-wrap items-center gap-1.5">
           <input id="queueKeywordInput" type="text" oninput="filterQueueByKeyword(this.value)" placeholder="🔍 搜尋題幹漢字/文法/中文考點..."
-            class="px-3 py-1 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400 w-52" />
-          <button type="button" onclick="openCloudModal()" class="px-3 py-1 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-500/40 text-xs font-bold">
+            class="px-3 py-1 rounded-xl bg-slate-950 text-xs text-white focus:outline-none w-52" />
+          <button type="button" onclick="openCloudModal()" class="px-3 py-1 rounded-xl bg-sky-500/20 text-sky-300 text-xs font-bold">
             ☁️ Google Sheets 同步
           </button>
-          <button type="button" onclick="openExportModal()" class="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
+          <button type="button" onclick="openExportModal()" class="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 text-xs font-bold">
             📓 匯出 NotebookLM
           </button>
         </div>
@@ -807,24 +807,24 @@
 
     <!-- Right 5 Cols: Learning Booster Toolbox (Others) -->
     <div class="lg:col-span-5 space-y-4">
-      <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-3">
-        <h3 class="text-base font-bold text-white">🧰 學習增效百寶箱 (Learning Boosters & Exam Specs)</h3>
+      <div class="bg-slate-800/90 rounded-2xl p-5 space-y-3">
+        <h2 class="text-base font-bold text-white">🧰 學習增效百寶箱 (Learning Boosters & Exam Specs)</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <button onclick="openBlueprintModal()" class="p-3.5 rounded-xl bg-slate-900 hover:bg-slate-950 border border-indigo-500/40 text-left space-y-1 transition">
+          <button onclick="openBlueprintModal()" class="p-3.5 rounded-xl bg-slate-900 hover:bg-slate-950 text-left space-y-1 transition">
             <div class="font-bold text-indigo-300">📊 100% 模考 vs 300-500% 題庫池</div>
-            <p class="text-slate-400 text-[11px]">檢視 N1(104/312)、N2(106/318)、N3(102/306)、N4(89/267)、N5(80/240) 配額與一鍵擴充</p>
+            <p class="text-slate-400 text-xs">檢視 N1(104/312)、N2(106/318)、N3(102/306)、N4(89/267)、N5(80/240) 配額與一鍵擴充</p>
           </button>
-          <button onclick="openConjugationModal()" class="p-3.5 rounded-xl bg-slate-900 hover:bg-slate-950 border border-purple-500/40 text-left space-y-1 transition">
+          <button onclick="openConjugationModal()" class="p-3.5 rounded-xl bg-slate-900 hover:bg-slate-950 text-left space-y-1 transition">
             <div class="font-bold text-purple-300">🔤 N5/N4 動詞活用與助詞速查表</div>
-            <p class="text-slate-400 text-[11px]">五段音便 (て形/た形)、ない形、可能形、受身使役形與核心格助詞對照</p>
+            <p class="text-slate-400 text-xs">五段音便 (て形/た形)、ない形、可能形、受身使役形與核心格助詞對照</p>
           </button>
-          <button onclick="openTrapCardsModal()" class="p-3.5 rounded-xl bg-slate-900 hover:bg-slate-950 border border-rose-500/40 text-left space-y-1 transition">
+          <button onclick="openTrapCardsModal()" class="p-3.5 rounded-xl bg-slate-900 hover:bg-slate-950 text-left space-y-1 transition">
             <div class="font-bold text-rose-300">🃏 台日漢字假朋友 & 東大高低音調</div>
-            <p class="text-slate-400 text-[11px]">專治手紙、我慢、都合、汽車等母語陷阱與 [0][1][2] 聽力音調</p>
+            <p class="text-slate-400 text-xs">專治手紙、我慢、都合、汽車等母語陷阱與 [0][1][2] 聽力音調</p>
           </button>
-          <button onclick="openWorkflowModal()" class="p-3.5 rounded-xl bg-slate-900 hover:bg-slate-950 border border-sky-500/40 text-left space-y-1 transition">
+          <button onclick="openWorkflowModal()" class="p-3.5 rounded-xl bg-slate-900 hover:bg-slate-950 text-left space-y-1 transition">
             <div class="font-bold text-sky-300">🗺️ 五階通關工作流 & 題型矩陣</div>
-            <p class="text-slate-400 text-[11px]">跨級別 N1➔N5 考綱題型差異總覽與單項鎖定特訓</p>
+            <p class="text-slate-400 text-xs">跨級別 N1➔N5 考綱題型差異總覽與單項鎖定特訓</p>
           </button>
         </div>
       </div>
@@ -833,9 +833,9 @@
 
   <!-- ================= MODAL: SVG CLICK-TO-ZOOM LIGHTBOX (クリックで拡大) ================= -->
   <div id="svgZoomModal" class="hidden fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeSvgZoomModal()">
-    <div class="bg-slate-900 border-2 border-sky-400 rounded-2xl max-w-3xl w-full p-6 shadow-2xl space-y-4" onclick="event.stopPropagation()">
+    <div class="bg-slate-900 rounded-2xl max-w-3xl w-full p-6 space-y-4" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-        <h3 class="text-sm sm:text-base font-bold text-sky-300">🔍 聴解・発話表現 情境插圖放大檢視 (クリックで拡大)</h3>
+        <h2 class="text-sm sm:text-base font-bold text-sky-300">🔍 聴解・発話表現 情境插圖放大檢視 (クリックで拡大)</h2>
         <button onclick="closeSvgZoomModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
       <div id="svgZoomModalContent" class="p-4 bg-slate-950 rounded-xl flex items-center justify-center min-h-[240px]"></div>
@@ -847,12 +847,12 @@
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
-          <h3 class="text-base sm:text-lg font-extrabold text-white">🔤 台灣高中生必備：JLPT N5–N3 動詞活用音便規則 & 核心格助詞速查表</h3>
+          <h2 class="text-base sm:text-lg font-extrabold text-white">🔤 台灣高中生必備：JLPT N5–N3 動詞活用音便規則 & 核心格助詞速查表</h2>
           <p class="text-xs text-slate-400">掌握五段動詞音便口訣與自動詞/他動詞助詞搭配，秒殺 N5/N4/N3 文法題</p>
         </div>
         <button onclick="closeConjugationModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
-      <div class="overflow-x-auto rounded-xl border border-slate-800">
+      <div class="overflow-x-auto rounded-xl">
         <table class="w-full text-left border-collapse text-xs">
           <thead class="bg-slate-950 text-amber-300 border-b border-slate-800">
             <tr>
@@ -918,62 +918,62 @@
       </div>
 
       <!-- Wave 5 Addition: N4/N3 Intransitive vs Transitive (自動詞・他動詞) & てある/ている Core Matrix -->
-      <div class="p-3.5 rounded-xl bg-slate-950 border border-rose-500/30 space-y-2">
+      <div class="p-3.5 rounded-xl bg-slate-950 space-y-2">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <h4 class="text-xs font-extrabold text-rose-300">🌱 N4 / N3 必考「自動詞（が＋ている）vs. 他動詞（を＋てある）」黃金配對速查</h4>
-          <span class="text-[10px] font-mono text-slate-400">口訣：-aru 多為自動詞（自然狀態）；-eru / -su 多為他動詞（人為意圖）</span>
+          <h3 class="text-xs font-extrabold text-rose-300">🌱 N4 / N3 必考「自動詞（が＋ている）vs. 他動詞（を＋てある）」黃金配對速查</h3>
+          <span class="text-xs font-mono text-slate-400">口訣：-aru 多為自動詞（自然狀態）；-eru / -su 多為他動詞（人為意圖）</span>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono">
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：開(あ)く / 閉(し)まる</span><br/><span class="text-amber-300">他：開(あ)ける / 閉(し)める</span></div>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：つく / 消(き)える</span><br/><span class="text-amber-300">他：つける / 消(け)す</span></div>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：壊(こわ)れる / 汚(よご)れる</span><br/><span class="text-amber-300">他：壊(こわ)す / 汚(よご)す</span></div>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：落(お)ちる / 決(き)まる</span><br/><span class="text-amber-300">他：落(お)とす / 決(き)める</span></div>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：集(あつ)まる / 始(はじ)まる</span><br/><span class="text-amber-300">他：集(あつ)める / 始(はじ)める</span></div>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：見(み)つかる / 直(なお)る</span><br/><span class="text-amber-300">他：見(み)つける / 直(なお)す</span></div>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：並(なら)ぶ / 変(か)わる</span><br/><span class="text-amber-300">他：並(なら)べる / 変(か)える</span></div>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><span class="text-emerald-300">自：届(とど)く / 残(のこ)る</span><br/><span class="text-amber-300">他：届(とど)ける / 残(のこ)す</span></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+          <div class="p-2 rounded-lg bg-slate-900"><span class="text-emerald-300">自：開(あ)く / 閉(し)まる</span><br/><span class="text-amber-300">他：開(あ)ける / 閉(し)める</span></div>
+          <div class="p-2 rounded-lg bg-slate-900"><span class="text-emerald-300">自：つく / 消(き)える</span><br/><span class="text-amber-300">他：つける / 消(け)す</span></div>
+          <div class="p-2 rounded-lg bg-slate-900"><span class="text-emerald-300">自：壊(こわ)れる / 汚(よご)れる</span><br/><span class="text-amber-300">他：壊(こわ)す / 汚(よご)す</span></div>
+          <div class="p-2 rounded-lg bg-slate-900"><span class="text-emerald-300">自：落(お)ちる / 決(き)まる</span><br/><span class="text-amber-300">他：落(お)とす / 決(き)める</span></div>
+          <div class="p-2 rounded-lg bg-slate-900"><span class="text-emerald-300">自：集(あつ)まる / 始(はじ)まる</span><br/><span class="text-amber-300">他：集(あつ)める / 始(はじ)める</span></div>
+          <div class="p-2 rounded-lg bg-slate-900"><span class="text-emerald-300">自：見(み)つかる / 直(なお)る</span><br/><span class="text-amber-300">他：見(み)つける / 直(なお)す</span></div>
+          <div class="p-2 rounded-lg bg-slate-900"><span class="text-emerald-300">自：並(なら)ぶ / 変(か)わる</span><br/><span class="text-amber-300">他：並(なら)べる / 変(か)える</span></div>
+          <div class="p-2 rounded-lg bg-slate-900"><span class="text-emerald-300">自：届(とど)く / 残(のこ)る</span><br/><span class="text-amber-300">他：届(とど)ける / 残(のこ)す</span></div>
         </div>
       </div>
 
       <!-- Wave 6 Addition: N5 Core Particle (格助詞・係助詞) 8-Grid Quick Discriminator -->
-      <div class="p-3.5 rounded-xl bg-slate-950 border border-sky-500/30 space-y-2">
+      <div class="p-3.5 rounded-xl bg-slate-950 space-y-2">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <h4 class="text-xs font-extrabold text-sky-300">🐣 N5 / N4 必考「核心助詞（に vs で・は vs が・を）」秒殺判別速查</h4>
-          <span class="text-[10px] font-mono text-slate-400">口訣：靜態存在/歸著點用「に」；動態動作場所/工具原因用「で」；移動經過空間用「を」</span>
+          <h3 class="text-xs font-extrabold text-sky-300">🐣 N5 / N4 必考「核心助詞（に vs で・は vs が・を）」秒殺判別速查</h3>
+          <span class="text-xs font-mono text-slate-400">口訣：靜態存在/歸著點用「に」；動態動作場所/工具原因用「で」；移動經過空間用「を」</span>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><strong class="text-sky-300 font-mono">に (靜態/歸著/時間點)</strong><br/><span class="text-slate-300">机の上に本がある / 7時に起きる / 電車に乗る</span></div>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><strong class="text-amber-300 font-mono">で (動作場所/工具/範圍)</strong><br/><span class="text-slate-300">図書館で勉強する / バスで行く / 一人でやる</span></div>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><strong class="text-emerald-300 font-mono">を (受詞/起點離開/經過)</strong><br/><span class="text-slate-300">ご飯を食べる / バスを降りる / 公園を散歩する</span></div>
-          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800"><strong class="text-purple-300 font-mono">は vs が (主題對比 vs 焦點主語)</strong><br/><span class="text-slate-300">私は学生です / 雨が降っている / 誰が来ましたか</span></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div class="p-2 rounded-lg bg-slate-900"><strong class="text-sky-300 font-mono">に (靜態/歸著/時間點)</strong><br/><span class="text-slate-300">机の上に本がある / 7時に起きる / 電車に乗る</span></div>
+          <div class="p-2 rounded-lg bg-slate-900"><strong class="text-amber-300 font-mono">で (動作場所/工具/範圍)</strong><br/><span class="text-slate-300">図書館で勉強する / バスで行く / 一人でやる</span></div>
+          <div class="p-2 rounded-lg bg-slate-900"><strong class="text-emerald-300 font-mono">を (受詞/起點離開/經過)</strong><br/><span class="text-slate-300">ご飯を食べる / バスを降りる / 公園を散歩する</span></div>
+          <div class="p-2 rounded-lg bg-slate-900"><strong class="text-purple-300 font-mono">は vs が (主題對比 vs 焦點主語)</strong><br/><span class="text-slate-300">私は学生です / 雨が降っている / 誰が来ましたか</span></div>
         </div>
       </div>
 
       <!-- Wave 11 Addition: Giving/Receiving (授受表現) & Keigo (敬語三軸) Directional Matrix -->
-      <div class="p-3.5 rounded-xl bg-slate-950 border border-amber-500/30 space-y-2">
+      <div class="p-3.5 rounded-xl bg-slate-950 space-y-2">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <h4 class="text-xs font-extrabold text-amber-300">🎁 N4 / N3 / N2 必考「授受表現（恩惠方向箭頭）＆ 敬語三軸（尊敬 vs 謙讓）」秒殺速查</h4>
-          <span class="text-[10px] font-mono text-slate-400">口訣：看主語(は/が)是誰＋恩惠箭頭朝向誰（外人➔我方必用「くれる/くださる」）</span>
+          <h3 class="text-xs font-extrabold text-amber-300">🎁 N4 / N3 / N2 必考「授受表現（恩惠方向箭頭）＆ 敬語三軸（尊敬 vs 謙讓）」秒殺速查</h3>
+          <span class="text-xs font-mono text-slate-400">口訣：看主語(は/が)是誰＋恩惠箭頭朝向誰（外人➔我方必用「くれる/くださる」）</span>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
-          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+          <div class="p-2.5 rounded-lg bg-slate-900 space-y-1">
             <div class="flex items-center justify-between">
               <strong class="text-emerald-300 font-mono">① 我方 ➔ 他人：～てあげる / 差し上げる</strong>
-              <button type="button" onclick="speakSingleUtterance('ともだちにほんをかしてあげた', 'FEMALE')" class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 text-[10px]">🔊</button>
+              <button type="button" onclick="speakSingleUtterance('ともだちにほんをかしてあげた', 'FEMALE')" class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 text-xs">🔊</button>
             </div>
             <p class="text-slate-300">主語是「我(私)」，主動給予對方恩惠：友達に本を貸してあげた。</p>
           </div>
-          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+          <div class="p-2.5 rounded-lg bg-slate-900 space-y-1">
             <div class="flex items-center justify-between">
               <strong class="text-sky-300 font-mono">② 他人 ➔ 我方：～てくれる / くださる</strong>
-              <button type="button" onclick="speakSingleUtterance('せんせいがせつめいしてくださった', 'FEMALE')" class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 text-[10px]">🔊</button>
+              <button type="button" onclick="speakSingleUtterance('せんせいがせつめいしてくださった', 'FEMALE')" class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 text-xs">🔊</button>
             </div>
             <p class="text-slate-300">主語是「對方(が)」，主動給我恩惠：先生が説明してくださった。</p>
           </div>
-          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 space-y-1">
+          <div class="p-2.5 rounded-lg bg-slate-900 space-y-1">
             <div class="flex items-center justify-between">
               <strong class="text-amber-300 font-mono">③ 我方請託 ⬅ 他人：～てもらう / いただく</strong>
-              <button type="button" onclick="speakSingleUtterance('せんせいにすいせんじょうをかいていただいた', 'FEMALE')" class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 text-[10px]">🔊</button>
+              <button type="button" onclick="speakSingleUtterance('せんせいにすいせんじょうをかいていただいた', 'FEMALE')" class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 text-xs">🔊</button>
             </div>
             <p class="text-slate-300">主語是「我(は)」，受惠於對方(に)：先生に推薦状を書いていただいた。</p>
           </div>
@@ -990,43 +990,43 @@
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-5xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
-          <h3 class="text-base sm:text-lg font-extrabold text-white">
+          <h2 class="text-base sm:text-lg font-extrabold text-white">
             🗺️ 台灣高中生 JLPT N1 ➔ N5 證照通關工作流 & 官方全題型互動矩陣
-          </h3>
+          </h2>
           <p class="text-xs text-slate-400 mt-0.5">點擊下方表格內任一題型按鈕，即可直接切換級別並鎖定該官方大題進行實戰特訓</p>
         </div>
         <button onclick="closeWorkflowModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 text-xs">
-        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+        <div class="p-3 rounded-xl bg-slate-950 space-y-1">
           <div class="font-mono font-bold text-amber-400">Stage 1 ｜ 落點診斷</div>
           <div class="font-bold text-white">跨題型交錯快篩</div>
-          <p class="text-slate-400 text-[11px]">由 2PL-IRT 計算初始能力值 $\hat{\theta}$ 與六維度雷達落點。</p>
+          <p class="text-slate-400 text-xs">由 2PL-IRT 計算初始能力值 $\hat{\theta}$ 與六維度雷達落點。</p>
         </div>
-        <div class="p-3 rounded-xl bg-slate-950 border border-emerald-500/30 space-y-1">
+        <div class="p-3 rounded-xl bg-slate-950 space-y-1">
           <div class="font-mono font-bold text-emerald-400">Stage 2 ｜ 鷹架解構</div>
           <div class="font-bold text-white">開啟「🌱 教學鷹架」</div>
-          <p class="text-slate-400 text-[11px]">善用分級振假名、蘇格拉底提示與台日漢字遷移透鏡。</p>
+          <p class="text-slate-400 text-xs">善用分級振假名、蘇格拉底提示與台日漢字遷移透鏡。</p>
         </div>
-        <div class="p-3 rounded-xl bg-slate-950 border border-sky-500/30 space-y-1">
+        <div class="p-3 rounded-xl bg-slate-950 space-y-1">
           <div class="font-mono font-bold text-sky-400">Stage 3 ｜ 雙碼盲聽</div>
           <div class="font-bold text-white">雙聲道與 4 步答え方</div>
-          <p class="text-slate-400 text-[11px]">利用 edge-tts 男女雙聲道與官方 4 步答え方流程特訓聽解。</p>
+          <p class="text-slate-400 text-xs">利用 edge-tts 男女雙聲道與官方 4 步答え方流程特訓聽解。</p>
         </div>
-        <div class="p-3 rounded-xl bg-slate-950 border border-rose-500/30 space-y-1">
+        <div class="p-3 rounded-xl bg-slate-950 space-y-1">
           <div class="font-mono font-bold text-rose-400">Stage 4 ｜ 盲點攔截</div>
           <div class="font-bold text-white">SRL 信心度校準</div>
-          <p class="text-slate-400 text-[11px]">將「高信心卻答錯」的盲點鎖定至 FSRS T+1d 優先佇列。</p>
+          <p class="text-slate-400 text-xs">將「高信心卻答錯」的盲點鎖定至 FSRS T+1d 優先佇列。</p>
         </div>
-        <div class="p-3 rounded-xl bg-slate-950 border border-indigo-500/30 space-y-1">
+        <div class="p-3 rounded-xl bg-slate-950 space-y-1">
           <div class="font-mono font-bold text-indigo-400">Stage 5 ｜ 模考驗收</div>
           <div class="font-bold text-white">100% 正式模擬考</div>
-          <p class="text-slate-400 text-[11px]">切換至 100% 正式模考題池 (N1:104 / N2:106 / N3:102 / N4:89 / N5:80)。</p>
+          <p class="text-slate-400 text-xs">切換至 100% 正式模考題池 (N1:104 / N2:106 / N3:102 / N4:89 / N5:80)。</p>
         </div>
       </div>
 
-      <div class="overflow-x-auto rounded-xl border border-slate-800">
+      <div class="overflow-x-auto rounded-xl">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-slate-950 text-slate-300 border-b border-slate-800">
@@ -1074,7 +1074,7 @@
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-5xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
         <div>
-          <h3 class="text-base sm:text-lg font-extrabold text-white">📊 JLPT N1 ➔ N5 官方考綱正式題量 (100% 模擬考) vs. 300%–500% 鍛鍊題庫池中心</h3>
+          <h2 class="text-base sm:text-lg font-extrabold text-white">📊 JLPT N1 ➔ N5 官方考綱正式題量 (100% 模擬考) vs. 300%–500% 鍛鍊題庫池中心</h2>
           <p class="text-xs text-slate-400">N1–N4 正式檢定合計 401 題（300%池 1,203 題 / 500%池 2,005 題）；含 N5 五級合計 481 題（300%池 1,443 題 / 500%池 2,405 題）</p>
         </div>
         <button onclick="closeBlueprintModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
@@ -1089,10 +1089,10 @@
           <button id="bpTab_N5" onclick="renderBlueprintModalContent('N5')" class="px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-800 text-slate-300">🐣 N5 (模80 / 池240)</button>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button onclick="expandPracticePoolBatch()" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow-lg">
+          <button onclick="expandPracticePoolBatch()" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs">
             🧬 一鍵擴充本級至 500% 鍛鍊池
           </button>
-          <button onclick="startOfficialMockExam('FULL')" class="px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-extrabold text-xs shadow-lg">
+          <button onclick="startOfficialMockExam('FULL')" class="px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-extrabold text-xs">
             ⏱️ 切換至 100% 官方正式模擬考題量
           </button>
         </div>
@@ -1100,7 +1100,7 @@
 
       <div id="blueprintSummaryStats" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
 
-      <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-80">
+      <div class="overflow-x-auto rounded-xl max-h-80">
         <table class="w-full text-left border-collapse text-xs">
           <thead class="sticky top-0 bg-slate-950 text-slate-300 border-b border-slate-800">
             <tr>
@@ -1124,7 +1124,7 @@
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
-          <h3 class="text-base sm:text-lg font-extrabold text-white">🃏 台灣高中生必背「台日同形異義假朋友 (False Friends) & 東大式高低音調 [Pitch Accent]」閃卡庫</h3>
+          <h2 class="text-base sm:text-lg font-extrabold text-white">🃏 台灣高中生必背「台日同形異義假朋友 (False Friends) & 東大式高低音調 [Pitch Accent]」閃卡庫</h2>
           <p class="text-xs text-slate-400">專治母語負遷移與聽力清濁音/高低音調混淆（[0]=平板型、[1]=頭高型、[2]=中高/尾高型）</p>
         </div>
         <button onclick="closeTrapCardsModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
@@ -1141,7 +1141,7 @@
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
-          <h3 class="text-base sm:text-lg font-extrabold text-white">🧠 驅動本平台的 8 大教育心理學與認知科學引擎</h3>
+          <h2 class="text-base sm:text-lg font-extrabold text-white">🧠 驅動本平台的 8 大教育心理學與認知科學引擎</h2>
           <p class="text-xs text-slate-400">將教育理論轉化為具體可互動的 UI 鷹架與心理計量演算法</p>
         </div>
         <button onclick="closePedagogyModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
@@ -1157,14 +1157,14 @@
   <div id="byokModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-white">🔑 個人 Gemini API Key 保險箱 (BYOK Session Vault)</h3>
+        <h2 class="text-base font-bold text-white">🔑 個人 Gemini API Key 保險箱 (BYOK Session Vault)</h2>
         <button onclick="closeByokModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
       <p class="text-xs text-slate-300 leading-relaxed">
         本網站所有 <strong>1,443 道 N1–N5 鍛鍊題庫（含 481 道正式模考題）</strong> 與 <strong>33 首雙聲道 MP3 音檔</strong> 皆已 100% 內建免金鑰！若需使用 AI 動態出題或 AI 家教自由問答，可輸入個人 Gemini API Key（僅暫存於瀏覽器 <code>sessionStorage</code>）。
       </p>
       <input id="byokKeyInput" type="password" placeholder="貼上您的 AIzaSy... Gemini API Key"
-        class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono text-white focus:outline-none focus:border-amber-400" />
+        class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 text-xs font-mono text-white focus:outline-none" />
       <div class="flex justify-end gap-2">
         <button onclick="closeByokModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">取消</button>
         <button onclick="saveByokKey()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold">儲存於本機瀏覽器</button>
@@ -1176,14 +1176,14 @@
   <div id="cloudSyncModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-white">☁️ Google Sheets 雲端題庫免金鑰同步</h3>
+        <h2 class="text-base font-bold text-white">☁️ Google Sheets 雲端題庫免金鑰同步</h2>
         <button onclick="closeCloudModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
       <p class="text-xs text-slate-300 leading-relaxed">
         支援學校教師或自學者將公開檢視的 Google 試算表網址貼於下方，即時匯入自訂筆試與聽解題庫。
       </p>
       <input id="sheetUrlInput" type="text" placeholder="貼上 Google Sheets 分享網址或 Sheet ID..."
-        class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-sky-400" />
+        class="w-full px-3.5 py-2 rounded-xl bg-slate-950 text-xs text-white focus:outline-none" />
       <div class="flex justify-end gap-2">
         <button onclick="closeCloudModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">取消</button>
         <button onclick="syncFromGoogleSheet()" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-bold">立即同步題庫</button>
@@ -1195,11 +1195,11 @@
   <div id="exportModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between">
-        <h3 class="text-base font-bold text-white">📓 匯出結構化錯題、聽解逐字稿與台日漢字遷移筆記 (NotebookLM 專用)</h3>
+        <h2 class="text-base font-bold text-white">📓 匯出結構化錯題、聽解逐字稿與台日漢字遷移筆記 (NotebookLM 專用)</h2>
         <button onclick="closeExportModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
       <textarea id="exportMarkdownArea" rows="12" readonly
-        class="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-200 focus:outline-none"></textarea>
+        class="w-full p-3.5 rounded-xl bg-slate-950 font-mono text-xs text-slate-200 focus:outline-none"></textarea>
       <div class="flex flex-wrap justify-end gap-2">
         <button onclick="closeExportModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">關閉</button>
         <button onclick="downloadExportMarkdownFile()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold">⬇️ 下載 .md 學習包 (NotebookLM)</button>
@@ -1212,8 +1212,8 @@
   <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
 
   <!-- Core Scripts -->
-  <script src="assets/js/psychometric.js?v=4.2"></script>
-  <script src="assets/js/audio-engine.js?v=4.2"></script>
-  <script src="assets/js/app.js?v=4.2"></script>
+  <script src="assets/js/psychometric.js?v=4.3"></script>
+  <script src="assets/js/audio-engine.js?v=4.3"></script>
+  <script src="assets/js/app.js?v=4.3"></script>
 </body>
 </html>

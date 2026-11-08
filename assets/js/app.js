@@ -114,7 +114,7 @@ async function loadAllQuestionBanks() {
   const levels = Array.from(ENABLED_LEVELS);
   await Promise.all(levels.map(async (lvl) => {
     try {
-      const res = await fetch(`data/${lvl.toLowerCase()}_bank.json?v=4.2`);
+      const res = await fetch(`data/${lvl.toLowerCase()}_bank.json?v=4.3`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -177,10 +177,10 @@ function setQuestionPoolScope(scope) {
   const b300 = document.getElementById('poolBtn300');
   const b100 = document.getElementById('poolBtn100');
   const tagEl = document.getElementById('officialExamPoolTag');
-  const inactiveCls = 'px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-300 hover:text-white transition';
-  if (b500) b500.className = scope === 'POOL_500' ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 text-slate-950 transition' : inactiveCls;
-  if (b300) b300.className = scope === 'POOL_300' ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-sky-500 text-slate-950 transition' : inactiveCls;
-  if (b100) b100.className = scope === 'MOCK_100' ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500 text-white transition' : inactiveCls;
+  const inactiveCls = 'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition';
+  if (b500) b500.className = scope === 'POOL_500' ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition' : inactiveCls;
+  if (b300) b300.className = scope === 'POOL_300' ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-500 text-slate-950 transition' : inactiveCls;
+  if (b100) b100.className = scope === 'MOCK_100' ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-500 text-white transition' : inactiveCls;
   if (tagEl) {
     tagEl.textContent = scope === 'MOCK_100' ? '100%模考' : (scope === 'POOL_300' ? '300%池' : '500%池');
   }
@@ -259,19 +259,19 @@ function switchLevel(lvl, showNotification = true) {
     if (!btn) return;
     if (!ENABLED_LEVELS.has(code)) {
       btn.disabled = true;
-      btn.className = 'px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-500 border border-slate-800 opacity-45 cursor-not-allowed';
+      btn.className = 'px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed';
       btn.style.backgroundColor = '';
       if (cnt) {
-        cnt.className = 'px-1.5 py-0.5 rounded bg-slate-950 text-slate-500 border border-slate-800 font-mono text-[10px]';
+        cnt.className = 'px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs';
         cnt.textContent = '待開放';
       }
       return;
     }
     if (code === lvl) {
       btn.disabled = false;
-      btn.className = 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition flex items-center gap-1.5 text-white shadow-lg border-2 border-white';
+      btn.className = 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition flex items-center gap-1.5 text-slate-950';
       btn.style.backgroundColor = OFFICIAL_HEX[code];
-      if (cnt) cnt.className = 'px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 border border-white/40 font-mono text-[10px] font-bold';
+      if (cnt) cnt.className = 'px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs font-bold';
     }
   });
 
@@ -376,17 +376,17 @@ function renderCategoryTabs() {
     const isListening = cat.id === 'LISTENING';
     return `
       <button onclick="applyCategoryFilter('${cat.id}')"
-        class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 border ${
-          active
-            ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20 font-bold'
-            : isListening
-            ? 'bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border-sky-500/40'
-            : 'bg-slate-800/90 hover:bg-slate-700/80 text-slate-300 border-slate-700'
-        }">
+        class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-1.5 ${
+ active
+ ? 'bg-amber-500 text-slate-950 font-bold'
+ : isListening
+ ? 'bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 '
+ : 'bg-slate-800/90 hover:bg-slate-700/80 text-slate-300 '
+ }">
         <span>${cat.name}</span>
-        <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-          active ? 'bg-slate-950/20 text-slate-950' : 'bg-slate-900 text-slate-400'
-        }">${count}</span>
+        <span class="px-1.5 py-0.2 rounded-full text-xs font-mono ${
+ active ? 'bg-slate-950/20 text-slate-950' : 'bg-slate-900 text-slate-400'
+ }">${count}</span>
       </button>
     `;
   }).join('');
@@ -553,12 +553,12 @@ function renderOfficialMondaiNumberBar(currentQ) {
     const isActive = currentQ && currentQ.officialCode === m.code;
     return `
       <button type="button" onclick="jumpToMondaiCode('${m.code}')" title="${m.name}"
-        style="${isActive ? `background-color: ${activeHex}; color: #fff; border-color: #fff;` : ''}"
-        class="w-6 h-6 rounded font-mono text-[11px] font-extrabold transition flex items-center justify-center border ${
-          isActive
-            ? 'shadow-md scale-105'
-            : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-        }">
+        style="${isActive ? `background-color: ${activeHex}; color: #020617;` : ''}"
+        class="w-6 h-6 rounded font-mono text-xs font-extrabold transition flex items-center justify-center ${
+ isActive
+ ? ' scale-105'
+ : 'bg-slate-800 hover:bg-slate-700 text-slate-200 '
+ }">
         ${idx + 1}
       </button>
     `;
@@ -569,12 +569,12 @@ function renderOfficialMondaiNumberBar(currentQ) {
     const numLabel = writtenMondai.length + idx + 1;
     return `
       <button type="button" onclick="jumpToMondaiCode('${m.code}')" title="${m.name}"
-        style="${isActive ? `background-color: ${activeHex}; color: #fff; border-color: #fff;` : ''}"
-        class="px-1.5 h-6 rounded font-mono text-[11px] font-extrabold transition flex items-center justify-center gap-0.5 border ${
-          isActive
-            ? 'shadow-md scale-105'
-            : 'bg-slate-800 hover:bg-slate-700 text-sky-300 border-slate-700'
-        }">
+        style="${isActive ? `background-color: ${activeHex}; color: #020617;` : ''}"
+        class="px-1.5 h-6 rounded font-mono text-xs font-extrabold transition flex items-center justify-center gap-0.5 ${
+ isActive
+ ? ' scale-105'
+ : 'bg-slate-800 hover:bg-slate-700 text-sky-300 '
+ }">
         <span>🔊${numLabel}</span>
       </button>
     `;
@@ -681,7 +681,7 @@ function highlightDiscourseMarkers() {
     if (html.includes(m)) {
       hits++;
       const re = new RegExp(`(${m})`, 'g');
-      html = html.replace(re, '<mark class="px-1 py-0.5 rounded bg-amber-400/30 text-amber-200 border border-amber-400/60 font-extrabold">$1</mark>');
+      html = html.replace(re, '<mark class="px-1 py-0.5 rounded bg-amber-400/30 text-amber-200 font-extrabold">$1</mark>');
     }
   });
   stemEl.innerHTML = html;
@@ -734,7 +734,7 @@ function renderOptionCards(q) {
       : optText;
 
     let cardStyle = isSelected
-      ? 'bg-amber-500/20 border-amber-400 text-white shadow-md shadow-amber-500/10'
+      ? 'bg-amber-500/20 border-amber-400 text-white shadow-md'
       : 'bg-slate-900/80 hover:bg-slate-700/60 border-slate-700 text-slate-200';
 
     if (isEliminated) {
@@ -743,7 +743,7 @@ function renderOptionCards(q) {
 
     if (isSubmitted) {
       if (idx === q.correctIndex) {
-        cardStyle = 'bg-emerald-500/20 border-emerald-400 text-emerald-100 shadow-md shadow-emerald-500/10';
+        cardStyle = 'bg-emerald-500/20 border-emerald-400 text-emerald-100 shadow-md';
       } else if (idx === selectedOptionIndex && idx !== q.correctIndex) {
         cardStyle = 'bg-rose-500/20 border-rose-400 text-rose-100';
       } else {
@@ -753,15 +753,15 @@ function renderOptionCards(q) {
 
     return `
       <button type="button" onclick="selectOption(${idx})" ${isEliminated ? 'disabled' : ''}
-        class="jlpt-capsule-option w-full text-left px-4 py-3 border-2 transition-all flex items-center gap-3 group ${cardStyle}">
+        class="jlpt-capsule-option w-full text-left px-4 py-3 transition-all flex items-center gap-3 group ${cardStyle}">
         <span class="w-7 h-7 rounded-full font-mono text-xs font-black flex items-center justify-center shrink-0 ${
-          isSelected
-            ? 'bg-amber-400 text-slate-950 shadow'
-            : 'bg-slate-800 text-slate-200 border border-slate-600 group-hover:bg-slate-700'
-        }">
+ isSelected
+ ? 'bg-amber-400 text-slate-950 '
+ : 'bg-slate-800 text-slate-200 group-hover:bg-slate-700'
+ }">
           ${idx + 1}
         </span>
-        <span class="jp-text text-sm sm:text-base font-bold flex-1 ${isMasked ? 'text-slate-500 italic text-xs' : ''}">${displayLabel}</span>
+        <span class="jp-text text-sm sm:text-base font-bold flex-1 ${isMasked ? 'text-slate-400 italic text-xs' : ''}">${displayLabel}</span>
       </button>
     `;
   }).join('');
@@ -792,15 +792,15 @@ function renderStarReconstructor(q) {
 
     return `
       <div onclick="removeStarSlot(${slotIdx})"
-        class="cursor-pointer rounded-xl p-2.5 border text-center transition flex flex-col items-center justify-center min-h-[54px] ${
-          isStarSlot
-            ? 'bg-amber-500/15 border-amber-400 star-slot-active'
-            : 'bg-slate-950 border-slate-700'
-        }">
-        <span class="text-[10px] font-mono ${isStarSlot ? 'text-amber-400 font-bold' : 'text-slate-400'}">
+        class="cursor-pointer rounded-xl p-2.5 text-center transition flex flex-col items-center justify-center min-h-[54px] ${
+ isStarSlot
+ ? 'bg-amber-500/15 star-slot-active'
+ : 'bg-slate-950 '
+ }">
+        <span class="text-xs font-mono ${isStarSlot ? 'text-amber-400 font-bold' : 'text-slate-400'}">
           ${isStarSlot ? '★ 目標計分位置 (第3格)' : `語序位置 ${slotIdx + 1}`}
         </span>
-        <span class="jp-text text-xs sm:text-sm font-bold mt-0.5 ${placedOptIdx !== null ? 'text-white' : 'text-slate-500'}">
+        <span class="jp-text text-xs sm:text-sm font-bold mt-0.5 ${placedOptIdx !== null ? 'text-white' : 'text-slate-400'}">
           ${placedText}
         </span>
       </div>
@@ -811,11 +811,11 @@ function renderStarReconstructor(q) {
     const used = starSlots.includes(idx);
     return `
       <button type="button" onclick="placeStarToken(${idx})" ${used ? 'disabled' : ''}
-        class="px-3 py-1.5 rounded-lg border text-xs sm:text-sm jp-text font-medium transition ${
-          used
-            ? 'bg-slate-900 border-slate-800 text-slate-600 opacity-40 cursor-not-allowed'
-            : 'bg-slate-800 hover:bg-amber-500/20 border-slate-600 hover:border-amber-400 text-slate-100'
-        }">
+        class="px-3 py-1.5 rounded-lg text-xs sm:text-sm jp-text font-medium transition ${
+ used
+ ? 'bg-slate-900 text-slate-600 opacity-40 cursor-not-allowed'
+ : 'bg-slate-800 hover:bg-amber-500/20 hover: text-slate-100'
+ }">
         <span class="font-mono text-amber-400 font-bold mr-1">(${idx + 1})</span>${optText}
       </button>
     `;
@@ -897,15 +897,15 @@ function updateTimerUI(targetSec) {
 
   if (elapsedSeconds <= targetSec * 0.75) {
     timerText.className = 'font-mono text-xs font-bold text-emerald-400';
-    timerDot.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+    timerDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
     progressBar.className = 'bg-emerald-500 h-full transition-all duration-300';
   } else if (elapsedSeconds <= targetSec) {
     timerText.className = 'font-mono text-xs font-bold text-amber-400';
-    timerDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+    timerDot.className = 'w-2 h-2 rounded-full bg-amber-400';
     progressBar.className = 'bg-amber-500 h-full transition-all duration-300';
   } else {
     timerText.className = 'font-mono text-xs font-bold text-rose-400';
-    timerDot.className = 'w-2 h-2 rounded-full bg-rose-500 animate-ping';
+    timerDot.className = 'w-2 h-2 rounded-full bg-rose-500';
     progressBar.className = 'bg-rose-500 h-full transition-all duration-300';
   }
 }
@@ -1038,14 +1038,14 @@ function submitCurrentAnswer() {
 
     if (isOptCorrect) {
       boxClass = 'bg-emerald-950/40 border-emerald-500/50 text-emerald-100';
-      badgeHtml = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">正解</span>`;
+      badgeHtml = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold">正解</span>`;
     } else if (isUserPick && !isOptCorrect) {
       boxClass = 'bg-rose-950/40 border-rose-500/50 text-rose-100';
-      badgeHtml = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px] font-bold">您的誤選</span>`;
+      badgeHtml = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-xs font-bold">您的誤選</span>`;
     }
 
     return `
-      <div class="p-3.5 rounded-xl border ${boxClass} space-y-1">
+      <div class="p-3.5 rounded-xl ${boxClass} space-y-1">
         <div class="flex items-center justify-between gap-2">
           <span class="jp-text font-bold text-sm">(${idx + 1}) ${optText}</span>
           ${badgeHtml}
@@ -1097,15 +1097,15 @@ function renderDialogueTranscript(q, showFullSignalAnalysis = false) {
       : 'bg-slate-900/90 border-slate-800';
 
     return `
-      <div data-turn-idx="${idx}" class="p-3 rounded-xl border ${borderClass} transition space-y-1">
+      <div data-turn-idx="${idx}" class="p-3 rounded-xl ${borderClass} transition space-y-1">
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-2">
             <span class="font-mono text-xs font-bold ${
-              turn.role === 'FEMALE' ? 'text-pink-400' : (turn.role === 'MALE' || turn.role === 'MALE2') ? 'text-sky-400' : 'text-amber-300'
-            }">${turn.speakerLabel}</span>
-            ${isSignal ? `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">⚡ 轉折關鍵句</span>` : ''}
+ turn.role === 'FEMALE' ? 'text-pink-400' : (turn.role === 'MALE' || turn.role === 'MALE2') ? 'text-sky-400' : 'text-amber-300'
+ }">${turn.speakerLabel}</span>
+            ${isSignal ? `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-xs font-bold">⚡ 轉折關鍵句</span>` : ''}
           </div>
-          <button type="button" onclick="replayDialogueTurn(${idx})" class="px-2.5 py-0.5 rounded-lg bg-slate-800 hover:bg-sky-500/20 text-sky-300 border border-slate-700 text-[11px] font-mono transition">
+          <button type="button" onclick="replayDialogueTurn(${idx})" class="px-2.5 py-0.5 rounded-lg bg-slate-800 hover:bg-sky-500/20 text-sky-300 text-xs font-mono transition">
             🔊 單句重播
           </button>
         </div>
@@ -1325,7 +1325,7 @@ function renderHexagonRadarSVG(dimData) {
     const fillCol = d.key === 'LISTENING' ? '#38bdf8' : '#e2e8f0';
     return `
       <line x1="${cx}" y1="${cy}" x2="${endPt.x}" y2="${endPt.y}" stroke="#334155" stroke-width="1" />
-      <text x="${lblPt.x}" y="${lblPt.y}" fill="${fillCol}" font-size="11" font-weight="700" text-anchor="middle" dominant-baseline="middle">
+      <text x="${lblPt.x}" y="${lblPt.y}" fill="${fillCol}" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="middle">
         ${d.label} (${scoreStr})
       </text>
     `;
@@ -1371,8 +1371,8 @@ function renderDimensionPills(dimData) {
       ? 'text-amber-400'
       : 'text-rose-400';
     return `
-      <div onclick="applyCategoryFilter('${d.key}')" class="cursor-pointer bg-slate-900/90 hover:bg-slate-900 border border-slate-700/80 rounded-xl p-2 transition">
-        <div class="text-[10px] text-slate-400 truncate">${d.label}</div>
+      <div onclick="applyCategoryFilter('${d.key}')" class="cursor-pointer bg-slate-900/90 hover:bg-slate-900 rounded-xl p-2 transition">
+        <div class="text-xs text-slate-400 truncate">${d.label}</div>
         <div class="font-mono text-xs font-bold mt-0.5 ${color}">${d.rawAcc !== null ? d.acc + '%' : '--'}</div>
       </div>
     `;
@@ -1434,30 +1434,30 @@ function renderQuestionQueue() {
     const rec = historyMap[q.id];
     const isCurrent = currentQ && currentQ.id === q.id;
 
-    let badgeHtml = `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-[10px]">未作答</span>`;
+    let badgeHtml = `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-xs">未作答</span>`;
     if (rec) {
       if (rec.srlType === 'BLINDSPOT') {
-        badgeHtml = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-mono text-[10px] font-bold">🚨 ${rec.fsrsTag}</span>`;
+        badgeHtml = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-xs font-bold">🚨 ${rec.fsrsTag}</span>`;
       } else if (rec.srlType === 'FRAGILE') {
-        badgeHtml = `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono text-[10px] font-bold">⚠️ ${rec.fsrsTag}</span>`;
+        badgeHtml = `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-xs font-bold">⚠️ ${rec.fsrsTag}</span>`;
       } else if (rec.srlType === 'MASTERY') {
-        badgeHtml = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono text-[10px]">✅ ${rec.fsrsTag}</span>`;
+        badgeHtml = `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-xs">✅ ${rec.fsrsTag}</span>`;
       } else {
-        badgeHtml = `<span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40 font-mono text-[10px]">🔧 ${rec.fsrsTag}</span>`;
+        badgeHtml = `<span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-xs">🔧 ${rec.fsrsTag}</span>`;
       }
     }
 
     return `
       <div onclick="jumpToQuestionById('${q.id}')"
-        class="cursor-pointer px-3 py-2 rounded-xl border transition flex items-center justify-between gap-2 ${
-          isCurrent
-            ? 'bg-amber-500/15 border-amber-400 text-white'
-            : 'bg-slate-900/70 hover:bg-slate-900 border-slate-800 text-slate-300'
-        }">
+        class="cursor-pointer px-3 py-2 rounded-xl transition flex items-center justify-between gap-2 ${
+ isCurrent
+ ? 'bg-amber-500/15 text-white'
+ : 'bg-slate-900/70 hover:bg-slate-900 text-slate-300'
+ }">
         <div class="flex items-center gap-2 min-w-0">
           ${flaggedQuestionIds.has(q.id) ? `<span class="text-rose-400 text-xs shrink-0" title="已標記待查">🚩</span>` : ''}
           <span class="font-mono text-xs text-amber-400 font-bold shrink-0">${q.id}</span>
-          <span class="text-[11px] text-sky-300 shrink-0">[${q.officialName || q.category}]</span>
+          <span class="text-xs text-sky-300 shrink-0">[${q.officialName || q.category}]</span>
           <span class="text-xs truncate text-slate-200">${q.subtag}</span>
         </div>
         <div class="shrink-0">${badgeHtml}</div>
@@ -1486,20 +1486,33 @@ function loadPersistedProgress() {
   }
 }
 
-function speakQuestion(rate = 1.0) {
-  if (!('speechSynthesis' in window)) {
-    showToast('您的瀏覽器不支援 Web Speech 日語語音合成功能。', 'rose');
-    return;
-  }
+async function speakQuestion(rate = 1.0) {
   const q = getCurrentQuestion();
   if (!q) return;
-  window.speechSynthesis.cancel();
-  const cleanText = q.ttsText || q.stem.replace(/<[^>]*>/g, '');
-  const utter = new SpeechSynthesisUtterance(cleanText);
-  utter.lang = 'ja-JP';
-  utter.rate = rate;
-  window.speechSynthesis.speak(utter);
-  showToast(`🔊 正在以 ${rate}x 語速朗讀日文題目...`, 'sky');
+
+  if (typeof stopListeningDialogue === 'function') {
+    stopListeningDialogue();
+  }
+  if (typeof dialogueAbortFlag !== 'undefined') dialogueAbortFlag = false;
+
+  const audioModeSelect = document.getElementById('audioEngineModeSelect');
+  const preferStaticMp3 = !audioModeSelect || audioModeSelect.value !== 'WEBSPEECH';
+
+  // 1. Prioritize 100% pre-rendered Neural Stem MP3 (ja-JP-NanamiNeural)
+  if (preferStaticMp3 && q.stemAudioFile && typeof tryPlayPreRenderedMp3 === 'function') {
+    showToast('🎙️ 正在以 ' + rate + 'x 語速播放 Neural 真人級日文題幹音訊 (NanamiNeural)...', 'sky');
+    const played = await tryPlayPreRenderedMp3(q.stemAudioFile, 0, rate);
+    if (played) return;
+  }
+
+  // 2. Fallback to Furigana-stripped Cloud Web Speech API
+  if (typeof speakSingleUtterance === 'function') {
+    const cleanText = q.ttsText || (typeof cleanJapaneseForTts === 'function' ? cleanJapaneseForTts(q.stem) : q.stem.replace(/<rt[^>]*>.*?<\/rt>/gi, '').replace(/<[^>]*>/g, ''));
+    showToast('🔊 正在以 ' + rate + 'x 語速朗讀日文題目...', 'sky');
+    await speakSingleUtterance(cleanText, 'NARRATOR', null, rate);
+  } else {
+    showToast('您的瀏覽器不支援日語語音合成功能。', 'rose');
+  }
 }
 
 function startWeaknessDrill() {
@@ -1539,10 +1552,10 @@ function renderPedagogicalTheoryModalContent() {
   const box = document.getElementById('pedagogyCardsContainer');
   if (!box || typeof PEDAGOGICAL_THEORIES === 'undefined') return;
   box.innerHTML = PEDAGOGICAL_THEORIES.map(t => `
-    <div class="bg-slate-900/90 border border-slate-700/80 rounded-xl p-4 space-y-1.5">
+    <div class="bg-slate-900/90 rounded-xl p-4 space-y-1.5">
       <div class="flex items-center justify-between gap-2">
         <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-xs font-bold">${t.code}</span>
-        <span class="text-[11px] font-mono text-sky-400">${t.scholar}</span>
+        <span class="text-xs font-mono text-sky-400">${t.scholar}</span>
       </div>
       <div class="text-sm font-bold text-white">${t.title}</div>
       <p class="text-xs text-slate-300 leading-relaxed">${t.summary}</p>
@@ -1596,20 +1609,20 @@ function renderBlueprintModalContent(lvl) {
   const summaryBox = document.getElementById('blueprintSummaryStats');
   if (summaryBox) {
     summaryBox.innerHTML = `
-      <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
-        <div class="text-[11px] text-slate-400">100% 正式考標準題量 (${lvl})</div>
+      <div class="p-3 rounded-xl bg-slate-950">
+        <div class="text-xs text-slate-400">100% 正式考標準題量 (${lvl})</div>
         <div class="text-lg font-mono font-black text-sky-400 mt-0.5">${spec.mock100Total} 題 / ${spec.totalTimeMin} 分鐘</div>
-        <div class="text-[10px] text-slate-500">${spec.sectionsMode}</div>
+        <div class="text-xs text-slate-400">${spec.sectionsMode}</div>
       </div>
-      <div class="p-3 rounded-xl bg-slate-950 border border-emerald-500/30">
-        <div class="text-[11px] text-emerald-300">300% 鍛鍊池目標題量 (${lvl})</div>
+      <div class="p-3 rounded-xl bg-slate-950">
+        <div class="text-xs text-emerald-300">300% 鍛鍊池目標題量 (${lvl})</div>
         <div class="text-lg font-mono font-black text-emerald-400 mt-0.5">${spec.practice300Target} 題</div>
-        <div class="text-[10px] text-slate-400">每大題 3 倍變體反覆鍛鍊</div>
+        <div class="text-xs text-slate-400">每大題 3 倍變體反覆鍛鍊</div>
       </div>
-      <div class="p-3 rounded-xl bg-slate-950 border border-amber-500/30">
-        <div class="text-[11px] text-amber-300">500% 旗艦鍛鍊池目標 (${lvl})</div>
+      <div class="p-3 rounded-xl bg-slate-950">
+        <div class="text-xs text-amber-300">500% 旗艦鍛鍊池目標 (${lvl})</div>
         <div class="text-lg font-mono font-black text-amber-400 mt-0.5">${spec.practice500Target} 題</div>
-        <div class="text-[10px] text-slate-400">目前本級題庫：${bankArr.length} 題 (可一鍵擴充)</div>
+        <div class="text-xs text-slate-400">目前本級題庫：${bankArr.length} 題 (可一鍵擴充)</div>
       </div>
     `;
   }
@@ -1628,7 +1641,7 @@ function renderBlueprintModalContent(lvl) {
           <td class="p-2.5 font-mono text-white">${curCount} 題</td>
           <td class="p-2.5">
             <button onclick="closeBlueprintModal(); jumpToLevelAndSubtype('${lvl}', '${m.code}')"
-              class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-[11px] font-bold">
+              class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold">
               進入特訓 ➔
             </button>
           </td>
@@ -1711,12 +1724,12 @@ function renderTrapCardsModalContent() {
   box.innerHTML = OFFICIAL_BLUEPRINT.taiwanHighSchoolTrapCards.map(c => {
     const cleanTts = (c.tts || c.kanji.split(' ')[0]).replace(/'/g, '');
     return `
-      <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 transition space-y-1.5">
+      <div class="p-3.5 rounded-xl bg-slate-950 transition space-y-1.5">
         <div class="flex items-center justify-between gap-2">
           <span class="jp-text text-sm sm:text-base font-extrabold text-amber-300">${c.kanji}</span>
           <div class="flex items-center gap-1.5">
-            <button type="button" onclick="speakSingleUtterance('${cleanTts}', 'FEMALE')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-mono text-[10px] border border-slate-700">🔊 朗讀</button>
-            <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[11px] font-bold">${c.lvl}</span>
+            <button type="button" onclick="speakSingleUtterance('${cleanTts}', 'FEMALE')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 font-mono text-xs">🔊 朗讀</button>
+            <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-xs font-bold">${c.lvl}</span>
           </div>
         </div>
         <div class="text-xs font-bold text-emerald-300">🇯🇵 日文正解：${c.jpMeaning}</div>
@@ -2156,7 +2169,7 @@ async function generateAICoachReport() {
   }
 
   btn.disabled = true;
-  box.innerHTML = `<p class="text-amber-300 animate-pulse">🧠 AI 教練正在分析您的 ${currentLevel} 六維度雷達落點、SRL 盲點與 IRT 過關機率...</p>`;
+  box.innerHTML = `<p class="text-amber-300">🧠 AI 教練正在分析您的 ${currentLevel} 六維度雷達落點、SRL 盲點與 IRT 過關機率...</p>`;
 
   try {
     const summaryStr = records.map(r => {
@@ -2195,7 +2208,7 @@ function showToast(msg, color = 'amber') {
     rose: 'bg-slate-900 border-rose-500 text-rose-300',
     sky: 'bg-slate-900 border-sky-500 text-sky-300'
   };
-  toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl border-l-4 shadow-2xl text-xs font-semibold transition-all duration-300 ${colorMap[color] || colorMap.amber}`;
+  toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl border shadow-2xl text-xs font-semibold transition-all duration-300 ${colorMap[color] || colorMap.amber}`;
   toast.textContent = msg;
   container.appendChild(toast);
 

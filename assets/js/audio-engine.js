@@ -1,9 +1,14 @@
 /*************************************************************************
  * audio-engine.js
- * Dual-Mode Choukai Audio Engine:
+ * Sovereign Neural Choukai & Stem Audio Engine v4.3:
  * 1. Authentic Web Audio API JLPT Chime Synthesizer (880Hz -> 698.46Hz)
- * 2. Pre-rendered edge-tts Multi-Role MP3 playback (KeitaNeural & NanamiNeural)
- * 3. Seamless Fallback & Single-Turn Replay via Dual-Pitch Web Speech API
+ * 2. 100% Pre-rendered Microsoft Edge Neural MP3 Coverage for N2:
+ *    - 27 Full Listening Dialogues (155/155 N2 Listening questions)
+ *    - 103 Individual Dialogue Turns (100% single-turn & Kotaekata replay)
+ *    - 105 Written Question Stems (375/375 N2 Written questions at 1.0x/0.8x)
+ *    - 26 Taiwanese High School Trap Cards & Keigo Examples
+ * 3. <ruby><rt> Furigana Stripper + Cloud-Neural Web Speech Fallback
+ *    (Zero PSOLA ±25% Formant Distortion)
  *************************************************************************/
 
 let listeningSpeed = 1.0;
@@ -11,6 +16,52 @@ let isPlayingDialogue = false;
 let dialogueAbortFlag = false;
 let webAudioCtx = null;
 let activePreRenderedAudio = null;
+
+const NEURAL_CARD_AUDIO_MAP = {
+  "あめがふる、あめをなめる": "audio/n2/cards/card_7c668f7cb7.mp3",
+  "あんざんが得意だ": "audio/n2/cards/card_f7952b85b7.mp3",
+  "えんりょしないでください": "audio/n2/cards/card_697d8f9931.mp3",
+  "おおやさん": "audio/n2/cards/card_72fc31c5b5.mp3",
+  "おざなりな対応、ないがしろにする": "audio/n2/cards/card_9917fa50a2.mp3",
+  "おじゃまします": "audio/n2/cards/card_2ea6c91b7e.mp3",
+  "おゆをわかす": "audio/n2/cards/card_b3c1a06827.mp3",
+  "かんびょうする": "audio/n2/cards/card_fad8066876.mp3",
+  "がまんする": "audio/n2/cards/card_6c705fb0f5.mp3",
+  "きしゃにのる": "audio/n2/cards/card_4db9ba25e4.mp3",
+  "けがをする": "audio/n2/cards/card_6b3b251776.mp3",
+  "けっそくをかためる": "audio/n2/cards/card_c312654c8f.mp3",
+  "こうえんをはしる": "audio/n2/cards/card_9dd406e2d6.mp3",
+  "しんぶんをよむ": "audio/n2/cards/card_82ed358a51.mp3",
+  "つごうがいい": "audio/n2/cards/card_77dce1790c.mp3",
+  "てがみをかく": "audio/n2/cards/card_4d88f7321b.mp3",
+  "にほんごをべんきょうする": "audio/n2/cards/card_20dbce2777.mp3",
+  "にんじん": "audio/n2/cards/card_165e6294e4.mp3",
+  "はし": "audio/n2/cards/card_2f3fd35e5d.mp3",
+  "むすめさん": "audio/n2/cards/card_a090069664.mp3",
+  "ゆかにすわる": "audio/n2/cards/card_cef3da857f.mp3",
+  "ゆだんたいてき": "audio/n2/cards/card_3fff971454.mp3",
+  "悪人をせいばいする": "audio/n2/cards/card_48cb29f4a4.mp3",
+  "ともだちにほんをかしてあげた": "audio/n2/cards/card_9a29b81acb.mp3",
+  "せんせいがせつめいしてくださった": "audio/n2/cards/card_0029f6bb01.mp3",
+  "せんせいにすいせんじょうをかいていただいた": "audio/n2/cards/card_9d529399c5.mp3"
+};
+
+/**
+ * Strip <rt>...</rt> and <rp>...</rp> BEFORE stripping HTML tags so that
+ * <ruby>漢字<rt>かんじ</rt></ruby> is never double-read as "漢字かんじ".
+ */
+function cleanJapaneseForTts(rawHtml) {
+  if (!rawHtml) return '';
+  let s = String(rawHtml);
+  s = s.replace(/<rt[^>]*>.*?<\/rt>/gi, '');
+  s = s.replace(/<rp[^>]*>.*?<\/rp>/gi, '');
+  s = s.replace(/<[^>]+>/g, '');
+  s = s.replace(/[（(][\s　＿_★＊*]+[）)]/g, '、');
+  s = s.replace(/[＿_]{2,}/g, '、');
+  s = s.replace(/★/g, '、');
+  s = s.replace(/\s+/g, ' ').trim();
+  return s;
+}
 
 function playExamChime() {
   return new Promise(resolve => {
@@ -67,9 +118,9 @@ function setListeningSpeed(spd) {
     const el = document.getElementById(btnId);
     if (!el) return;
     if (parseFloat(k) === spd) {
-      el.className = 'px-2.5 py-1 rounded-lg text-[11px] font-mono bg-sky-500 text-slate-950 font-bold transition';
+      el.className = 'px-2.5 py-1 rounded-lg text-xs font-mono bg-sky-500 text-slate-950 font-bold transition';
     } else {
-      el.className = 'px-2.5 py-1 rounded-lg text-[11px] font-mono text-slate-400 hover:text-white transition';
+      el.className = 'px-2.5 py-1 rounded-lg text-xs font-mono text-slate-400 hover:text-white transition';
     }
   });
   if (activePreRenderedAudio) {
@@ -88,42 +139,65 @@ function selectJapaneseVoiceForRole(role) {
   if (voices.length === 0) return null;
   if (voices.length === 1) return voices[0];
 
-  if (role === 'MALE' || role === 'MALE2') {
-    const maleMatch = voices.find(v => /keita|ichiro|otoya|male|hattori/i.test(v.name));
-    return maleMatch || voices[0];
-  } else if (role === 'FEMALE') {
-    const femaleMatch = voices.find(v => /nanami|haruka|kyoko|ayumi|female|sayaka/i.test(v.name));
-    return femaleMatch || voices[Math.min(1, voices.length - 1)];
-  }
-  return voices[0];
+  const isMaleRole = role === 'MALE' || role === 'MALE2';
+  const scored = voices.map(v => {
+    let score = 0;
+    const name = v.name || '';
+    // Prioritize Cloud Neural / Natural / Enhanced voices over legacy SAPI5 Desktop voices
+    if (/Online \(Natural\)|Neural|Enhanced|Premium|Siri/i.test(name)) score += 100;
+    if (/Google 日本語/i.test(name)) score += 80;
+    if (!v.localService) score += 40;
+    if (/Desktop/i.test(name)) score -= 30;
+
+    if (isMaleRole && /keita|ichiro|otoya|male|hattori|takumi/i.test(name)) {
+      score += 60;
+    } else if (!isMaleRole && /nanami|kyoko|haruka|ayumi|sayaka|female|mizuki/i.test(name)) {
+      score += 60;
+    }
+    return { v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0].v;
 }
 
-function speakSingleUtterance(text, role) {
+async function speakSingleUtterance(text, role, audioUrlOverride = null, customRate = null) {
+  const clean = cleanJapaneseForTts(text);
+  const audioModeSelect = document.getElementById('audioEngineModeSelect');
+  const preferStaticMp3 = !audioModeSelect || audioModeSelect.value !== 'WEBSPEECH';
+  const mappedMp3 = audioUrlOverride || NEURAL_CARD_AUDIO_MAP[text] || NEURAL_CARD_AUDIO_MAP[clean];
+
+  if (preferStaticMp3 && mappedMp3 && !dialogueAbortFlag) {
+    const ok = await tryPlayPreRenderedMp3(mappedMp3, 0, customRate || listeningSpeed);
+    if (ok) return;
+  }
+
   return new Promise((resolve) => {
-    if (!('speechSynthesis' in window) || dialogueAbortFlag) {
+    if (!('speechSynthesis' in window) || dialogueAbortFlag || !clean) {
       resolve();
       return;
     }
     window.speechSynthesis.cancel();
 
-    const clean = (text || '').replace(/<[^>]*>/g, '');
     const utter = new SpeechSynthesisUtterance(clean);
     utter.lang = 'ja-JP';
     const voice = selectJapaneseVoiceForRole(role);
     if (voice) utter.voice = voice;
 
+    const baseSpeed = customRate || listeningSpeed;
+    // Keep pitch near 1.0 (0.95..1.03) to prevent metallic PSOLA formant distortion
     if (role === 'MALE') {
-      utter.pitch = 0.76;
-      utter.rate = Number((0.98 * listeningSpeed).toFixed(2));
+      utter.pitch = 0.95;
+      utter.rate = Number((0.98 * baseSpeed).toFixed(2));
     } else if (role === 'MALE2') {
-      utter.pitch = 0.88;
-      utter.rate = Number((1.02 * listeningSpeed).toFixed(2));
+      utter.pitch = 0.98;
+      utter.rate = Number((1.0 * baseSpeed).toFixed(2));
     } else if (role === 'FEMALE') {
-      utter.pitch = 1.25;
-      utter.rate = Number((1.03 * listeningSpeed).toFixed(2));
+      utter.pitch = 1.03;
+      utter.rate = Number((1.0 * baseSpeed).toFixed(2));
     } else {
       utter.pitch = 1.0;
-      utter.rate = Number((1.0 * listeningSpeed).toFixed(2));
+      utter.rate = Number((0.98 * baseSpeed).toFixed(2));
     }
 
     utter.onend = () => resolve();
@@ -144,20 +218,31 @@ function setActiveKotaekataStep(activeStep) {
   }
 }
 
-function tryPlayPreRenderedMp3(audioFileUrl, totalTurns) {
+function tryPlayPreRenderedMp3(audioFileUrl, totalTurns = 0, customRate = null) {
   return new Promise((resolve) => {
-    if (!audioFileUrl || window.location.protocol === 'file:') {
-      // On file:// standalone HTML without audio directory or if missing, check if reachable
+    if (!audioFileUrl) {
+      resolve(false);
+      return;
     }
+    if (activePreRenderedAudio) {
+      try {
+        activePreRenderedAudio.pause();
+        activePreRenderedAudio.currentTime = 0;
+      } catch (e) {}
+      activePreRenderedAudio = null;
+    }
+
     const audio = new Audio(audioFileUrl);
     activePreRenderedAudio = audio;
-    audio.playbackRate = listeningSpeed;
+    audio.playbackRate = customRate || listeningSpeed;
 
     let resolved = false;
     const finish = (ok) => {
       if (!resolved) {
         resolved = true;
-        activePreRenderedAudio = null;
+        if (activePreRenderedAudio === audio) {
+          activePreRenderedAudio = null;
+        }
         resolve(ok);
       }
     };
@@ -204,14 +289,14 @@ async function playListeningDialogue() {
   const statusDot = document.getElementById('choukaiStatusDot');
   const turnCounter = document.getElementById('turnCounterText');
 
-  playBtnText.textContent = '播放中... (點擊停止)';
-  playBtnIcon.textContent = '⏸';
-  eqBox.classList.add('eq-playing');
-  statusDot.className = 'w-3 h-3 rounded-full bg-emerald-400 animate-ping';
+  if (playBtnText) playBtnText.textContent = '播放中... (點擊停止)';
+  if (playBtnIcon) playBtnIcon.textContent = '⏸';
+  if (eqBox) eqBox.classList.add('eq-playing');
+  if (statusDot) statusDot.className = 'w-3 h-3 rounded-full bg-emerald-400';
 
   // 1. Play Authentic JLPT Exam Intro Chime ("Pin-Pon")
   setActiveKotaekataStep(1);
-  speakerBadge.textContent = '🔔 考場提示鐘聲 (チャイム 880Hz→698Hz)...';
+  if (speakerBadge) speakerBadge.textContent = '🔔 考場提示鐘聲 (チャイム 880Hz→698Hz)...';
   await playExamChime();
 
   const totalTurns = q.dialogue.length;
@@ -219,19 +304,19 @@ async function playListeningDialogue() {
   const preferStaticMp3 = !audioModeSelect || audioModeSelect.value !== 'WEBSPEECH';
 
   let playedStatic = false;
-  const hasDedicatedMp3 = Boolean(q.audioFile && q.id && q.audioFile.includes(`${q.id}.mp3`));
+  const hasDedicatedMp3 = Boolean(q.audioFile && q.hasExactMp3 !== false);
   if (preferStaticMp3 && hasDedicatedMp3 && !dialogueAbortFlag) {
-    speakerBadge.textContent = '🎙️ 播放 edge-tts 真人級雙聲道音訊 (Keita & Nanami)...';
+    if (speakerBadge) speakerBadge.textContent = '🎙️ 播放 Microsoft Neural 真人級雙聲道音訊 (Keita & Nanami)...';
     playedStatic = await tryPlayPreRenderedMp3(q.audioFile, totalTurns);
   }
 
-  // Fallback to Turn-by-Turn Web Speech API if static MP3 not used or offline
+  // Fallback to Turn-by-Turn playback (uses per-turn Neural MP3 first, then Cloud Web Speech)
   if (!playedStatic && !dialogueAbortFlag) {
     for (let i = 0; i < totalTurns; i++) {
       if (dialogueAbortFlag) break;
       const turn = q.dialogue[i];
-      turnCounter.textContent = `語音段: ${i + 1} / ${totalTurns}`;
-      speakerBadge.textContent = `${turn.speakerLabel} 發話中...`;
+      if (turnCounter) turnCounter.textContent = `語音段: ${i + 1} / ${totalTurns}`;
+      if (speakerBadge) speakerBadge.textContent = `${turn.speakerLabel} 發話中...`;
 
       if (typeof highlightActiveTranscriptLine === 'function') {
         highlightActiveTranscriptLine(i);
@@ -244,7 +329,7 @@ async function playListeningDialogue() {
         await playExamChime();
       }
 
-      await speakSingleUtterance(turn.jp, turn.role);
+      await speakSingleUtterance(turn.jp, turn.role, turn.audioTurnFile || null);
       if (dialogueAbortFlag) break;
       await new Promise(r => setTimeout(r, 260));
     }
@@ -306,12 +391,12 @@ async function replayDialogueTurn(turnIdx) {
   const speakerBadge = document.getElementById('activeSpeakerBadge');
 
   if (eqBox) eqBox.classList.add('eq-playing');
-  if (speakerBadge) speakerBadge.textContent = `🔁 單句精聽重播：${turn.speakerLabel}`;
+  if (speakerBadge) speakerBadge.textContent = `🔁 單句精聽重播 (Neural MP3)：${turn.speakerLabel}`;
   if (typeof highlightActiveTranscriptLine === 'function') {
     highlightActiveTranscriptLine(turnIdx);
   }
 
-  await speakSingleUtterance(turn.jp, turn.role);
+  await speakSingleUtterance(turn.jp, turn.role, turn.audioTurnFile || null);
   resetChoukaiPlayerUI();
 }
 

@@ -1,0 +1,71 @@
+{
+  "goal": "Review & distill JLPT web creation conversation (7320681b-b594-467d-991d-09e6dec036d3) and produce 3 x 2-3 minute (150s) 1080p@30fps /vids_cin CinematicRenderer introduction & user-guide videos for JLPT N2 AI Studio (N2 first)",
+  "mode": "full",
+  "nodes": [
+    {
+      "id": "N0",
+      "title": "Read-Only Grounding & Conversation 7320681b Forensics: Extract 8 Pedagogical Theories, 24-Wave Evolution, 5-Law Neural Audio v4.3 (286 MP3s), and 10 Impeccable UI Rules from jlpt-ai-studio",
+      "deps": [],
+      "type": 2,
+      "est_min": 5,
+      "gate": "python -c \"import os; assert os.path.exists('D:/MuseAcademy_50_25C16/jlpt-ai-studio/index.html') and os.path.exists('D:/MuseAcademy_50_25C16/jlpt-ai-studio/data/n2_bank.json')\""
+    },
+    {
+      "id": "N1",
+      "title": "Golden Baseline Snapshot & OpenMontage /vids_cin Self-Test: Verify D:/OpenMontage/scripts/vids_openmontage_runner.py --self-test and N2 530-question bank integrity",
+      "deps": ["N0"],
+      "type": 2,
+      "est_min": 5,
+      "gate": "python D:/OpenMontage/scripts/vids_openmontage_runner.py --self-test"
+    },
+    {
+      "id": "N2",
+      "title": "Live Playwright 1080P UI Capture & 12 Tone-Graded Motion Video Plates: Capture real Tab 1 (N2 Exam Console & Right Dock), Tab 2 (2PL-IRT & Radar), and Tab 3 (FSRS v5 & 23 Trap Cards) from jlpt-ai-studio and synthesize 12 1080p@30fps Ken-Burns motion plates on R:/ RAMDisk",
+      "deps": ["N1"],
+      "type": 2,
+      "est_min": 10,
+      "gate": "python -c \"import pathlib; p=pathlib.Path('D:/OpenMontage/remotion-composer/public/igs_stage/jlpt_n2_cin'); assert p.exists() and len(list(p.glob('*.mp4'))) >= 12\"",
+      "parallel_agent": "Pod A: Live Playwright UI & Motion Plate Cinematographer"
+    },
+    {
+      "id": "N3",
+      "title": "Render Video #1 (150.0s / 2m30s, /vids_cin): Episode 1 — Flagship Overview & 8 Pedagogical Theories (Why JLPT N2 First, 530/318/106 Pools, L1 Kanji Transfer & 19/60 Cutoff Defense)",
+      "deps": ["N2"],
+      "type": 2,
+      "est_min": 12,
+      "gate": "python -c \"import pathlib; p=pathlib.Path('D:/MuseAcademy_50_25C16/jlpt-ai-studio/videos/jlpt_n2_intro_ep1_flagship_overview.mp4'); assert p.exists() and p.stat().st_size > 2000000\"",
+      "parallel_agent": "Pod B: /vids_cin Episode 1 Director (03_cinematic_epic_titans.mp3)"
+    },
+    {
+      "id": "N4",
+      "title": "Render Video #2 (150.0s / 2m30s, /vids_cin): Episode 2 — Tab 1 Interactive Hands-On Walkthrough (19 Mondai Bar, ★ Star Anchor Lock, Dokkai Highlighter, 4-Step Choukai & 286 Neural MP3s)",
+      "deps": ["N2"],
+      "type": 2,
+      "est_min": 12,
+      "gate": "python -c \"import pathlib; p=pathlib.Path('D:/MuseAcademy_50_25C16/jlpt-ai-studio/videos/jlpt_n2_intro_ep2_tab1_walkthrough.mp4'); assert p.exists() and p.stat().st_size > 2000000\"",
+      "parallel_agent": "Pod C: /vids_cin Episode 2 Director (08_quant_executive_pulse.mp3)"
+    },
+    {
+      "id": "N5",
+      "title": "Render Video #3 (150.0s / 2m30s, /vids_cin): Episode 3 — Tab 2 & Tab 3 Mastery Guide (2PL-IRT Scaled Score & 19/60 Redline, Official Report Card Printer, FSRS v5 Queue, 23 Trap Cards & NotebookLM Export)",
+      "deps": ["N2"],
+      "type": 2,
+      "est_min": 12,
+      "gate": "python -c \"import pathlib; p=pathlib.Path('D:/MuseAcademy_50_25C16/jlpt-ai-studio/videos/jlpt_n2_intro_ep3_irt_fsrs_mastery.mp4'); assert p.exists() and p.stat().st_size > 2000000\"",
+      "parallel_agent": "Pod D: /vids_cin Episode 3 Director (10_majestic_classical_violin.mp3)"
+    },
+    {
+      "id": "N6",
+      "title": "VQE G1-G5 Zero-Defect Multimedia Audit & Video Showcase Modal Integration: Audit all 3 MP4s (150.0s each, -14.5 LUFS, 10.5%/14.2% BGM band, 0 SRT overlap, HUD std > 12.0), integrate 🎬 導覽影片 button into jlpt-ai-studio/index.html, and clean R:/ RAMDisk",
+      "deps": ["N3", "N4", "N5"],
+      "type": 2,
+      "est_min": 8,
+      "gate": "python D:/MuseAcademy_50_25C16/jlpt-ai-studio/scripts/forge_jlpt_n2_cin_3videos.py --audit-only"
+    }
+  ],
+  "premortem": [
+    "Cause 1: Rendering 60-second clips instead of the requested 2-3 minute (120s-180s) duration -> Mitigated in N3..N5 by locking each video to exactly 150.0 seconds (2m30s, 4,500 frames @ 30fps) with 15 timed narration segments and 15 CinematicRenderer scenes.",
+    "Cause 2: Generic fractal backgrounds fail to show users how to actually operate the JLPT N2 website -> Mitigated in N2 by using Playwright headless Chromium to capture real 1920x1080 screenshots of Tab 1, Tab 2, Tab 3, Mondai 7 Star Sandbox, Mondai 15 Choukai 4-Step Console, and the 23 Trap Cards, then compiling them into 12 dynamic 15-second Ken-Burns motion video plates with callout highlights.",
+    "Cause 3: Edge-TTS rate-limiting or Remotion memory spikes during 3 x 4,500-frame renders -> Mitigated by caching all 45 narration segments on R:/ RAMDisk with retry backoff, running Remotion with --concurrency 4, and verifying every output through VQE Gates G1-G5."
+  ]
+}

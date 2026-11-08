@@ -115,6 +115,15 @@ def validate_level(lvl: str, min_q: int, check_furigana: bool, check_audio: bool
                     ap = BASE_DIR / af
                     if not (ap.exists() and ap.stat().st_size > 2048):
                         errors.append(f"[{qid}] Audio file missing or too small: {ap}")
+                if lvl.upper() == "N2" and isinstance(dlg, list):
+                    for tidx, turn in enumerate(dlg):
+                        tf = turn.get("audioTurnFile")
+                        if not tf or not (BASE_DIR / tf).exists() or (BASE_DIR / tf).stat().st_size <= 1024:
+                            errors.append(f"[{qid}] Turn #{tidx} missing valid Neural audioTurnFile: {tf}")
+        elif check_audio and lvl.upper() == "N2":
+            sf = q.get("stemAudioFile")
+            if not sf or not (BASE_DIR / sf).exists() or (BASE_DIR / sf).stat().st_size <= 1024:
+                errors.append(f"[{qid}] Written question missing valid Neural stemAudioFile: {sf}")
 
         if "<ruby>" in q.get("stem", ""):
             ruby_count += 1
