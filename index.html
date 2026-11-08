@@ -260,14 +260,23 @@
               <span id="qIrtBadge" class="px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs">IRT b=0.0</span>
             </div>
             <div class="flex items-center gap-2">
-              <span id="qProgressText" class="font-mono text-xs bg-slate-950 text-amber-300 px-2 py-0.5 rounded">題號 #1 / 318</span>
+              <span id="qProgressText" class="font-mono text-xs bg-slate-950 text-amber-300 px-2 py-0.5 rounded" style="font-variant-numeric: tabular-nums;">題號 #1 / 318</span>
               <button type="button" id="flagQuestionBtn" onclick="toggleFlagQuestion()"
-                class="px-2 py-0.5 rounded bg-black/25 hover:bg-black/40 text-white text-xs font-semibold transition">
+                class="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-900 text-amber-200 text-xs font-semibold transition">
                 🏳️ 標記待查
               </button>
-              <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-slate-950/85 text-white">
+              <button type="button" id="macroTimerToggleBtn" onclick="toggleN2MacroExamTimer()"
+                class="px-2 py-0.5 rounded bg-slate-950 hover:bg-slate-900 text-sky-300 font-mono text-xs font-bold transition"
+                style="font-variant-numeric: tabular-nums;"
+                title="點擊切換/重置 N2 正式模擬考二節制倒數計時器 (105:00 言語・読解 / 50:00 聴解)">
+                ⏱️ N2 正式模擬考倒數 (<span id="macroTimerClockText">105:00 言語・読解 / 50:00 聴解</span>)
+              </button>
+              <span id="macroPacingBadge" class="px-2 py-0.5 rounded bg-slate-950 text-emerald-300 font-mono text-xs font-bold" style="font-variant-numeric: tabular-nums;">
+                配速正常
+              </span>
+              <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-slate-950 text-white">
                 <span id="timerDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span id="timerText" class="font-mono text-xs font-bold text-emerald-400">00s / 30s</span>
+                <span id="timerText" class="font-mono text-xs font-bold text-emerald-400" style="font-variant-numeric: tabular-nums;">00s / 30s</span>
               </div>
             </div>
           </div>
@@ -450,15 +459,19 @@
                 </button>
               </div>
             </div>
-            <div id="starSlotsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
-            <div id="starTokensBar" class="flex flex-wrap gap-1.5 pt-1"></div>
+            <div id="starInteractiveWidget" class="space-y-2">
+              <div id="starSlotsContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+              <div id="starTokensBar" class="flex flex-wrap gap-1.5 pt-1"></div>
+              <div id="starDirectSubmitBox" class="hidden pt-1"></div>
+              <div id="starFullSentenceBox" class="hidden pt-2 border-t border-slate-800"></div>
+            </div>
           </div>
 
           <!-- Blind Options Mask Notice -->
           <div id="blindOptionsNotice" class="hidden p-2.5 rounded-xl bg-amber-500/10 text-xs text-amber-200 items-center justify-between gap-2">
             <span>🔒 <strong>考場無印字盲聽模式</strong>：正式試卷上本大題無印出選項，請先聽音訊（或點擊右側顯示文字）。</span>
             <button type="button" onclick="unmaskBlindOptions()" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold shrink-0">
-              顯示選項文字
+              👁️ 顯示文字稿
             </button>
           </div>
 

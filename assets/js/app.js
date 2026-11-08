@@ -51,6 +51,9 @@ let isSubmitted = false;
 
 // Star (★) Reconstructor State
 let starSlots = [null, null, null, null];
+let macroExamTimerActive = false;
+let macroWrittenRemainSec = 105 * 60;
+let macroChoukaiRemainSec = 50 * 60;
 
 // Choukai Blind-Listening State
 let scriptPeeked = false;
@@ -173,6 +176,12 @@ function getScopedBank(lvl) {
 
 function setQuestionPoolScope(scope) {
   currentPoolScope = scope;
+  if (scope === 'MOCK_100' && !macroExamTimerActive) {
+    macroExamTimerActive = true;
+    macroWrittenRemainSec = 105 * 60;
+    macroChoukaiRemainSec = 50 * 60;
+  }
+  updateMacroExamTimerUI(getCurrentQuestion());
   const b500 = document.getElementById('poolBtn500');
   const b300 = document.getElementById('poolBtn300');
   const b100 = document.getElementById('poolBtn100');
@@ -725,25 +734,35 @@ function renderOptionCards(q) {
   const container = document.getElementById('optionsContainer');
   if (!container || !q) return;
 
+  const isQuickResp = q.officialCode === 'L5_QUICK_RESP';
+  const isMasked = Boolean(
+    (isQuickResp || q.blindOptions) &&
+    !blindOptionsUnmasked &&
+    !scriptPeeked &&
+    !isSubmitted &&
+    selectedOptionIndex === null
+  );
+
   container.innerHTML = q.options.map((optText, idx) => {
     const isSelected = selectedOptionIndex === idx;
     const isEliminated = eliminatedOptionIndex === idx && !isSubmitted;
-    const isMasked = q.blindOptions && !blindOptionsUnmasked && !isSubmitted;
     const displayLabel = isMasked
-      ? `選項 ${idx + 1}（考場全盲聽鎖定中：請先聽完音訊或點擊上方顯示選項）`
+      ? (isQuickResp
+          ? `選択肢 ${idx + 1} — 🔊 請先聽語音並依高低音調與語境作答`
+          : `選択肢 ${idx + 1} — 🔊 考場無印字盲聽鎖定中（請先聽音訊或點擊上方 👁️ 顯示文字稿）`)
       : optText;
 
     let cardStyle = isSelected
-      ? 'bg-amber-500/20 border-amber-400 text-white shadow-md'
+      ? 'bg-amber-500/20 border-amber-400 text-white'
       : 'bg-slate-900/80 hover:bg-slate-700/60 border-slate-700 text-slate-200';
 
     if (isEliminated) {
-      cardStyle = 'bg-slate-950/40 border-slate-800/60 text-slate-600 line-through opacity-45 cursor-not-allowed';
+      cardStyle = 'bg-slate-950/40 border-slate-800/60 text-slate-400 line-through opacity-45 cursor-not-allowed';
     }
 
     if (isSubmitted) {
       if (idx === q.correctIndex) {
-        cardStyle = 'bg-emerald-500/20 border-emerald-400 text-emerald-100 shadow-md';
+        cardStyle = 'bg-emerald-500/20 border-emerald-400 text-emerald-100';
       } else if (idx === selectedOptionIndex && idx !== q.correctIndex) {
         cardStyle = 'bg-rose-500/20 border-rose-400 text-rose-100';
       } else {
@@ -755,13 +774,13 @@ function renderOptionCards(q) {
       <button type="button" onclick="selectOption(${idx})" ${isEliminated ? 'disabled' : ''}
         class="jlpt-capsule-option w-full text-left px-4 py-3 transition-all flex items-center gap-3 group ${cardStyle}">
         <span class="w-7 h-7 rounded-full font-mono text-xs font-black flex items-center justify-center shrink-0 ${
- isSelected
- ? 'bg-amber-400 text-slate-950 '
- : 'bg-slate-800 text-slate-200 group-hover:bg-slate-700'
- }">
+          isSelected
+            ? 'bg-amber-400 text-slate-950'
+            : 'bg-slate-800 text-slate-200 group-hover:bg-slate-700'
+        }">
           ${idx + 1}
         </span>
-        <span class="jp-text text-sm sm:text-base font-bold flex-1 ${isMasked ? 'text-slate-400 italic text-xs' : ''}">${displayLabel}</span>
+        <span class="jp-text text-sm sm:text-base font-bold flex-1 ${isMasked ? 'text-slate-300 italic text-xs' : ''}">${displayLabel}</span>
       </button>
     `;
   }).join('');
@@ -772,16 +791,50 @@ function selectOption(idx) {
   const q = getCurrentQuestion();
   if (!q || idx >= q.options.length) return;
   selectedOptionIndex = idx;
+  if (q.officialCode === 'L5_QUICK_RESP' || q.blindOptions) {
+    blindOptionsUnmasked = true;
+    const blindNotice = document.getElementById('blindOptionsNotice');
+    if (blindNotice) {
+      blindNotice.classList.add('hidden');
+      blindNotice.classList.remove('flex');
+    }
+  }
+  if (q.category === 'STAR' || q.officialCode === 'G2_STAR_SYNTAX' || q.officialCode === 'G2_STAR_ORDER') {
+    const existingPos = starSlots.indexOf(idx);
+    if (existingPos !== -1 && existingPos !== 2) {
+      starSlots[existingPos] = null;
+    }
+    starSlots[2] = idx;
+    renderStarReconstructor(q);
+  }
   renderOptionCards(q);
 }
 
 /*************************************************************************
  * INTERACTIVE STAR (★) SYNTAX RECONSTRUCTOR
  *************************************************************************/
+function buildSynthesizedStarSentenceHtml(q) {
+  if (!q || !Array.isArray(q.correctSequence) || q.correctSequence.length !== 4) return '';
+  const tokensHtml = q.correctSequence.map((optIdx, pos) => {
+    const txt = q.options[optIdx] || '';
+    if (pos === 2) {
+      return `<span class="px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-extrabold mx-0.5">★ ${txt}</span>`;
+    }
+    return `<span class="text-emerald-300 font-bold mx-0.5">${txt}</span>`;
+  }).join('');
+  const slotPattern = /[＿_]+\s*[＿_]+\s*(?:<u>)?★(?:<\/u>)?\s*[＿_]+/;
+  if (slotPattern.test(q.stem || '')) {
+    return q.stem.replace(slotPattern, tokensHtml);
+  }
+  return `${q.stem} ➔ ${tokensHtml}`;
+}
+
 function renderStarReconstructor(q) {
   const slotsContainer = document.getElementById('starSlotsContainer');
   const tokensBar = document.getElementById('starTokensBar');
-  if (!slotsContainer || !tokensBar) return;
+  const directSubmitBox = document.getElementById('starDirectSubmitBox');
+  const fullSentenceBox = document.getElementById('starFullSentenceBox');
+  if (!slotsContainer || !tokensBar || !q) return;
 
   slotsContainer.innerHTML = [0, 1, 2, 3].map(slotIdx => {
     const isStarSlot = slotIdx === 2;
@@ -793,14 +846,14 @@ function renderStarReconstructor(q) {
     return `
       <div onclick="removeStarSlot(${slotIdx})"
         class="cursor-pointer rounded-xl p-2.5 text-center transition flex flex-col items-center justify-center min-h-[54px] ${
- isStarSlot
- ? 'bg-amber-500/15 star-slot-active'
- : 'bg-slate-950 '
- }">
-        <span class="text-xs font-mono ${isStarSlot ? 'text-amber-400 font-bold' : 'text-slate-400'}">
+          isStarSlot
+            ? 'bg-amber-500/15 star-slot-active'
+            : 'bg-slate-950'
+        }">
+        <span class="text-xs font-mono ${isStarSlot ? 'text-amber-300 font-bold' : 'text-slate-300'}">
           ${isStarSlot ? '★ 目標計分位置 (第3格)' : `語序位置 ${slotIdx + 1}`}
         </span>
-        <span class="jp-text text-xs sm:text-sm font-bold mt-0.5 ${placedOptIdx !== null ? 'text-white' : 'text-slate-400'}">
+        <span class="jp-text text-xs sm:text-sm font-bold mt-0.5 ${placedOptIdx !== null ? 'text-white' : 'text-slate-300'}">
           ${placedText}
         </span>
       </div>
@@ -812,14 +865,62 @@ function renderStarReconstructor(q) {
     return `
       <button type="button" onclick="placeStarToken(${idx})" ${used ? 'disabled' : ''}
         class="px-3 py-1.5 rounded-lg text-xs sm:text-sm jp-text font-medium transition ${
- used
- ? 'bg-slate-900 text-slate-600 opacity-40 cursor-not-allowed'
- : 'bg-slate-800 hover:bg-amber-500/20 hover: text-slate-100'
- }">
-        <span class="font-mono text-amber-400 font-bold mr-1">(${idx + 1})</span>${optText}
+          used
+            ? 'bg-slate-900 text-slate-400 opacity-40 cursor-not-allowed'
+            : 'bg-slate-800 hover:bg-amber-500/20 text-slate-100'
+        }">
+        <span class="font-mono text-amber-300 font-bold mr-1">(${idx + 1})</span>${optText}
       </button>
     `;
   }).join('');
+
+  if (directSubmitBox) {
+    const starOptIdx = starSlots[2];
+    if (starOptIdx !== null && !isSubmitted) {
+      directSubmitBox.classList.remove('hidden');
+      directSubmitBox.innerHTML = `
+        <button type="button" onclick="submitFromStarSlot(${starOptIdx})"
+          class="px-3.5 py-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs transition flex items-center gap-1.5">
+          <span>🎯 以目前 ★ 格位直接送出作答</span>
+          <span class="px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs">(${starOptIdx + 1}) ${q.options[starOptIdx]}</span>
+        </button>
+      `;
+    } else {
+      directSubmitBox.classList.add('hidden');
+      directSubmitBox.innerHTML = '';
+    }
+  }
+
+  if (fullSentenceBox) {
+    if (isSubmitted && Array.isArray(q.correctSequence) && q.correctSequence.length === 4) {
+      const fullHtml = buildSynthesizedStarSentenceHtml(q);
+      fullSentenceBox.classList.remove('hidden');
+      fullSentenceBox.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="jp-text text-sm sm:text-base font-bold text-slate-100 leading-relaxed">
+            <span class="font-mono text-xs text-emerald-300 mr-1.5">✅ 完整重組句 (★ 高亮)：</span>${fullHtml}
+          </div>
+          <button type="button" onclick="speakQuestion(1.0)"
+            class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 text-xs font-semibold transition shrink-0">
+            🔊 朗讀完整重組句
+          </button>
+        </div>
+      `;
+    } else {
+      fullSentenceBox.classList.add('hidden');
+      fullSentenceBox.innerHTML = '';
+    }
+  }
+}
+
+function renderStarInteractiveWidget(q) {
+  return renderStarReconstructor(q);
+}
+
+function submitFromStarSlot(placedOptIdx) {
+  if (isSubmitted) return;
+  selectOption(placedOptIdx);
+  submitCurrentAnswer();
 }
 
 function placeStarToken(optIdx) {
@@ -872,14 +973,85 @@ function anchorStarFirstLastSlots() {
 /*************************************************************************
  * POKA-YOKE PACING TIMER & SRL CONFIDENCE CALIBRATION
  *************************************************************************/
+function formatMmSs(totalSec) {
+  const m = Math.floor(Math.max(0, totalSec) / 60);
+  const s = Math.floor(Math.max(0, totalSec) % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function toggleN2MacroExamTimer() {
+  macroExamTimerActive = !macroExamTimerActive;
+  if (macroExamTimerActive && macroWrittenRemainSec <= 0 && macroChoukaiRemainSec <= 0) {
+    macroWrittenRemainSec = 105 * 60;
+    macroChoukaiRemainSec = 50 * 60;
+  }
+  updateMacroExamTimerUI(getCurrentQuestion());
+  showToast(
+    macroExamTimerActive
+      ? '⏱️ 已啟動 N2 正式模擬考二節制倒數計時 (105:00 言語・読解 / 50:00 聴解) 與即時配速診斷！'
+      : '⏸️ 已暫停 N2 正式模擬考二節制倒數計時器。',
+    macroExamTimerActive ? 'emerald' : 'sky'
+  );
+}
+
+function updateMacroExamTimerUI(q) {
+  const clockEl = document.getElementById('macroTimerClockText');
+  const badgeEl = document.getElementById('macroPacingBadge');
+  if (clockEl) {
+    clockEl.textContent = `${formatMmSs(macroWrittenRemainSec)} 言語・読解 / ${formatMmSs(macroChoukaiRemainSec)} 聴解`;
+  }
+  if (!badgeEl) return;
+
+  // Compute real-time section pacing against official N2 allocation:
+  // 文字・語彙 15m (Q1-Q32, ~28.1s/q) -> 文法 20m (Q33-Q54, ~54.5s/q) -> 読解 70m (Q55-Q75, ~200s/q) -> 聴解 50m (Q76-Q106, ~96.8s/q)
+  const writtenElapsed = 105 * 60 - macroWrittenRemainSec;
+  const pos1Based = currentPos + 1;
+  let expectedWrittenElapsed = 0;
+  if (pos1Based <= 32) {
+    expectedWrittenElapsed = pos1Based * (15 * 60 / 32);
+  } else if (pos1Based <= 54) {
+    expectedWrittenElapsed = 15 * 60 + (pos1Based - 32) * (20 * 60 / 22);
+  } else if (pos1Based <= 75) {
+    expectedWrittenElapsed = 35 * 60 + (pos1Based - 54) * (70 * 60 / 21);
+  } else {
+    expectedWrittenElapsed = 105 * 60;
+  }
+
+  const targetSec = q?.targetSec || 45;
+  const isReadingLag = (q?.category === 'READING' && elapsedSeconds > targetSec) || (macroExamTimerActive && writtenElapsed - expectedWrittenElapsed > 180) || macroWrittenRemainSec < 25 * 60;
+  const isAhead = (elapsedSeconds <= targetSec * 0.65) || (macroExamTimerActive && expectedWrittenElapsed - writtenElapsed > 120);
+
+  if (isReadingLag) {
+    badgeEl.textContent = '⚠️ 読解時間緊迫';
+    badgeEl.className = 'px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs font-bold';
+  } else if (isAhead) {
+    badgeEl.textContent = '領先配速';
+    badgeEl.className = 'px-2 py-0.5 rounded bg-slate-950 text-emerald-300 font-mono text-xs font-bold';
+  } else {
+    badgeEl.textContent = '配速正常';
+    badgeEl.className = 'px-2 py-0.5 rounded bg-slate-950 text-sky-300 font-mono text-xs font-bold';
+  }
+}
+
 function startPacingTimer(targetSec) {
   if (timerInterval) clearInterval(timerInterval);
   elapsedSeconds = 0;
+  const q = getCurrentQuestion();
   updateTimerUI(targetSec);
+  updateMacroExamTimerUI(q);
   timerInterval = setInterval(() => {
     if (!isSubmitted) {
       elapsedSeconds++;
+      const curQ = getCurrentQuestion();
+      if (macroExamTimerActive || currentPoolScope === 'MOCK_100') {
+        if (curQ && curQ.category === 'LISTENING') {
+          macroChoukaiRemainSec = Math.max(0, macroChoukaiRemainSec - 1);
+        } else {
+          macroWrittenRemainSec = Math.max(0, macroWrittenRemainSec - 1);
+        }
+      }
       updateTimerUI(targetSec);
+      updateMacroExamTimerUI(curQ);
     }
   }, 1000);
 }
@@ -979,6 +1151,7 @@ function submitCurrentAnswer() {
     renderDialogueTranscript(q, true);
   }
 
+  if (q.category === 'STAR') renderStarReconstructor(q);
   renderOptionCards(q);
   updateFuriganaHintVisibility(q);
 

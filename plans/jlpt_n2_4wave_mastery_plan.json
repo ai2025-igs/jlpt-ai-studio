@@ -1,0 +1,59 @@
+{
+  "goal": "JLPT N2 4-Wave Exam Mastery Upgrade (Wave 1: Impeccable Craft Gate; Wave 2: Bidirectional Star Grammar Composer & Full Sentence Synthesis; Wave 3: Official N2 105m+50m Macro Countdown & Section Pacing HUD; Wave 4: L5_QUICK_RESP Audio-First Masking & Final Bundle)",
+  "mode": "standard",
+  "nodes": [
+    {
+      "id": "N0",
+      "title": "Read-Only SSOT Probe: Verify PRODUCT.md, DESIGN.md, index.html, app.js, audio-engine.js, and 0 Impeccable findings",
+      "deps": [],
+      "type": 2,
+      "est_min": 5,
+      "gate": "pwsh -NoProfile -Command \"& 'C:/Users/horac/.gemini/config/skills/impeccable/scripts/impeccable.cmd' detect --json D:/MuseAcademy_50_25C16/jlpt-ai-studio/index.html D:/MuseAcademy_50_25C16/jlpt-ai-studio/assets/css/custom.css D:/MuseAcademy_50_25C16/jlpt-ai-studio/assets/js/app.js D:/MuseAcademy_50_25C16/jlpt-ai-studio/assets/js/audio-engine.js\""
+    },
+    {
+      "id": "N1",
+      "title": "Golden Baseline Snapshot: Verify N2 530 items & 261 Neural MP3s pass validate_jlpt_studio.py",
+      "deps": ["N0"],
+      "type": 2,
+      "est_min": 5,
+      "gate": "python D:/MuseAcademy_50_25C16/jlpt-ai-studio/scripts/validate_jlpt_studio.py --level N2 --min-questions 530 --check-furigana --check-audio --strict-aqe"
+    },
+    {
+      "id": "N2",
+      "title": "Wave 1: Add validate_impeccable_craft() to scripts/validate_jlpt_studio.py enforcing len(findings) == 0 (exit 0)",
+      "deps": ["N1"],
+      "type": 2,
+      "est_min": 10,
+      "gate": "python D:/MuseAcademy_50_25C16/jlpt-ai-studio/scripts/validate_jlpt_studio.py --level N2 --min-questions 530"
+    },
+    {
+      "id": "N3",
+      "title": "Wave 2: Bidirectional Star Grammar (G2_STAR_SYNTAX / G2_STAR_ORDER) Composer CTA & Post-Submit Full 4-Token Sentence Synthesis with Neural Audio Playback",
+      "deps": ["N1"],
+      "type": 2,
+      "est_min": 15,
+      "gate": "python -c \"t=open('D:/MuseAcademy_50_25C16/jlpt-ai-studio/assets/js/app.js',encoding='utf-8').read(); assert 'submitFromStarSlot' in t and 'bg-slate-950 text-amber-300' in t\""
+    },
+    {
+      "id": "N4",
+      "title": "Wave 3: Official N2 2-Section Exam Countdown & Pacing HUD (105:00 Written + 50:00 Choukai, Q1-32 15m -> Q33-54 20m -> Q55-75 70m -> Q76-106 50m) with tabular-nums semantic badge",
+      "deps": ["N1"],
+      "type": 2,
+      "est_min": 15,
+      "gate": "python -c \"t=open('D:/MuseAcademy_50_25C16/jlpt-ai-studio/assets/js/app.js',encoding='utf-8').read(); assert 'toggleN2MacroExamTimer' in t and 'updateMacroExamTimerUI' in t\""
+    },
+    {
+      "id": "N5",
+      "title": "Wave 4: L5_QUICK_RESP (N2 Problem 4 Quick Response) Authentic Audio-First Masking, Full Verification, Standalone Bundle & E2E Gate",
+      "deps": ["N2", "N3", "N4"],
+      "type": 2,
+      "est_min": 15,
+      "gate": "python D:/MuseAcademy_50_25C16/jlpt-ai-studio/scripts/validate_jlpt_studio.py --level N2 --min-questions 530 --check-furigana --check-audio --strict-aqe && python D:/MuseAcademy_50_25C16/jlpt-ai-studio/scripts/build_standalone.py && python D:/MuseAcademy_50_25C16/jlpt-ai-studio/scripts/test_e2e_browser.py"
+    }
+  ],
+  "premortem": [
+    "Cause 1: Adding inner bordered or shadowed containers inside #starReconstructorBox or #officialMondaiBanner triggers Impeccable nested-cards or low-contrast detector errors -> Mitigated by using unbordered tonal fills (bg-slate-950 text-amber-300 rounded-xl p-3) and running validate_impeccable_craft() on every wave.",
+    "Cause 2: Adding micro-badges with text-[10px], text-[11px], text-slate-500, or animate-pulse on the N2 Macro Exam Countdown HUD triggers Impeccable undersized-ui-text, low-contrast, or pulsing-dot detector errors -> Mitigated by enforcing text-xs (>=12px), text-slate-300/text-amber-300/text-emerald-300, tabular-nums, and zero animate-pulse.",
+    "Cause 3: L5_QUICK_RESP option masking blocks students from clicking an option to answer -> Mitigated by allowing clicking an option to select it (which also reveals/selects or lets them toggle 👁️ 顯示文字稿) while displaying '選択肢 1..3 — 🔊 請先聽語音並依高低音調與語境作答' prior to selection/unmasking."
+  ]
+}

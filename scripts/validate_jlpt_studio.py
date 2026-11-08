@@ -42,6 +42,35 @@ def validate_js_and_dom_handlers() -> list[str]:
     print(f"[JS/DOM GATE] Audited {len(js_files)} JS files with `node --check` & DOM handler bindings | Errors: {len(errors)}")
     return errors
 
+
+def validate_impeccable_craft() -> list[str]:
+    errors = []
+    impeccable_cmd = Path(r"C:\Users\horac\.gemini\config\skills\impeccable\scripts\impeccable.cmd")
+    target_files = [
+        str(BASE_DIR / "index.html"),
+        str(BASE_DIR / "assets" / "css" / "custom.css"),
+        str(BASE_DIR / "assets" / "js" / "app.js"),
+        str(BASE_DIR / "assets" / "js" / "audio-engine.js"),
+    ]
+    if impeccable_cmd.exists():
+        res = subprocess.run(
+            [str(impeccable_cmd), "detect", "--json", *target_files],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        raw_out = (res.stdout or "").strip()
+        try:
+            findings = json.loads(raw_out) if raw_out else []
+        except Exception as e:
+            findings = [{"rule": "parse-error", "message": f"{e}: {raw_out[:200]}"}]
+        if res.returncode != 0 or len(findings) > 0:
+            for f in findings[:15]:
+                errors.append(f"[IMPECCABLE CRAFT] {f}")
+    print(f"[IMPECCABLE CRAFT GATE] Audited 4 frontend files via impeccable.cmd detect --json | Findings: {len(errors)}")
+    return errors
+
 REQUIRED_FIELDS = [
     "id", "level", "section", "category", "officialCode", "officialName",
     "subtag", "targetSec", "irtA", "irtB", "bloomLevel", "bloomLabel",
@@ -151,6 +180,7 @@ def main():
 
     levels = ["N1", "N2", "N3", "N4", "N5"] if args.level.upper() == "ALL" else [x.strip().upper() for x in args.level.split(",")]
     all_errors = validate_js_and_dom_handlers()
+    all_errors.extend(validate_impeccable_craft())
     for lvl in levels:
         min_q = 35 if (lvl == "N2" and args.min_questions <= 24) else args.min_questions
         errs = validate_level(lvl, min_q, args.check_furigana, args.check_audio, args.strict_aqe)

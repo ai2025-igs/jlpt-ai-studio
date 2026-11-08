@@ -135,8 +135,14 @@ async def main():
         if q.get("category") != "LISTENING":
             cidx = q.get("correctIndex", 0)
             opts = q.get("options") or [""]
-            fill_opt = opts[cidx] if (q.get("category") in ("VOCAB", "GRAMMAR") and 0 <= cidx < len(opts)) else ""
-            c_stem = clean_japanese_for_tts(q.get("stem", ""), fill_opt)
+            stem_raw = q.get("stem", "")
+            if q.get("category") == "STAR" and isinstance(q.get("correctSequence"), list) and len(q["correctSequence"]) == 4:
+                ordered_phrase = "".join(opts[idx] for idx in q["correctSequence"] if 0 <= idx < len(opts))
+                stem_raw = re.sub(r"[＿_]+\s*[＿_]+\s*(?:<u>)?★(?:</u>)?\s*[＿_]+", ordered_phrase, stem_raw)
+                fill_opt = ""
+            else:
+                fill_opt = opts[cidx] if (q.get("category") in ("VOCAB", "GRAMMAR") and 0 <= cidx < len(opts)) else ""
+            c_stem = clean_japanese_for_tts(stem_raw, fill_opt)
             q["ttsText"] = c_stem
             if c_stem and c_stem not in unique_stems_map:
                 h = hashlib.md5(c_stem.encode("utf-8")).hexdigest()[:10]

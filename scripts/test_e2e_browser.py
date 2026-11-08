@@ -91,9 +91,42 @@ def run_e2e():
             page.wait_for_timeout(150)
             assert page.is_visible("#diagnosticPanel"), "Diagnostic panel should be visible after submitting answer"
 
-            # 5. Test 100% Neural MP3 Audio Triggers (Written Stem, Listening Turn, Trap Card)
+            # 5. Wave 2: Test Bidirectional ★ Star Composer & Post-Submit Full 4-Token Sentence Synthesis
+            page.evaluate("jumpToMondaiCode('G2_STAR_SYNTAX');")
+            page.wait_for_timeout(120)
+            page.evaluate("placeStarToken(0); placeStarToken(1); placeStarToken(2);")
+            page.wait_for_timeout(100)
+            assert page.is_visible("#starDirectSubmitBox"), "Expected #starDirectSubmitBox to be visible when ★ slot is filled"
+            assert "以目前 ★ 格位直接送出作答" in page.inner_text("#starDirectSubmitBox")
+            page.evaluate("submitFromStarSlot(2);")
+            page.wait_for_timeout(120)
+            assert page.is_visible("#starFullSentenceBox"), "Expected #starFullSentenceBox to be visible after submitting ★ question"
+            assert "bg-slate-950 text-amber-300" in page.inner_html("#starFullSentenceBox")
+            print("[E2E PASS] Wave 2 Bidirectional ★ Star Composer & Full Sentence Synthesis verified!")
+
+            # 6. Wave 3: Test Official N2 2-Section Exam Countdown & Pacing HUD
+            page.evaluate("toggleN2MacroExamTimer();")
+            page.wait_for_timeout(100)
+            assert "言語・読解" in page.inner_text("#macroTimerClockText")
+            assert page.inner_text("#macroPacingBadge").strip() in ("領先配速", "配速正常", "⚠️ 読解時間緊迫")
+            print("[E2E PASS] Wave 3 Official N2 2-Section Exam Countdown & Pacing HUD verified!")
+
+            # 7. Wave 4: Test L5_QUICK_RESP Authentic Audio-First Masking
+            page.evaluate("jumpToMondaiCode('L5_QUICK_RESP');")
+            page.wait_for_timeout(120)
+            opts_text_masked = page.inner_text("#optionsContainer")
+            assert "選択肢 1 — 🔊 請先聽語音並依高低音調與語境作答" in opts_text_masked, f"Expected L5_QUICK_RESP masked text, got: {opts_text_masked}"
+            page.evaluate("unmaskBlindOptions();")
+            page.wait_for_timeout(100)
+            opts_text_unmasked = page.inner_text("#optionsContainer")
+            assert "請先聽語音並依高低音調與語境作答" not in opts_text_unmasked
+            print("[E2E PASS] Wave 4 L5_QUICK_RESP Audio-First Masking & Unmasking verified!")
+
+            # 8. Test 100% Neural MP3 Audio Triggers (Written Stem, Listening Turn, Trap Card)
             mp3_requests = []
             page.on("response", lambda res: mp3_requests.append((res.url, res.status)) if ".mp3" in res.url else None)
+            page.evaluate("jumpToMondaiCode('M1_KANJI_READ');")
+            page.wait_for_timeout(120)
             page.evaluate("speakQuestion(1.0);")
             page.wait_for_timeout(200)
             page.evaluate("jumpToMondaiCode('L1_TASK');")
