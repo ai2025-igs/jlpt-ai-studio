@@ -1,0 +1,108 @@
+{
+  "status": "ALL_3_VIDEOS_VQE_PASS",
+  "videos_dir": "D:\\MuseAcademy_50_25C16\\jlpt-ai-studio\\videos",
+  "openmontage_mirror_dir": "D:\\OpenMontage\\output",
+  "bgm_gain_contract": {
+    "speech_gain": 0.105,
+    "pause_gain": 0.142,
+    "band": "10% - 15%"
+  },
+  "audits": [
+    {
+      "file": "jlpt_n2_intro_ep1_flagship_overview.mp4",
+      "size_mb": 122.69,
+      "resolution": "1920x1080",
+      "fps": "30/1",
+      "duration_s": 150.0,
+      "target_duration_s": 150.0,
+      "duration_delta_s": 0.0,
+      "integrated_lufs": -14.9,
+      "srt_blocks": 15,
+      "srt_errors": 0,
+      "frame_std_samples": [
+        32.63,
+        30.3,
+        28.87,
+        29.0
+      ],
+      "hud_std_samples": [
+        44.49,
+        24.79,
+        49.08,
+        43.73
+      ],
+      "min_hud_std": 24.79,
+      "vqe_gates": {
+        "G1_AST_Guard": "PASS",
+        "G2_Duration_Sync": "PASS",
+        "G3_Loudness_LUFS": "PASS",
+        "G4_Monotonic_SRT": "PASS",
+        "G5_HUD_Contrast": "PASS"
+      }
+    },
+    {
+      "file": "jlpt_n2_intro_ep2_tab1_walkthrough.mp4",
+      "size_mb": 143.49,
+      "resolution": "1920x1080",
+      "fps": "30/1",
+      "duration_s": 150.0,
+      "target_duration_s": 150.0,
+      "duration_delta_s": 0.0,
+      "integrated_lufs": -14.6,
+      "srt_blocks": 15,
+      "srt_errors": 0,
+      "frame_std_samples": [
+        33.45,
+        29.43,
+        31.62,
+        17.5
+      ],
+      "hud_std_samples": [
+        45.47,
+        26.58,
+        37.01,
+        40.81
+      ],
+      "min_hud_std": 26.58,
+      "vqe_gates": {
+        "G1_AST_Guard": "PASS",
+        "G2_Duration_Sync": "PASS",
+        "G3_Loudness_LUFS": "PASS",
+        "G4_Monotonic_SRT": "PASS",
+        "G5_HUD_Contrast": "PASS"
+      }
+    },
+    {
+      "file": "jlpt_n2_intro_ep3_irt_fsrs_mastery.mp4",
+      "size_mb": 45.94,
+      "resolution": "1920x1080",
+      "fps": "30/1",
+      "duration_s": 150.0,
+      "target_duration_s": 150.0,
+      "duration_delta_s": 0.0,
+      "integrated_lufs": -14.9,
+      "srt_blocks": 15,
+      "srt_errors": 0,
+      "frame_std_samples": [
+        36.9,
+        21.33,
+        27.12,
+        27.89
+      ],
+      "hud_std_samples": [
+        43.91,
+        34.82,
+        47.84,
+        40.61
+      ],
+      "min_hud_std": 34.82,
+      "vqe_gates": {
+        "G1_AST_Guard": "PASS",
+        "G2_Duration_Sync": "PASS",
+        "G3_Loudness_LUFS": "PASS",
+        "G4_Monotonic_SRT": "PASS",
+        "G5_HUD_Contrast": "PASS"
+      }
+    }
+  ]
+}

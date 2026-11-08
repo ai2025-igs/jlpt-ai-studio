@@ -54,6 +54,9 @@ let starSlots = [null, null, null, null];
 let macroExamTimerActive = false;
 let macroWrittenRemainSec = 105 * 60;
 let macroChoukaiRemainSec = 50 * 60;
+let mobileHeaderDrawerOpen = false;
+let showAllQueueItems = false;
+let prewarmAudioEl = null;
 
 // Choukai Blind-Listening State
 let scriptPeeked = false;
@@ -117,7 +120,7 @@ async function loadAllQuestionBanks() {
   const levels = Array.from(ENABLED_LEVELS);
   await Promise.all(levels.map(async (lvl) => {
     try {
-      const res = await fetch(`data/${lvl.toLowerCase()}_bank.json?v=4.3`);
+      const res = await fetch(`data/${lvl.toLowerCase()}_bank.json?v=4.4`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -205,6 +208,40 @@ function setQuestionPoolScope(scope) {
     : `🔥 已切換至 JLPT ${currentLevel}「500% 旗艦全題庫池」（共 ${questions.length} 題）！`, 'sky');
 }
 
+
+function toggleMobileHeaderDrawer() {
+  mobileHeaderDrawerOpen = !mobileHeaderDrawerOpen;
+  const d1 = document.getElementById('mobileHeaderDrawer');
+  const d2 = document.getElementById('mobileSecondaryControls');
+  const arrow = document.getElementById('mobileDrawerArrow');
+  if (d1) {
+    if (mobileHeaderDrawerOpen) {
+      d1.classList.remove('hidden');
+      d1.classList.add('flex');
+    } else {
+      d1.classList.add('hidden');
+      d1.classList.remove('flex');
+    }
+  }
+  if (d2) {
+    if (mobileHeaderDrawerOpen) {
+      d2.classList.remove('hidden');
+      d2.classList.add('flex');
+    } else {
+      d2.classList.add('hidden');
+      d2.classList.remove('flex');
+    }
+  }
+  if (arrow) {
+    arrow.textContent = mobileHeaderDrawerOpen ? '▲' : '▼';
+  }
+}
+
+function expandQueueAllItems() {
+  showAllQueueItems = true;
+  renderQuestionQueue(true);
+}
+
 function switchWorkspaceTab(tabId) {
   currentWorkspaceTab = tabId;
   const panes = {
@@ -228,7 +265,7 @@ function switchWorkspaceTab(tabId) {
     }
   });
   if (tabId === 'TAB_IRT_COACH') updateKPIsAndRadar();
-  if (tabId === 'TAB_FSRS_OTHERS') renderQuestionQueue();
+  if (tabId === 'TAB_FSRS_OTHERS') renderQuestionQueue(true);
 }
 
 function switchLevel(lvl, showNotification = true) {
@@ -1023,13 +1060,13 @@ function updateMacroExamTimerUI(q) {
 
   if (isReadingLag) {
     badgeEl.textContent = '⚠️ 読解時間緊迫';
-    badgeEl.className = 'px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs font-bold';
+    const c1 = 'px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs font-bold'; if (badgeEl.className !== c1) badgeEl.className = c1;
   } else if (isAhead) {
     badgeEl.textContent = '領先配速';
-    badgeEl.className = 'px-2 py-0.5 rounded bg-slate-950 text-emerald-300 font-mono text-xs font-bold';
+    const c2 = 'px-2 py-0.5 rounded bg-slate-950 text-emerald-300 font-mono text-xs font-bold'; if (badgeEl.className !== c2) badgeEl.className = c2;
   } else {
     badgeEl.textContent = '配速正常';
-    badgeEl.className = 'px-2 py-0.5 rounded bg-slate-950 text-sky-300 font-mono text-xs font-bold';
+    const c3 = 'px-2 py-0.5 rounded bg-slate-950 text-sky-300 font-mono text-xs font-bold'; if (badgeEl.className !== c3) badgeEl.className = c3;
   }
 }
 
@@ -1067,19 +1104,23 @@ function updateTimerUI(targetSec) {
   const ratio = Math.min(100, (elapsedSeconds / targetSec) * 100);
   progressBar.style.width = `${ratio}%`;
 
+  let nextTextCls = 'font-mono text-xs font-bold text-rose-400';
+  let nextDotCls = 'w-2 h-2 rounded-full bg-rose-500';
+  let nextBarCls = 'bg-rose-500 h-full transition-all duration-300';
+
   if (elapsedSeconds <= targetSec * 0.75) {
-    timerText.className = 'font-mono text-xs font-bold text-emerald-400';
-    timerDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-    progressBar.className = 'bg-emerald-500 h-full transition-all duration-300';
+    nextTextCls = 'font-mono text-xs font-bold text-emerald-400';
+    nextDotCls = 'w-2 h-2 rounded-full bg-emerald-400';
+    nextBarCls = 'bg-emerald-500 h-full transition-all duration-300';
   } else if (elapsedSeconds <= targetSec) {
-    timerText.className = 'font-mono text-xs font-bold text-amber-400';
-    timerDot.className = 'w-2 h-2 rounded-full bg-amber-400';
-    progressBar.className = 'bg-amber-500 h-full transition-all duration-300';
-  } else {
-    timerText.className = 'font-mono text-xs font-bold text-rose-400';
-    timerDot.className = 'w-2 h-2 rounded-full bg-rose-500';
-    progressBar.className = 'bg-rose-500 h-full transition-all duration-300';
+    nextTextCls = 'font-mono text-xs font-bold text-amber-400';
+    nextDotCls = 'w-2 h-2 rounded-full bg-amber-400';
+    nextBarCls = 'bg-amber-500 h-full transition-all duration-300';
   }
+
+  if (timerText.className !== nextTextCls) timerText.className = nextTextCls;
+  if (timerDot.className !== nextDotCls) timerDot.className = nextDotCls;
+  if (progressBar.className !== nextBarCls) progressBar.className = nextBarCls;
 }
 
 function updateConfidenceUI(val) {
@@ -1586,15 +1627,19 @@ function updateLocalCoachPrescription(q, record) {
 let queueSearchKeyword = '';
 function filterQueueByKeyword(val) {
   queueSearchKeyword = (val || '').trim().toLowerCase();
-  renderQuestionQueue();
+  renderQuestionQueue(true);
 }
 
-function renderQuestionQueue() {
+function renderQuestionQueue(forceRender = false) {
   const container = document.getElementById('questionQueueList');
   if (!container) return;
+  // Lazy Tab-3 Guard: Do NOT rebuild 530 DOM cards on every question switch while user is on Tab 1 or Tab 2!
+  if (!forceRender && currentWorkspaceTab !== 'TAB_FSRS_OTHERS') {
+    return;
+  }
   const currentQ = getCurrentQuestion();
 
-  const list = queueSearchKeyword
+  const fullList = queueSearchKeyword
     ? questions.filter(q =>
         (q.id || '').toLowerCase().includes(queueSearchKeyword) ||
         (q.stem || '').toLowerCase().includes(queueSearchKeyword) ||
@@ -1603,11 +1648,15 @@ function renderQuestionQueue() {
         (q.translation || '').toLowerCase().includes(queueSearchKeyword)
       )
     : questions;
-  container.innerHTML = list.map((q) => {
+
+  const limit = (showAllQueueItems || queueSearchKeyword) ? fullList.length : Math.min(80, fullList.length);
+  const visibleList = fullList.slice(0, limit);
+
+  let html = visibleList.map((q) => {
     const rec = historyMap[q.id];
     const isCurrent = currentQ && currentQ.id === q.id;
 
-    let badgeHtml = `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-xs">未作答</span>`;
+    let badgeHtml = `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-xs">未作答</span>`;
     if (rec) {
       if (rec.srlType === 'BLINDSPOT') {
         badgeHtml = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-xs font-bold">🚨 ${rec.fsrsTag}</span>`;
@@ -1623,13 +1672,13 @@ function renderQuestionQueue() {
     return `
       <div onclick="jumpToQuestionById('${q.id}')"
         class="cursor-pointer px-3 py-2 rounded-xl transition flex items-center justify-between gap-2 ${
- isCurrent
- ? 'bg-amber-500/15 text-white'
- : 'bg-slate-900/70 hover:bg-slate-900 text-slate-300'
- }">
+          isCurrent
+            ? 'bg-amber-500/15 text-white'
+            : 'bg-slate-900/70 hover:bg-slate-900 text-slate-300'
+        }">
         <div class="flex items-center gap-2 min-w-0">
           ${flaggedQuestionIds.has(q.id) ? `<span class="text-rose-400 text-xs shrink-0" title="已標記待查">🚩</span>` : ''}
-          <span class="font-mono text-xs text-amber-400 font-bold shrink-0">${q.id}</span>
+          <span class="font-mono text-xs text-amber-300 font-bold shrink-0">${q.id}</span>
           <span class="text-xs text-sky-300 shrink-0">[${q.officialName || q.category}]</span>
           <span class="text-xs truncate text-slate-200">${q.subtag}</span>
         </div>
@@ -1637,6 +1686,17 @@ function renderQuestionQueue() {
       </div>
     `;
   }).join('');
+
+  if (fullList.length > limit) {
+    html += `
+      <button type="button" onclick="expandQueueAllItems()"
+        class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs transition text-center">
+        👇 展開顯示全部 ${fullList.length} 題（目前已載入前 ${limit} 題以加速行動裝置流暢度）
+      </button>
+    `;
+  }
+
+  container.innerHTML = html;
 }
 
 /*************************************************************************

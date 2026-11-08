@@ -250,120 +250,149 @@ input[type=range]::-webkit-slider-thumb:hover {
   scrollbar-width: none;
 }
 
+/* Mobile 60fps Ergonomics & Touch Optimization (v4.4) */
+button, a, input, select, label, [onclick] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#questionQueueList > div {
+  content-visibility: auto;
+  contain-intrinsic-size: 42px;
+}
+
+@media (max-width: 1023px) {
+  .jlpt-capsule-option:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
 </style>
 </head>
 
 <body class="min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950 hide-inline-ruby">
 
   <!-- ================= STICKY 1080P COMPACT HEADER & 5-LEVEL + 3-TAB COMMAND BAR ================= -->
-  <header class="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
-    <div class="max-w-[1860px] mx-auto px-3 sm:px-5 py-2 space-y-2">
+  <header class="sticky top-0 z-40 bg-slate-950 lg:bg-slate-950/95 lg:backdrop-blur-md border-b border-slate-800 shadow-xl">
+    <div class="max-w-[1860px] mx-auto px-3 sm:px-5 py-1.5 sm:py-2 space-y-1.5 sm:space-y-2">
 
-      <!-- Row 1: Brand Title + 5-Level Canonical Switcher (N1 -> N2 -> N3 -> N4 -> N5) + Top Action Buttons -->
+      <!-- Row 1: Brand Title + Mobile Drawer Toggle + Desktop 5-Level Switcher + Global Quick Action Toolbar -->
       <div class="flex flex-wrap items-center justify-between gap-2">
         <!-- Brand Identity -->
-        <div class="flex items-center gap-2.5">
-          <div id="headerLevelBadge" class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-950 font-mono font-black text-base" style="background-color: #f39c42; color: #020617;">
-            N2
-          </div>
-          <div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <h1 id="headerLevelTitle" class="text-xl sm:text-2xl font-extrabold tracking-tight text-white">
-                JLPT N2 互動式 AI 刷題與認知診斷系統 v4.2
-              </h1>
-              <span id="headerSubBadge" class="px-2 py-0.5 text-xs font-mono font-semibold rounded-full bg-amber-500/15 text-amber-300">
-                🎯 專注 N2 主力衝刺版 ｜ 1080P 官方樣題 UI × 530題(500%) × 318題(300%) × 106題(100%模考)
-              </span>
+        <div class="flex items-center justify-between w-full lg:w-auto gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <div id="headerLevelBadge" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-950 font-mono font-black text-sm sm:text-base shrink-0" style="background-color: #f39c42; color: #020617;">
+              N2
             </div>
-            <p id="headerLevelDesc" class="text-xs text-slate-400 hidden xl:block">
-              二節制測驗（總分 ≥90/180，三科皆須 ≥19/60） ｜ 正式模考 106題 / 300%鍛鍊池 318題 / 500%旗艦池 530題（N1/N3/N4/N5 鎖定待開放）
-            </p>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h1 id="headerLevelTitle" class="text-xl sm:text-2xl font-extrabold tracking-tight text-white truncate">
+                  JLPT N2 互動式 AI 刷題與認知診斷系統 v4.4
+                </h1>
+                <span id="headerSubBadge" class="hidden sm:inline-block px-2 py-0.5 text-xs font-mono font-semibold rounded-full bg-amber-500/15 text-amber-300">
+                  🎯 專注 N2 主力衝刺版 ｜ 1080P 官方樣題 UI × 530題(500%) × 318題(300%) × 106題(100%模考)
+                </span>
+              </div>
+              <p id="headerLevelDesc" class="text-xs text-slate-400 hidden xl:block">
+                二節制測驗（總分 ≥90/180，三科皆須 ≥19/60） ｜ 正式模考 106題 / 300%鍛鍊池 318題 / 500%旗艦池 530題（N1/N3/N4/N5 鎖定待開放）
+              </p>
+            </div>
           </div>
-        </div>
 
-        <!-- 5-Level Switcher Pills (N2 Active Flagship Focus; N1, N3, N4, N5 Disabled until N2 Acceptance) -->
-        <div id="levelSwitcherGroup" class="flex flex-wrap items-center gap-1.5 p-1 transition-all">
-          <button id="lvlBtn_N1" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N1）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
-            <span>🔒 N1</span>
-            <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
-          </button>
-          <button id="lvlBtn_N2" onclick="switchLevel('N2')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition flex items-center gap-1.5 text-slate-950" style="background-color: #f39c42; color: #020617;">
-            <span>🏆 N2 (主力焦點)</span>
-            <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs font-bold">530題(模106)</span>
-          </button>
-          <button id="lvlBtn_N3" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N3）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
-            <span>🔒 N3</span>
-            <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
-          </button>
-          <button id="lvlBtn_N4" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N4）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
-            <span>🔒 N4</span>
-            <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
-          </button>
-          <button id="lvlBtn_N5" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N5）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
-            <span>🔒 N5</span>
-            <span id="lvlCount_N5" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
+          <!-- Mobile-Only Compact Drawer Toggle Button -->
+          <button type="button" id="mobileHeaderDrawerBtn" onclick="toggleMobileHeaderDrawer()"
+            class="lg:hidden px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs flex items-center gap-1 shrink-0">
+            <span>⚙️ 題庫與工具</span>
+            <span id="mobileDrawerArrow" class="font-mono text-xs">▼</span>
           </button>
         </div>
 
-        <!-- Global Quick Action Toolbar -->
-        <div class="flex flex-wrap items-center gap-1">
-          <button onclick="startGuidedTour()" class="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-extrabold transition">
-            🧭 30秒導覽
-          </button>
-          <button onclick="openBlueprintModal()" class="px-2.5 py-1 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-xs font-bold transition">
-            📊 100%/300%題量表
-          </button>
-          <button onclick="openWorkflowModal()" class="px-2.5 py-1 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 text-xs font-bold transition">
-            🗺️ 題型矩陣
-          </button>
-          <button onclick="openTrapCardsModal()" class="px-2.5 py-1 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-xs font-bold transition">
-            🃏 假朋友&音調
-          </button>
-          <button onclick="openConjugationModal()" class="px-2.5 py-1 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 text-xs font-bold transition">
-            🔤 動詞活用表
-          </button>
-          <button onclick="openPedagogyModal()" class="px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold transition">
-            🧠 8大教學法
-          </button>
-          <button id="aiGenerateBtn" onclick="generateAIQuestions()" class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-xs transition flex items-center gap-1">
-            <span id="aiGenSpinner" class="hidden w-3 h-3 border-t-transparent rounded-full animate-spin"></span>
-            <span id="aiGenBtnText">✨ AI生題</span>
-          </button>
-          <button onclick="openByokModal()" class="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition flex items-center gap-1">
-            <span id="byokStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
-            <span>🔑</span>
-          </button>
+        <!-- Collapsible Container on Mobile (<1024px), Always Visible on Desktop (lg:flex) -->
+        <div id="mobileHeaderDrawer" class="hidden lg:flex flex-wrap items-center justify-between w-full lg:w-auto gap-2 pt-1 lg:pt-0">
+          <!-- 5-Level Switcher Pills (N2 Active Flagship Focus; N1, N3, N4, N5 Disabled until N2 Acceptance) -->
+          <div id="levelSwitcherGroup" class="flex flex-wrap items-center gap-1.5 p-1 transition-all">
+            <button id="lvlBtn_N1" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N1）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
+              <span>🔒 N1</span>
+              <span id="lvlCount_N1" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
+            </button>
+            <button id="lvlBtn_N2" onclick="switchLevel('N2')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition flex items-center gap-1.5 text-slate-950" style="background-color: #f39c42; color: #020617;">
+              <span>🏆 N2 (主力焦點)</span>
+              <span id="lvlCount_N2" class="px-1.5 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs font-bold">530題(模106)</span>
+            </button>
+            <button id="lvlBtn_N3" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N3）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
+              <span>🔒 N3</span>
+              <span id="lvlCount_N3" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
+            </button>
+            <button id="lvlBtn_N4" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N4）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
+              <span>🔒 N4</span>
+              <span id="lvlCount_N4" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
+            </button>
+            <button id="lvlBtn_N5" disabled title="目前鎖定專注於 N2 主力衝刺（待 N2 驗收後開放 N5）" class="px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1.5 bg-slate-900/60 text-slate-400 opacity-45 cursor-not-allowed">
+              <span>🔒 N5</span>
+              <span id="lvlCount_N5" class="px-1.5 py-0.5 rounded bg-slate-950 text-slate-400 font-mono text-xs">待開放</span>
+            </button>
+          </div>
+
+          <!-- Global Quick Action Toolbar -->
+          <div class="flex flex-wrap items-center gap-1">
+            <button onclick="startGuidedTour()" class="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-extrabold transition">
+              🧭 30秒導覽
+            </button>
+            <button onclick="openBlueprintModal()" class="px-2.5 py-1 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-xs font-bold transition">
+              📊 100%/300%題量表
+            </button>
+            <button onclick="openWorkflowModal()" class="px-2.5 py-1 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 text-xs font-bold transition">
+              🗺️ 題型矩陣
+            </button>
+            <button onclick="openTrapCardsModal()" class="px-2.5 py-1 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 text-xs font-bold transition">
+              🃏 假朋友&音調
+            </button>
+            <button onclick="openConjugationModal()" class="px-2.5 py-1 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 text-xs font-bold transition">
+              🔤 動詞活用表
+            </button>
+            <button onclick="openPedagogyModal()" class="px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold transition">
+              🧠 8大教學法
+            </button>
+            <button id="aiGenerateBtn" onclick="generateAIQuestions()" class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-bold text-xs transition flex items-center gap-1">
+              <span id="aiGenSpinner" class="hidden w-3 h-3 border-t-transparent rounded-full animate-spin"></span>
+              <span id="aiGenBtnText">✨ AI生題</span>
+            </button>
+            <button onclick="openByokModal()" class="px-2 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition flex items-center gap-1">
+              <span id="byokStatusDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+              <span>🔑</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Row 2: 3-Tab Main Workspace Switcher (Feedback #4) + Pool Mode (100% Mock vs 300% Pool) + Scaffolding Controls -->
-      <div class="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-800/90">
-        <!-- 3 Main Workspace Tabs -->
-        <div class="flex flex-wrap items-center gap-1.5 bg-slate-900 p-1 rounded-xl">
-          <button id="mainTabBtn_1" onclick="switchWorkspaceTab('TAB_MAIN_GUI')" class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 transition flex items-center gap-1.5">
-            <span>🎯 Tab 1：互動式 AI 刷題與認知診斷系統 (官方樣題 UI)</span>
+      <!-- Row 2: 3-Tab Main Workspace Switcher (Scrollable on Mobile) + Collapsible Pool/Scaffolding Controls -->
+      <div class="flex flex-wrap items-center justify-between gap-1.5 pt-1 border-t border-slate-800/90">
+        <!-- 3 Main Workspace Tabs (Single horizontal scroll row on mobile) -->
+        <div class="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl overflow-x-auto no-scrollbar max-w-full">
+          <button id="mainTabBtn_1" onclick="switchWorkspaceTab('TAB_MAIN_GUI')" class="px-3 py-1 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 transition flex items-center gap-1 shrink-0">
+            <span>🎯 Tab 1：AI 刷題與診斷</span>
           </button>
-          <button id="mainTabBtn_2" onclick="switchWorkspaceTab('TAB_IRT_COACH')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
-            <span>📊 Tab 2：量尺分數推估與過關機率 & AI 弱點處方箋</span>
+          <button id="mainTabBtn_2" onclick="switchWorkspaceTab('TAB_IRT_COACH')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1 shrink-0">
+            <span>📊 Tab 2：分數推估 & 處方</span>
             <span id="tab2MiniScoreBadge" class="px-1.5 py-0.2 rounded bg-slate-950 text-amber-300 font-mono text-xs">--/180</span>
           </button>
-          <button id="mainTabBtn_3" onclick="switchWorkspaceTab('TAB_FSRS_OTHERS')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1.5">
-            <span>📋 Tab 3：記憶排程與題庫導覽佇列 & 考綱百寶箱</span>
-            <span id="tab3QueueBadge" class="px-1.5 py-0.2 rounded bg-slate-950 text-sky-300 font-mono text-xs">1,443題</span>
+          <button id="mainTabBtn_3" onclick="switchWorkspaceTab('TAB_FSRS_OTHERS')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center gap-1 shrink-0">
+            <span>📋 Tab 3：題庫佇列 & 百寶箱</span>
+            <span id="tab3QueueBadge" class="px-1.5 py-0.2 rounded bg-slate-950 text-sky-300 font-mono text-xs">530題</span>
           </button>
         </div>
 
-        <!-- Right Controls: 300% Pool vs 100% Official Mock Toggle + Category Filter + Scaffolding Mode + Furigana -->
-        <div class="flex flex-wrap items-center gap-1.5">
+        <!-- Right Controls: Collapsible on Mobile (<1024px), Always Visible on Desktop (lg:flex) -->
+        <div id="mobileSecondaryControls" class="hidden lg:flex flex-wrap items-center gap-1.5 w-full lg:w-auto">
           <!-- 500% Flagship Pool vs 300% Practice Pool vs 100% Official Mock Switcher -->
-          <div class="flex items-center bg-slate-900 p-0.5 rounded-xl">
-            <button id="poolBtn500" onclick="setQuestionPoolScope('POOL_500')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition" title="旗艦 500% 全題庫池 (N1:520 / N2:530 / N3:510 / N4:445 / N5:400，N1-N4合計 2,005題 / 全五級 2,405題)">
+          <div class="flex items-center bg-slate-900 p-0.5 rounded-xl overflow-x-auto no-scrollbar max-w-full">
+            <button id="poolBtn500" onclick="setQuestionPoolScope('POOL_500')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 text-slate-950 transition shrink-0" title="旗艦 500% 全題庫池 (530題)">
               🔥 500% 旗艦池 (<span id="pool500CountText">530</span>題)
             </button>
-            <button id="poolBtn300" onclick="setQuestionPoolScope('POOL_300')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition" title="日常 300% 擴充鍛鍊池 (N1:312 / N2:318 / N3:306 / N4:267 / N5:240，N1-N4合計 1,203題 / 全五級 1,443題)">
+            <button id="poolBtn300" onclick="setQuestionPoolScope('POOL_300')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0" title="日常 300% 擴充鍛鍊池 (318題)">
               🏋️ 300% 鍛鍊池 (<span id="pool300CountText">318</span>題)
             </button>
-            <button id="poolBtn100" onclick="setQuestionPoolScope('MOCK_100')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition" title="JEES 官方 100% 正式檢定題量 (N1:104 / N2:106 / N3:102 / N4:89 / N5:80，N1-N4合計 401題 / 全五級 481題)">
+            <button id="poolBtn100" onclick="setQuestionPoolScope('MOCK_100')" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition shrink-0" title="JEES 官方 100% 正式檢定題量 (106題)">
               ⏱️ 100% 正式模考 (<span id="mock100CountText">106</span>題)
             </button>
           </div>
@@ -398,7 +427,7 @@ input[type=range]::-webkit-slider-thumb:hover {
         </div>
       </div>
 
-      <!-- Category Filter Pills Strip (Compact) -->
+      <!-- Category Filter Pills Strip (Compact Horizontal Scroll) -->
       <div id="categoryTabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5"></div>
     </div>
   </header>
@@ -451,7 +480,7 @@ input[type=range]::-webkit-slider-thumb:hover {
                   <span id="officialWrittenHeaderLabel">言語知識（文字・語彙・文法）・読解</span>
                   <span class="text-xs font-mono text-slate-400">點選題號跳轉大題</span>
                 </div>
-                <div id="officialMondaiWrittenBar" class="flex flex-wrap items-center gap-1"></div>
+                <div id="officialMondaiWrittenBar" class="flex flex-nowrap sm:flex-wrap items-center gap-1 overflow-x-auto no-scrollbar"></div>
               </div>
 
               <!-- Listening Section Mondai Numbers (🔊15..19) -->
@@ -460,7 +489,7 @@ input[type=range]::-webkit-slider-thumb:hover {
                   <span>🔊 聴解 (Choukai)</span>
                   <span class="text-xs font-mono text-sky-400/80">雙聲道</span>
                 </div>
-                <div id="officialMondaiListeningBar" class="flex flex-wrap items-center gap-1"></div>
+                <div id="officialMondaiListeningBar" class="flex flex-nowrap sm:flex-wrap items-center gap-1 overflow-x-auto no-scrollbar"></div>
               </div>
             </div>
 
@@ -3185,6 +3214,9 @@ let starSlots = [null, null, null, null];
 let macroExamTimerActive = false;
 let macroWrittenRemainSec = 105 * 60;
 let macroChoukaiRemainSec = 50 * 60;
+let mobileHeaderDrawerOpen = false;
+let showAllQueueItems = false;
+let prewarmAudioEl = null;
 
 // Choukai Blind-Listening State
 let scriptPeeked = false;
@@ -3248,7 +3280,7 @@ async function loadAllQuestionBanks() {
   const levels = Array.from(ENABLED_LEVELS);
   await Promise.all(levels.map(async (lvl) => {
     try {
-      const res = await fetch(`data/${lvl.toLowerCase()}_bank.json?v=4.3`);
+      const res = await fetch(`data/${lvl.toLowerCase()}_bank.json?v=4.4`);
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -3336,6 +3368,40 @@ function setQuestionPoolScope(scope) {
     : `🔥 已切換至 JLPT ${currentLevel}「500% 旗艦全題庫池」（共 ${questions.length} 題）！`, 'sky');
 }
 
+
+function toggleMobileHeaderDrawer() {
+  mobileHeaderDrawerOpen = !mobileHeaderDrawerOpen;
+  const d1 = document.getElementById('mobileHeaderDrawer');
+  const d2 = document.getElementById('mobileSecondaryControls');
+  const arrow = document.getElementById('mobileDrawerArrow');
+  if (d1) {
+    if (mobileHeaderDrawerOpen) {
+      d1.classList.remove('hidden');
+      d1.classList.add('flex');
+    } else {
+      d1.classList.add('hidden');
+      d1.classList.remove('flex');
+    }
+  }
+  if (d2) {
+    if (mobileHeaderDrawerOpen) {
+      d2.classList.remove('hidden');
+      d2.classList.add('flex');
+    } else {
+      d2.classList.add('hidden');
+      d2.classList.remove('flex');
+    }
+  }
+  if (arrow) {
+    arrow.textContent = mobileHeaderDrawerOpen ? '▲' : '▼';
+  }
+}
+
+function expandQueueAllItems() {
+  showAllQueueItems = true;
+  renderQuestionQueue(true);
+}
+
 function switchWorkspaceTab(tabId) {
   currentWorkspaceTab = tabId;
   const panes = {
@@ -3359,7 +3425,7 @@ function switchWorkspaceTab(tabId) {
     }
   });
   if (tabId === 'TAB_IRT_COACH') updateKPIsAndRadar();
-  if (tabId === 'TAB_FSRS_OTHERS') renderQuestionQueue();
+  if (tabId === 'TAB_FSRS_OTHERS') renderQuestionQueue(true);
 }
 
 function switchLevel(lvl, showNotification = true) {
@@ -4154,13 +4220,13 @@ function updateMacroExamTimerUI(q) {
 
   if (isReadingLag) {
     badgeEl.textContent = '⚠️ 読解時間緊迫';
-    badgeEl.className = 'px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs font-bold';
+    const c1 = 'px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-mono text-xs font-bold'; if (badgeEl.className !== c1) badgeEl.className = c1;
   } else if (isAhead) {
     badgeEl.textContent = '領先配速';
-    badgeEl.className = 'px-2 py-0.5 rounded bg-slate-950 text-emerald-300 font-mono text-xs font-bold';
+    const c2 = 'px-2 py-0.5 rounded bg-slate-950 text-emerald-300 font-mono text-xs font-bold'; if (badgeEl.className !== c2) badgeEl.className = c2;
   } else {
     badgeEl.textContent = '配速正常';
-    badgeEl.className = 'px-2 py-0.5 rounded bg-slate-950 text-sky-300 font-mono text-xs font-bold';
+    const c3 = 'px-2 py-0.5 rounded bg-slate-950 text-sky-300 font-mono text-xs font-bold'; if (badgeEl.className !== c3) badgeEl.className = c3;
   }
 }
 
@@ -4198,19 +4264,23 @@ function updateTimerUI(targetSec) {
   const ratio = Math.min(100, (elapsedSeconds / targetSec) * 100);
   progressBar.style.width = `${ratio}%`;
 
+  let nextTextCls = 'font-mono text-xs font-bold text-rose-400';
+  let nextDotCls = 'w-2 h-2 rounded-full bg-rose-500';
+  let nextBarCls = 'bg-rose-500 h-full transition-all duration-300';
+
   if (elapsedSeconds <= targetSec * 0.75) {
-    timerText.className = 'font-mono text-xs font-bold text-emerald-400';
-    timerDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-    progressBar.className = 'bg-emerald-500 h-full transition-all duration-300';
+    nextTextCls = 'font-mono text-xs font-bold text-emerald-400';
+    nextDotCls = 'w-2 h-2 rounded-full bg-emerald-400';
+    nextBarCls = 'bg-emerald-500 h-full transition-all duration-300';
   } else if (elapsedSeconds <= targetSec) {
-    timerText.className = 'font-mono text-xs font-bold text-amber-400';
-    timerDot.className = 'w-2 h-2 rounded-full bg-amber-400';
-    progressBar.className = 'bg-amber-500 h-full transition-all duration-300';
-  } else {
-    timerText.className = 'font-mono text-xs font-bold text-rose-400';
-    timerDot.className = 'w-2 h-2 rounded-full bg-rose-500';
-    progressBar.className = 'bg-rose-500 h-full transition-all duration-300';
+    nextTextCls = 'font-mono text-xs font-bold text-amber-400';
+    nextDotCls = 'w-2 h-2 rounded-full bg-amber-400';
+    nextBarCls = 'bg-amber-500 h-full transition-all duration-300';
   }
+
+  if (timerText.className !== nextTextCls) timerText.className = nextTextCls;
+  if (timerDot.className !== nextDotCls) timerDot.className = nextDotCls;
+  if (progressBar.className !== nextBarCls) progressBar.className = nextBarCls;
 }
 
 function updateConfidenceUI(val) {
@@ -4717,15 +4787,19 @@ function updateLocalCoachPrescription(q, record) {
 let queueSearchKeyword = '';
 function filterQueueByKeyword(val) {
   queueSearchKeyword = (val || '').trim().toLowerCase();
-  renderQuestionQueue();
+  renderQuestionQueue(true);
 }
 
-function renderQuestionQueue() {
+function renderQuestionQueue(forceRender = false) {
   const container = document.getElementById('questionQueueList');
   if (!container) return;
+  // Lazy Tab-3 Guard: Do NOT rebuild 530 DOM cards on every question switch while user is on Tab 1 or Tab 2!
+  if (!forceRender && currentWorkspaceTab !== 'TAB_FSRS_OTHERS') {
+    return;
+  }
   const currentQ = getCurrentQuestion();
 
-  const list = queueSearchKeyword
+  const fullList = queueSearchKeyword
     ? questions.filter(q =>
         (q.id || '').toLowerCase().includes(queueSearchKeyword) ||
         (q.stem || '').toLowerCase().includes(queueSearchKeyword) ||
@@ -4734,11 +4808,15 @@ function renderQuestionQueue() {
         (q.translation || '').toLowerCase().includes(queueSearchKeyword)
       )
     : questions;
-  container.innerHTML = list.map((q) => {
+
+  const limit = (showAllQueueItems || queueSearchKeyword) ? fullList.length : Math.min(80, fullList.length);
+  const visibleList = fullList.slice(0, limit);
+
+  let html = visibleList.map((q) => {
     const rec = historyMap[q.id];
     const isCurrent = currentQ && currentQ.id === q.id;
 
-    let badgeHtml = `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-mono text-xs">未作答</span>`;
+    let badgeHtml = `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-xs">未作答</span>`;
     if (rec) {
       if (rec.srlType === 'BLINDSPOT') {
         badgeHtml = `<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-xs font-bold">🚨 ${rec.fsrsTag}</span>`;
@@ -4754,13 +4832,13 @@ function renderQuestionQueue() {
     return `
       <div onclick="jumpToQuestionById('${q.id}')"
         class="cursor-pointer px-3 py-2 rounded-xl transition flex items-center justify-between gap-2 ${
- isCurrent
- ? 'bg-amber-500/15 text-white'
- : 'bg-slate-900/70 hover:bg-slate-900 text-slate-300'
- }">
+          isCurrent
+            ? 'bg-amber-500/15 text-white'
+            : 'bg-slate-900/70 hover:bg-slate-900 text-slate-300'
+        }">
         <div class="flex items-center gap-2 min-w-0">
           ${flaggedQuestionIds.has(q.id) ? `<span class="text-rose-400 text-xs shrink-0" title="已標記待查">🚩</span>` : ''}
-          <span class="font-mono text-xs text-amber-400 font-bold shrink-0">${q.id}</span>
+          <span class="font-mono text-xs text-amber-300 font-bold shrink-0">${q.id}</span>
           <span class="text-xs text-sky-300 shrink-0">[${q.officialName || q.category}]</span>
           <span class="text-xs truncate text-slate-200">${q.subtag}</span>
         </div>
@@ -4768,6 +4846,17 @@ function renderQuestionQueue() {
       </div>
     `;
   }).join('');
+
+  if (fullList.length > limit) {
+    html += `
+      <button type="button" onclick="expandQueueAllItems()"
+        class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs transition text-center">
+        👇 展開顯示全部 ${fullList.length} 題（目前已載入前 ${limit} 題以加速行動裝置流暢度）
+      </button>
+    `;
+  }
+
+  container.innerHTML = html;
 }
 
 /*************************************************************************
