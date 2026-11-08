@@ -335,6 +335,12 @@ button, a, input, select, label, [onclick] {
 
           <!-- Global Quick Action Toolbar -->
           <div class="flex flex-wrap items-center gap-1">
+            <a href="presentation.html" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-200 text-xs font-extrabold transition">
+              📽️ 20頁教學簡報
+            </a>
+            <button onclick="openVideoGuideModal()" class="px-2.5 py-1 rounded-xl bg-amber-500/25 hover:bg-amber-500/35 text-amber-200 text-xs font-extrabold transition">
+              🎬 影音導覽(3部曲)
+            </button>
             <button onclick="startGuidedTour()" class="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-extrabold transition">
               🧭 30秒導覽
             </button>
@@ -1467,6 +1473,44 @@ button, a, input, select, label, [onclick] {
         <button onclick="closeExportModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300">關閉</button>
         <button onclick="downloadExportMarkdownFile()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold">⬇️ 下載 .md 學習包 (NotebookLM)</button>
         <button onclick="copyExportMarkdown()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold">📋 一鍵複製 Markdown 筆記</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL 6: 3 x 2.5-MIN /VIDS_CIN VIDEO GUIDE SHOWCASE ================= -->
+  <div id="videoGuideModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-2xl max-w-4xl w-full p-5 shadow-2xl space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 class="text-base font-extrabold text-amber-300">🎬 JLPT N2 AI Studio 電影級實戰導覽三部曲 (3 × 2分30秒 · 1080P@30fps)</h2>
+          <p class="text-xs text-slate-300">完整涵蓋 8 大教學認知理論、Tab 1 十九大題操作與 286 軌純神經聽解、Tab 2 量尺預測與 Tab 3 FSRS 百寶箱</p>
+        </div>
+        <button onclick="closeVideoGuideModal()" class="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold">✕ 關閉</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <button id="vidTabBtn1" onclick="switchGuideVideo(1)" class="p-2.5 rounded-xl bg-amber-500/20 text-left transition">
+          <div class="text-xs font-extrabold text-amber-300">Ep.1｜總綱首映篇 (2:30)</div>
+          <div class="text-xs text-slate-200 mt-0.5">漢字母語雙刃劍 × 530/318/106 題庫 × 雙模認知鷹架</div>
+        </button>
+        <button id="vidTabBtn2" onclick="switchGuideVideo(2)" class="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800 text-left transition">
+          <div class="text-xs font-extrabold text-sky-300">Ep.2｜Tab 1 實戰操作篇 (2:30)</div>
+          <div class="text-xs text-slate-300 mt-0.5">19大題導覽 × ★首尾錨點 × 讀解標記 × 286軌純神經聽解</div>
+        </button>
+        <button id="vidTabBtn3" onclick="switchGuideVideo(3)" class="p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800 text-left transition">
+          <div class="text-xs font-extrabold text-emerald-300">Ep.3｜診斷與記憶複利篇 (2:30)</div>
+          <div class="text-xs text-slate-300 mt-0.5">Tab 2 量尺與19分紅線 × 合否通知書 × FSRS與23張假朋友</div>
+        </button>
+      </div>
+      <div class="rounded-xl overflow-hidden bg-black">
+        <video id="guideVideoPlayer" controls preload="metadata" class="w-full max-h-[60vh] bg-black" src="videos/jlpt_n2_intro_ep1_flagship_overview.mp4">
+          <track id="guideVideoTrack" kind="subtitles" srclang="zh-TW" label="繁體中文導覽字幕" src="videos/jlpt_n2_intro_ep1_flagship_overview.srt" default />
+        </video>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+        <span id="guideVideoDesc">目前播放：Ep.1【總綱首映篇】為什麼台灣學習者需要 JLPT N2 認知診斷平台？ (150.0s / -14.9 LUFS)</span>
+        <div class="flex items-center gap-2">
+          <a id="guideVideoDownloadLink" href="videos/jlpt_n2_intro_ep1_flagship_overview.mp4" download class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold">⬇️ 下載本集 MP4</a>
+        </div>
       </div>
     </div>
   </div>
@@ -5671,6 +5715,45 @@ function downloadExportMarkdownFile() {
   a.click();
   URL.revokeObjectURL(url);
   showToast('⬇️ 已下載 NotebookLM 專屬 .md 學習包檔案！', 'emerald');
+}
+
+
+function openVideoGuideModal() {
+  const m = document.getElementById('videoGuideModal');
+  if (m) m.classList.remove('hidden');
+}
+
+function closeVideoGuideModal() {
+  const m = document.getElementById('videoGuideModal');
+  const v = document.getElementById('guideVideoPlayer');
+  if (v) v.pause();
+  if (m) m.classList.add('hidden');
+}
+
+function switchGuideVideo(ep) {
+  const specs = {
+    1: { src: 'videos/jlpt_n2_intro_ep1_flagship_overview.mp4', srt: 'videos/jlpt_n2_intro_ep1_flagship_overview.srt', desc: '目前播放：Ep.1【總綱首映篇】為什麼台灣學習者需要 JLPT N2 認知診斷平台？ (150.0s / -14.9 LUFS)' },
+    2: { src: 'videos/jlpt_n2_intro_ep2_tab1_walkthrough.mp4', srt: 'videos/jlpt_n2_intro_ep2_tab1_walkthrough.srt', desc: '目前播放：Ep.2【實戰操作篇】Tab 1 互動刷題、星號組裝與 286 軌純神經聽解完全指南 (150.0s / -14.6 LUFS)' },
+    3: { src: 'videos/jlpt_n2_intro_ep3_irt_fsrs_mastery.mp4', srt: 'videos/jlpt_n2_intro_ep3_irt_fsrs_mastery.srt', desc: '目前播放：Ep.3【診斷與記憶複利篇】Tab 2 量尺預測、合否通知書與 Tab 3 FSRS 百寶箱攻略 (150.0s / -14.9 LUFS)' }
+  };
+  const s = specs[ep] || specs[1];
+  const v = document.getElementById('guideVideoPlayer');
+  const dl = document.getElementById('guideVideoDownloadLink');
+  const desc = document.getElementById('guideVideoDesc');
+  const track = document.getElementById('guideVideoTrack');
+  if (track) track.src = s.srt;
+  if (v) { v.src = s.src; v.load(); v.play().catch(() => {}); }
+  if (dl) dl.href = s.src;
+  if (desc) desc.textContent = s.desc;
+  [1, 2, 3].forEach(i => {
+    const b = document.getElementById('vidTabBtn' + i);
+    if (!b) return;
+    if (i === ep) {
+      b.className = 'p-2.5 rounded-xl bg-amber-500/20 text-left transition';
+    } else {
+      b.className = 'p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800 text-left transition';
+    }
+  });
 }
 
   </script>

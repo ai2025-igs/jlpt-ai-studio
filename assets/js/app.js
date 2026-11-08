@@ -2512,3 +2512,42 @@ function downloadExportMarkdownFile() {
   URL.revokeObjectURL(url);
   showToast('⬇️ 已下載 NotebookLM 專屬 .md 學習包檔案！', 'emerald');
 }
+
+
+function openVideoGuideModal() {
+  const m = document.getElementById('videoGuideModal');
+  if (m) m.classList.remove('hidden');
+}
+
+function closeVideoGuideModal() {
+  const m = document.getElementById('videoGuideModal');
+  const v = document.getElementById('guideVideoPlayer');
+  if (v) v.pause();
+  if (m) m.classList.add('hidden');
+}
+
+function switchGuideVideo(ep) {
+  const specs = {
+    1: { src: 'videos/jlpt_n2_intro_ep1_flagship_overview.mp4', srt: 'videos/jlpt_n2_intro_ep1_flagship_overview.srt', desc: '目前播放：Ep.1【總綱首映篇】為什麼台灣學習者需要 JLPT N2 認知診斷平台？ (150.0s / -14.9 LUFS)' },
+    2: { src: 'videos/jlpt_n2_intro_ep2_tab1_walkthrough.mp4', srt: 'videos/jlpt_n2_intro_ep2_tab1_walkthrough.srt', desc: '目前播放：Ep.2【實戰操作篇】Tab 1 互動刷題、星號組裝與 286 軌純神經聽解完全指南 (150.0s / -14.6 LUFS)' },
+    3: { src: 'videos/jlpt_n2_intro_ep3_irt_fsrs_mastery.mp4', srt: 'videos/jlpt_n2_intro_ep3_irt_fsrs_mastery.srt', desc: '目前播放：Ep.3【診斷與記憶複利篇】Tab 2 量尺預測、合否通知書與 Tab 3 FSRS 百寶箱攻略 (150.0s / -14.9 LUFS)' }
+  };
+  const s = specs[ep] || specs[1];
+  const v = document.getElementById('guideVideoPlayer');
+  const dl = document.getElementById('guideVideoDownloadLink');
+  const desc = document.getElementById('guideVideoDesc');
+  const track = document.getElementById('guideVideoTrack');
+  if (track) track.src = s.srt;
+  if (v) { v.src = s.src; v.load(); v.play().catch(() => {}); }
+  if (dl) dl.href = s.src;
+  if (desc) desc.textContent = s.desc;
+  [1, 2, 3].forEach(i => {
+    const b = document.getElementById('vidTabBtn' + i);
+    if (!b) return;
+    if (i === ep) {
+      b.className = 'p-2.5 rounded-xl bg-amber-500/20 text-left transition';
+    } else {
+      b.className = 'p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800 text-left transition';
+    }
+  });
+}
