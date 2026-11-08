@@ -234,3 +234,13 @@ button, a, input, select, label, [onclick] {
     transform: none;
   }
 }
+
+/* iGS Demo Center Access Portal Styling */
+.igs-cosmos-bg {
+  background-color: #0f172a;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(16, 185, 129, 0.08) 0%, transparent 38%),
+    radial-gradient(circle at 82% 76%, rgba(56, 189, 248, 0.07) 0%, transparent 40%),
+    radial-gradient(rgba(148, 163, 184, 0.16) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 36px 36px;
+}

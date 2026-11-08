@@ -68,6 +68,7 @@ let flaggedQuestionIds = new Set();
 let currentTourStep = 0;
 
 window.addEventListener('DOMContentLoaded', async () => {
+  initIgsAccessGate();
   loadPersistedProgress();
   initEqualizerBars();
   renderPedagogicalTheoryModalContent();
@@ -85,6 +86,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   window.addEventListener('keydown', (e) => {
+    if (!isIgsStudioUnlocked()) return;
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
     if (e.key >= '1' && e.key <= '4') {
       const idx = parseInt(e.key, 10) - 1;
@@ -1077,7 +1079,7 @@ function startPacingTimer(targetSec) {
   updateTimerUI(targetSec);
   updateMacroExamTimerUI(q);
   timerInterval = setInterval(() => {
-    if (!isSubmitted) {
+    if (!isSubmitted && isIgsStudioUnlocked()) {
       elapsedSeconds++;
       const curQ = getCurrentQuestion();
       if (macroExamTimerActive || currentPoolScope === 'MOCK_100') {
@@ -2550,4 +2552,196 @@ function switchGuideVideo(ep) {
       b.className = 'p-2.5 rounded-xl bg-slate-950/70 hover:bg-slate-800 text-left transition';
     }
   });
+}
+
+/*************************************************************************
+ * iGS DEMO CENTER ACCESS PORTAL (SHA-256 + FNV-1A ZERO-PLAINTEXT GATE)
+ *************************************************************************/
+const IGS_AUTH_STORAGE_KEY = 'jlpt_igs_access_v1';
+const IGS_CODE_SHA256 = '5ff60895ec5cc3febc7389e0872753ab7b811dc9df29f4d567cf2ab2ae8adce7';
+const IGS_CODE_FNV1A = '90d82d5e';
+const IGS_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 Days
+let igsFailedAttempts = 0;
+let igsLockoutUntil = 0;
+
+function computeFnv1aHex(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i) & 0xff;
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, '0');
+}
+
+async function computeSha256Hex(str) {
+  if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+    const buf = new TextEncoder().encode(str);
+    const hashBuf = await window.crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hashBuf))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+  return null;
+}
+
+async function verifyIgsAccessCodeDigest(rawInput) {
+  const normalized = String(rawInput || '').trim().toLowerCase();
+  if (!normalized) return false;
+  const fnv = computeFnv1aHex(normalized);
+  if (fnv !== IGS_CODE_FNV1A || normalized.length !== 3) return false;
+  const sha = await computeSha256Hex(normalized);
+  if (sha !== null) {
+    return sha === IGS_CODE_SHA256;
+  }
+  return true;
+}
+
+function isIgsStudioUnlocked() {
+  try {
+    const raw = localStorage.getItem(IGS_AUTH_STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data || data.token !== IGS_CODE_FNV1A) return false;
+    if (Date.now() - (data.ts || 0) > IGS_SESSION_TTL_MS) {
+      localStorage.removeItem(IGS_AUTH_STORAGE_KEY);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function persistIgsStudioUnlock() {
+  try {
+    localStorage.setItem(
+      IGS_AUTH_STORAGE_KEY,
+      JSON.stringify({ token: IGS_CODE_FNV1A, ts: Date.now() })
+    );
+  } catch (e) {}
+}
+
+function hideIgsAccessGateOverlay() {
+  const overlay = document.getElementById('igsAccessGateOverlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    overlay.classList.remove('flex');
+  }
+}
+
+function showIgsAccessGateOverlay() {
+  const overlay = document.getElementById('igsAccessGateOverlay');
+  if (overlay) {
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+  }
+  const input = document.getElementById('igsAccessCodeInput');
+  if (input) {
+    input.value = '';
+    setTimeout(() => input.focus(), 80);
+  }
+}
+
+async function initIgsAccessGate() {
+  // 1. Check URL query parameter (?access=... or ?code=...) for classroom QR code convenience
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const urlCode = params.get('access') || params.get('code');
+    if (urlCode && await verifyIgsAccessCodeDigest(urlCode)) {
+      persistIgsStudioUnlock();
+      params.delete('access');
+      params.delete('code');
+      const cleanQuery = params.toString();
+      const cleanUrl = window.location.pathname + (cleanQuery ? '?' + cleanQuery : '') + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  } catch (e) {}
+
+  // 2. Check persisted 30-day session token
+  if (isIgsStudioUnlocked()) {
+    hideIgsAccessGateOverlay();
+  } else {
+    showIgsAccessGateOverlay();
+  }
+}
+
+async function submitIgsAccessCode() {
+  const feedbackEl = document.getElementById('igsAccessFeedbackText');
+  const inputEl = document.getElementById('igsAccessCodeInput');
+  const now = Date.now();
+
+  if (now < igsLockoutUntil) {
+    const waitSec = Math.ceil((igsLockoutUntil - now) / 1000);
+    if (feedbackEl) {
+      feedbackEl.textContent = `🔒 嘗試次數過多，系統保護鎖定中，請於 ${waitSec} 秒後再試`;
+      feedbackEl.className = 'text-xs text-rose-400 font-bold pt-1';
+    }
+    return;
+  }
+
+  const rawVal = inputEl ? inputEl.value : '';
+  const ok = await verifyIgsAccessCodeDigest(rawVal);
+
+  if (ok) {
+    igsFailedAttempts = 0;
+    persistIgsStudioUnlock();
+    hideIgsAccessGateOverlay();
+    elapsedSeconds = 0;
+    if (feedbackEl) {
+      feedbackEl.textContent = '✦ Access Granted — Welcome to iGS JLPT AI Studio!';
+      feedbackEl.className = 'text-xs text-emerald-300 font-bold pt-1';
+    }
+    showToast('🔓 iGS 通行驗證成功！歡迎使用 JLPT N2 互動式 AI 刷題與認知診斷系統。', 'emerald');
+  } else {
+    igsFailedAttempts += 1;
+    if (igsFailedAttempts >= 5) {
+      igsLockoutUntil = Date.now() + 30000;
+      igsFailedAttempts = 0;
+      if (feedbackEl) {
+        feedbackEl.textContent = '🔒 連續輸入錯誤達 5 次，請稍候 30 秒再試';
+        feedbackEl.className = 'text-xs text-rose-400 font-bold pt-1';
+      }
+    } else {
+      if (feedbackEl) {
+        feedbackEl.textContent = `⚠️ 通行碼不正確（提示：3 碼英文縮寫，不分大小寫，剩餘 ${5 - igsFailedAttempts} 次機會）`;
+        feedbackEl.className = 'text-xs text-amber-300 font-bold pt-1';
+      }
+    }
+    if (inputEl) {
+      inputEl.select();
+    }
+  }
+}
+
+function handleIgsAccessKeydown(e) {
+  if (e && e.key === 'Enter') {
+    e.preventDefault();
+    submitIgsAccessCode();
+  }
+}
+
+function toggleIgsAccessPasswordVisibility() {
+  const inputEl = document.getElementById('igsAccessCodeInput');
+  const btnEl = document.getElementById('igsTogglePwdBtn');
+  if (!inputEl) return;
+  if (inputEl.type === 'password') {
+    inputEl.type = 'text';
+    if (btnEl) btnEl.textContent = '🙈';
+  } else {
+    inputEl.type = 'password';
+    if (btnEl) btnEl.textContent = '👁️';
+  }
+}
+
+function lockIgsStudio() {
+  try {
+    localStorage.removeItem(IGS_AUTH_STORAGE_KEY);
+  } catch (e) {}
+  if (typeof stopListeningDialogue === 'function') stopListeningDialogue();
+  const feedbackEl = document.getElementById('igsAccessFeedbackText');
+  if (feedbackEl) {
+    feedbackEl.textContent = '✦ 已安全鎖定畫面，請輸入通行碼解鎖';
+    feedbackEl.className = 'text-xs text-slate-300 font-medium pt-1';
+  }
+  showIgsAccessGateOverlay();
 }
